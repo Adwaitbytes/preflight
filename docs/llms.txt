@@ -1,0 +1,27 @@
+# Preflight
+
+> Preflight explains why a Bittensor neuron earns zero, decodes failed transactions using the chain state they were checked against, and simulates extrinsics before you pay for them. Read only on mainnet; nothing signs or broadcasts.
+
+Base URL: https://preflight-lemon.vercel.app. Networks: finney, test. All responses are JSON with a `chain` object giving the block, block hash and runtime spec the answer was read at. OpenAPI: /v1/openapi.json
+
+## HTTP API
+
+- [Doctor](https://preflight-lemon.vercel.app/v1/docs): GET /v1/doctor/{network}/{hotkey}?netuid= returns a verdict (healthy, warning, broken), a one sentence headline, and findings PF101 to PF306, each with evidence, explanation and an exact fix command
+- GET /v1/history/{network}/{hotkey}?netuid=: incentive, trust, emission and validators weighting the UID, one point per tempo
+- GET /v1/tx/{network}/{ref}: decode an extrinsic by 0x hash (last 300 blocks) or block-index like 9376733-28, with the dispatch error explained
+- POST /v1/explain-error {"text": "..."}: explain pasted btcli or SDK error output
+- POST /v1/sim/{network} {"action": "burned_register", "coldkey": "...", "hotkey": "...", "netuid": 64}: would it succeed, which error, fees, effects. Actions: burned_register, add_stake, remove_stake, set_weights, serve_axon, register_network, start_call
+- GET /v1/plan/{network}: subnet lock cost, rate limit, which subnet registration would dissolve at the cap, timeline in blocks
+- GET /v1/subnets/{network} and /v1/subnets/{network}/{netuid}: live numbers, health score with factors, hyperparameters explained
+- GET /v1/find?q=: search the curated directory by capability
+- GET /v1/ask?q=: route a plain question to the right endpoint
+
+## MCP
+
+claude mcp add preflight -- uvx --from git+https://github.com/Adwaitbytes/preflight preflight mcp
+
+Tools: diagnose_neuron, explain_extrinsic, explain_error, simulate, subnet_health, launch_plan, find_subnet. Quote fix commands exactly as returned.
+
+## Rule ids
+
+PF101 not registered, PF102 recently deregistered, PF103 in immunity, PF104 near pruning, PF105 axon not served, PF106 axon address unreachable, PF107 axon did not answer a probe, PF108 no validator weight, PF109 only stale validators score it, PF110 weighted but clipped by consensus, PF111 low trust, PF112 coldkey crowding, PF113 weights version key, PF201 no validator permit, PF202 weights stale, PF203 rate limited, PF204 below minimum stake for weights, PF205 commit pending reveal, PF206 weight limits, PF207 self weighting, PF208 copier signature, PF301 registration closed, PF302 burn spiking, PF303 emissions not started, PF304 near full burn, PF305 validators mostly stale, PF306 owner self mining
