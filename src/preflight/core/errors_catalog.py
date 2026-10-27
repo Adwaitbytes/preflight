@@ -19,6 +19,10 @@ from bittensor import result as sdk_result
 from bittensor._generated.errors import ERRORS as MODULE_ERRORS
 
 SITE = "https://www.bittensor.com"
+# The SDK keeps its pool rejection tables private; they are the only source of subtensor's
+# custom validity codes and the InvalidTransaction display strings, so read them once here.
+_CUSTOM_CODES: dict[int, str] = vars(sdk_result)["_CUSTOM_TRANSACTION_ERRORS"]
+_POOL_PHRASES: tuple[tuple[str, str], ...] = tuple(vars(sdk_result)["_INVALID_TRANSACTION_ERRORS"])
 
 
 @dataclass(frozen=True)
@@ -85,7 +89,7 @@ def module_error_name(pallet_index: int, error_index: int) -> tuple[str, str] | 
 
 
 def custom_validity_name(code: int) -> str | None:
-    return sdk_result._CUSTOM_TRANSACTION_ERRORS.get(code)  # pyright: ignore[reportPrivateUsage]  # the SDK keeps this table private; it is the only source of the codes
+    return _CUSTOM_CODES.get(code)
 
 
 INVALID_TRANSACTION = {
@@ -116,7 +120,7 @@ def parse_error_names(text: str) -> list[str]:
             found.append(name)
 
     errors = chain_errors()
-    for pallet, name in _QUALIFIED.findall(text):
+    for _pallet, name in _QUALIFIED.findall(text):
         if name in errors:
             add(name)
     for pallet_index, error_hex in _MODULE.findall(text):
@@ -127,7 +131,7 @@ def parse_error_names(text: str) -> list[str]:
         if (name := custom_validity_name(int(code))) is not None:
             add(name)
     lowered = text.lower()
-    for needle, name in sdk_result._INVALID_TRANSACTION_ERRORS:  # pyright: ignore[reportPrivateUsage]  # SDK-private table, see above
+    for needle, name in _POOL_PHRASES:
         if needle in lowered:
             add(name)
     for name in _CAMEL.findall(text):

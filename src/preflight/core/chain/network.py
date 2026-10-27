@@ -6,6 +6,7 @@ carries the block number, hash and runtime spec into the result as a `ChainRef`.
 
 from __future__ import annotations
 
+import contextlib
 import threading
 import time
 from collections.abc import Callable
@@ -16,7 +17,6 @@ from typing import Any
 import bittensor as bt
 
 from ..models import ChainRef, NetworkName
-
 
 ENDPOINTS: dict[str, str] = {
     "finney": "wss://entrypoint-finney.opentensor.ai:443",
@@ -109,10 +109,9 @@ def drop_client(network: Network) -> None:
     with _pool_lock:
         client = _pool.pop(network.endpoint, None)
     if client is not None:
-        try:
+        # Closing a dead socket can fail; the client is gone either way.
+        with contextlib.suppress(Exception):
             client.close()
-        except Exception:  # closing a dead socket can fail; the client is gone either way
-            pass
 
 
 def with_retries[R](network: Network, read: Callable[[], R]) -> R:
@@ -178,11 +177,18 @@ def pin(network: Network, block: int | None = None) -> Pinned:
     return with_retries(network, read)
 
 
-_executor = ThreadPoolExecutor(max_workers=16, thread_name_prefix="preflight-read")
+_READ_THREAD = "preflight-read"
+_executor = ThreadPoolExecutor(max_workers=16, thread_name_prefix=_READ_THREAD)
 
 
 def gather(reads: dict[str, Callable[[], Any]]) -> dict[str, Any]:
     """Run independent reads concurrently. The SDK's sync client hands each call to one
-    event loop, so these multiplex over a single websocket instead of queueing."""
+    event loop, so these multiplex over a single websocket instead of queueing.
+
+    A gather inside a pool worker runs inline: otherwise outer tasks could hold every
+    worker while waiting on inner reads that never get one, and deadlock.
+    """
+    if threading.current_thread().name.startswith(_READ_THREAD):
+        return {key: read() for key, read in reads.items()}
     futures = {key: _executor.submit(read) for key, read in reads.items()}
     return {key: future.result() for key, future in futures.items()}

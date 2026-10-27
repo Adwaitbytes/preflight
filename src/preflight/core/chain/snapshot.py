@@ -67,7 +67,7 @@ class SubnetSnapshot(Model):
         description="Validator UID to its latest normalized weight row"
     )
     burn_tao: float
-    burn_history: list[tuple[int, float]] = []
+    burn_history: list[tuple[int, float]] = Field(default_factory=list)
     regs_this_block: int
     regs_this_interval: int
     last_adjustment_block: int
@@ -137,7 +137,7 @@ class NeuronSnapshot(Model):
     subnet: SubnetSnapshot
     hotkey: str
     uid: int | None
-    commits: list[PendingCommit] = []
+    commits: list[PendingCommit] = Field(default_factory=list)
     previous_weights: dict[int, dict[int, float]] = Field(
         default={}, description="Weight rows one tempo before the pinned block, for PF208"
     )
@@ -162,9 +162,11 @@ def _balance(value: Any) -> float:
 def _int(value: Any, default: int = 0) -> int:
     if value is None:
         return default
-    if isinstance(value, dict) and "bits" in value:
-        return int(value["bits"])
-    return int(value)
+    if isinstance(value, dict):
+        bits: Any = value.get("bits", default)  # pyright: ignore[reportUnknownMemberType]  # decoded SCALE dict
+        return int(bits)
+    number: Any = value
+    return int(number)
 
 
 def parse_axon(value: Any) -> AxonInfo | None:
@@ -373,18 +375,29 @@ def uid_at(pinned: Pinned, netuid: int, hotkey: str, block: int) -> int | None:
 def find_deregistration(
     pinned: Pinned, netuid: int, hotkey: str, *, window: int = 7200 * 3
 ) -> Deregistration | None:
-    """Binary search back from the pinned block for the block where the hotkey lost its UID.
+    """The block where the hotkey lost its UID, searched back from the pinned block.
 
-    Returns None when it held no UID at the start of the window either (never
-    registered recently) or when the node has pruned that state.
+    Gallops back in doubling steps until a block where the hotkey held a UID, then binary
+    searches the gap. That finds recent losses on young chains, and stops cleanly where a
+    non-archive node has pruned state. None when no seat is found within `window` blocks.
     """
     high = pinned.block
-    low = max(1, high - window)
-    try:
-        uid_then = uid_at(pinned, netuid, hotkey, low)
-    except Exception:  # non-archive node: state that old is gone
-        return None
-    if uid_then is None:
+    low: int | None = None
+    step = 1
+    while step <= window:
+        probe = max(1, pinned.block - step)
+        try:
+            held = uid_at(pinned, netuid, hotkey, probe)
+        except Exception:  # pruned state on a non-archive node: nothing older is readable
+            return None
+        if held is not None:
+            low = probe
+            break
+        high = probe
+        if probe == 1:
+            return None
+        step *= 2
+    if low is None:
         return None
     # Invariant: registered at `low`, not registered at `high`.
     while high - low > 1:
@@ -440,7 +453,8 @@ def read_neuron(
 
 def read_weights_at(pinned: Pinned, netuid: int, block: int) -> dict[int, dict[int, float]]:
     try:
-        rows = pinned.client.at(block).weights.weights(netuid)
+        view: Any = pinned.client.at(block)  # namespaces resolve dynamically
+        rows = view.weights.weights(netuid)
     except Exception:  # pruned history on a non-archive node; PF208 then stays silent
         return {}
     return {int(v): {int(u): float(w) for u, w in row.items()} for v, row in rows.items()}

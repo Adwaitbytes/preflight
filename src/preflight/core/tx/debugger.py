@@ -107,7 +107,8 @@ def _context(
         reads["min_weights"] = lambda: q(R.MIN_ALLOWED_WEIGHTS, [netuid])
         reads["threshold"] = lambda: q(R.STAKE_THRESHOLD)
         if error == "TooManyUnrevealedCommits":
-            reads["commits"] = lambda: client.at(before).weights.timelocked_weight_commits(netuid)
+            past: Any = client.at(before)  # namespaces resolve dynamically
+            reads["commits"] = lambda: past.weights.timelocked_weight_commits(netuid)
         if hotkey:
             reads["uid"] = lambda: q(R.UIDS, [netuid, hotkey])
             reads["alpha"] = lambda: q(("SubtensorModule", "TotalHotkeyAlpha"), [hotkey, netuid])

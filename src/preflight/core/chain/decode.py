@@ -43,11 +43,12 @@ def dispatch_failure(error: Any) -> DispatchFailure:
     if isinstance(error, dict) and "Module" in error:
         module = error["Module"] or {}
         pallet_index = int(module.get("index", -1))
-        raw = module.get("error")
+        raw: Any = module.get("error")
         if isinstance(raw, str):
             error_index = int(raw.removeprefix("0x")[:2] or "0", 16)
-        elif isinstance(raw, list | tuple) and raw:
-            error_index = int(raw[0])
+        elif isinstance(raw, list | tuple):
+            items: list[Any] = list(raw)  # pyright: ignore[reportUnknownArgumentType]  # decoded SCALE bytes
+            error_index = int(items[0]) if items else 0
         else:
             error_index = int(raw or 0)
         resolved = catalog.module_error_name(pallet_index, error_index)

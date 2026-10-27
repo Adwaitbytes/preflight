@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import sys
-from contextlib import nullcontext
 from collections.abc import Callable
+from contextlib import nullcontext
 from enum import StrEnum
 from typing import Annotated
 
@@ -16,6 +16,7 @@ from rich.console import Console
 from . import __version__, render
 from .core import validate
 from .core.chain.network import ChainUnreachable, Network
+from .core.local import LocalState
 from .core.models import SEVERITY_RANK, Severity
 
 app = typer.Typer(
@@ -200,6 +201,157 @@ def mcp() -> None:
     from .mcp_server import run as serve_mcp
 
     serve_mcp()
+
+
+@app.command()
+def plan(network: NetworkOpt = "finney", as_json: JsonOpt = False) -> None:
+    """What launching a subnet costs now, which subnet it would replace, and the timeline"""
+    from .core.plan.launch import launch_plan
+
+    result = run(lambda: launch_plan(Network.resolve(network)))
+    emit(result, as_json, lambda: render.plan(console, result))
+
+
+@app.command()
+def subnet(
+    netuid: Annotated[int, typer.Argument(help="Subnet netuid")],
+    network: NetworkOpt = "finney",
+    params: Annotated[bool, typer.Option("--params/--no-params", help="Show the hyperparameter table")] = True,
+    as_json: JsonOpt = False,
+) -> None:
+    """Health score with its factors, every hyperparameter explained, and the catalog entry"""
+    from .core.directory.live import subnet_detail
+
+    def go():
+        with console.status(f"Reading SN{netuid}", spinner="dots") if not as_json else nullcontext():
+            return subnet_detail(Network.resolve(network), int(validate.netuid(netuid) or 0))
+
+    result = run(go)
+    emit(result, as_json, lambda: render.subnet(console, result, show_params=params))
+
+
+@app.command()
+def find(
+    query: Annotated[str, typer.Argument(help="Capability words, like '3d generation' or 'inference api'")],
+    as_json: JsonOpt = False,
+) -> None:
+    """Search the curated subnet directory; every entry cites its sources"""
+    from .core.directory.catalog import search
+    from .core.models import SubnetCard
+
+    cards = [SubnetCard(netuid=e.netuid, catalog=e, live=None, health=None) for e in search(query)]
+    if as_json:
+        sys.stdout.write("[" + ",".join(c.model_dump_json() for c in cards) + "]\n")
+        return
+    if not cards:
+        err.print(f"No subnet in the directory matches {query!r}")
+        raise typer.Exit(1)
+    render.cards(console, cards)
+
+
+local_app = typer.Typer(help="A throwaway localnet with a working subnet, and ways to break it", no_args_is_help=True)
+app.add_typer(local_app, name="local")
+
+
+def _local_table(state: LocalState) -> None:
+    from rich.table import Table
+
+    console.print(f"Localnet {state.endpoint}, runtime {state.runtime_spec}, block {state.block:,}, subnet SN{state.netuid} with tempo {state.tempo}")
+    table = Table(header_style="dim", box=None, padding=(0, 1))
+    for column in ("Name", "Role", "SN", "UID", "Hotkey", "Axon", "Stake"):
+        table.add_column(column)
+    for n in state.neurons:
+        table.add_row(n.name, n.role, str(n.netuid), "" if n.uid is None else str(n.uid), n.hotkey, n.axon or "", f"{n.stake:,.2f}")
+    console.print(table)
+
+
+def _local[T](action: Callable[[], T]) -> T:
+    from .core.chain.harness import ChainError
+    from .core.chain.localnet import LocalnetError
+    from .core.local import KitError
+
+    try:
+        return action()
+    except (KitError, LocalnetError) as error:
+        err.print(f"[red]{error}[/red]")
+        raise typer.Exit(2) from error
+    except ChainError as error:
+        err.print(f"[red]Localnet chain error:[/red] {error}")
+        raise typer.Exit(3) from error
+
+
+@local_app.command("up")
+def local_up(
+    miners: Annotated[int, typer.Option("--miners")] = 3,
+    validators: Annotated[int, typer.Option("--validators")] = 2,
+    tempo: Annotated[int, typer.Option("--tempo")] = 100,
+    as_json: JsonOpt = False,
+) -> None:
+    """Boot a fresh localnet: subnet created, miners served and scored, emissions flowing"""
+    from .core.local import up
+
+    with console.status("Starting localnet", spinner="dots") as status:
+        state = _local(lambda: up(miners, validators, tempo, progress=lambda m: status.update(m)))
+    if as_json:
+        sys.stdout.write(state.model_dump_json(indent=2) + "\n")
+        return
+    _local_table(state)
+
+
+@local_app.command("down")
+def local_down() -> None:
+    """Remove the localnet container and forget its dev keys"""
+    from .core.local import down
+
+    _local(down)
+    console.print("Localnet removed")
+
+
+@local_app.command("reset")
+def local_reset() -> None:
+    """A fresh chain with the same shape as the last `local up`"""
+    from .core.local import reset
+
+    with console.status("Resetting localnet", spinner="dots") as status:
+        state = _local(lambda: reset(progress=lambda m: status.update(m)))
+    _local_table(state)
+
+
+@local_app.command("status")
+def local_status(as_json: JsonOpt = False) -> None:
+    """Show the running localnet and its neurons"""
+    from .core.local import status
+
+    state = _local(status)
+    if state is None:
+        err.print("Nothing is up. Run `preflight local up`")
+        raise typer.Exit(2)
+    if as_json:
+        sys.stdout.write(state.model_dump_json(indent=2) + "\n")
+        return
+    _local_table(state)
+
+
+@local_app.command("break")
+def local_break(
+    scenario: Annotated[str, typer.Argument(help="unserved-axon, loopback-axon, stale-validator, rate-limited-validator, low-stake-validator, pending-reveal, deregistered-miner, no-weight-miner")],
+    as_json: JsonOpt = False,
+) -> None:
+    """Create one failure the Doctor detects, for demos and integration tests"""
+    from .core.local import break_scenario
+
+    with console.status(f"Breaking: {scenario}", spinner="dots") as status:
+        result = _local(lambda: break_scenario(scenario, progress=lambda m: status.update(m)))
+    if as_json:
+        sys.stdout.write(result.model_dump_json(indent=2) + "\n")
+        return
+    console.print(f"[bold]{result.summary}[/bold]")
+    for step in result.steps:
+        console.print(f"  [dim]-[/dim] {step}")
+    if result.failed_extrinsic and result.failed_extrinsic.error:
+        console.print(f"  [dim]-[/dim] the chain rejected the first attempt with [red]{result.failed_extrinsic.error}[/red]")
+        console.print(f"\nExplain that rejection:  [bold green]preflight tx {result.failed_extrinsic.error} --network local[/bold green]")
+    console.print(f"Diagnose it:  [bold green]preflight doctor {result.hotkey} --netuid {result.netuid} --network local[/bold green]  (expect {result.expected_rule})")
 
 
 @app.command()

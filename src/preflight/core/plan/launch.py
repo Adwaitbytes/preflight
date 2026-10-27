@@ -137,7 +137,7 @@ def launch_plan(network: Network) -> LaunchPlan:
 
     defaults_raw = merge_defaults(got)
     defaults = explain_hyperparams(defaults_raw, block_seconds)
-    timeline = _timeline(
+    timeline = build_timeline(
         block=next_allowed if next_allowed is not None else block,
         rate_limited=next_allowed is not None and next_allowed > block,
         cost=cost,
@@ -174,7 +174,7 @@ def launch_plan(network: Network) -> LaunchPlan:
     )
 
 
-def _timeline(
+def build_timeline(
     *,
     block: int,
     rate_limited: bool,

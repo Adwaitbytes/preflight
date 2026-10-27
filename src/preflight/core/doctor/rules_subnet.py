@@ -24,7 +24,7 @@ from .common import (
     wait,
 )
 
-C, H, M, I = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
+C, H, M, INFO = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
 HALTING_REASONS = "https://www.bittensor.com/docs/concepts/emissions"
 
 

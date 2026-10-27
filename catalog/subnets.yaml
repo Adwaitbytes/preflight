@@ -1,0 +1,535 @@
+# Subnet capability directory. Researched 2026-10-27 against each subnet's own site, docs and GitHub README.
+- netuid: 1
+  name: Apex
+  summary: Competition platform where organizations post optimization problems with a benchmark and miners compete to submit the best algorithm
+  capabilities: [other]
+  operator: Macrocosmos
+  website: https://apex.macrocosmos.ai
+  github: https://github.com/macrocosm-os/apex
+  docs: https://docs.macrocosmos.ai/subnets/readme.md
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://apex.macrocosmos.ai
+  - https://github.com/macrocosm-os/apex
+  - https://docs.macrocosmos.ai/llms.txt
+- netuid: 3
+  name: Teutonic
+  summary: King-of-the-hill LLM pretraining competition; each winning MoE checkpoint is published to a public model bucket
+  capabilities: [training]
+  operator: null
+  website: https://www.teutonic.ai/
+  github: https://github.com/unarbos/teutonic
+  docs: https://teutonic.ai/llms.txt
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.teutonic.ai/
+  - https://teutonic.ai/llms.txt
+  - https://github.com/unarbos/teutonic
+- netuid: 4
+  name: Targon
+  summary: Rent confidential GPU and CPU VMs, bare metal servers and sandboxes through a web console, CLI, SDK or REST API
+  capabilities: [compute, security]
+  operator: Manifold Labs, Inc.
+  website: https://targon.com
+  github: https://github.com/manifold-inc/targon
+  docs: https://docs.targon.com/
+  api: https://api.targon.com/tha/v3
+  api_example: curl -s https://api.targon.com/tha/v3/region
+  api_needs_key: false
+  sources:
+  - https://targon.com
+  - https://docs.targon.com/
+  - https://docs.targon.com/api/workloads
+  - https://github.com/manifold-inc/targon
+- netuid: 5
+  name: Hone
+  summary: RLVR subnet where miners solve software engineering and terminal tasks that validators grade in isolated Docker sandboxes
+  capabilities: [training, agents]
+  operator: null
+  website: https://honedashboard.com
+  github: https://github.com/hone-subnet-org/hone-subnet
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://honedashboard.com
+  - https://github.com/hone-subnet-org/hone-subnet
+- netuid: 8
+  name: Vanta
+  summary: Trading signal network that scores miner positions on forex, crypto, equities and commodities and funds top traders
+  capabilities: [finance, prediction]
+  operator: Taoshi
+  website: https://www.vantanetwork.io/
+  github: https://github.com/taoshidev/vanta-network
+  docs: https://app.vantatrading.io/docs
+  api: https://app.vantatrading.io
+  api_example: null
+  api_needs_key: true
+  sources:
+  - https://www.vantanetwork.io/
+  - https://github.com/taoshidev/vanta-network
+  - https://vantatrading.io
+  - https://app.vantatrading.io/docs
+- netuid: 9
+  name: iota
+  summary: Framework for pretraining LLMs across heterogeneous permissionless miners using data and pipeline parallelism
+  capabilities: [training]
+  operator: Macrocosmos
+  website: https://iota.macrocosmos.ai/
+  github: https://github.com/macrocosm-os/iota
+  docs: https://docs.macrocosmos.ai
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://iota.macrocosmos.ai/
+  - https://github.com/macrocosm-os/iota
+- netuid: 11
+  name: TrajectoryRL
+  summary: Competition for fusion policies that route agent requests across open-weight models on Engy; the winner is served as engy/auto
+  capabilities: [agents, inference]
+  operator: null
+  website: https://trajrl.com
+  github: https://github.com/trajectoryRL/trajectoryRL
+  docs: https://trajrl.com/docs
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://trajrl.com
+  - https://trajrl.com/docs
+  - https://github.com/trajectoryRL/trajectoryRL
+- netuid: 13
+  name: Data Universe
+  summary: Social media data from X, Reddit and YouTube via an on-demand API, scheduled dataset jobs and a dataset marketplace
+  capabilities: [data]
+  operator: Macrocosmos
+  website: https://datauniverse.macrocosmos.ai/
+  github: https://github.com/macrocosm-os/data-universe
+  docs: https://docs.macrocosmos.ai/subnets/subnet-13-data-universe/readme.md
+  api: https://constellation.api.cloud.macrocosmos.ai
+  api_example: null
+  api_needs_key: true
+  sources:
+  - https://datauniverse.macrocosmos.ai/
+  - https://github.com/macrocosm-os/data-universe
+  - https://docs.macrocosmos.ai/llms.txt
+  - https://docs.macrocosmos.ai/subnets/subnet-13-data-universe/readme.md
+  - https://docs.macrocosmos.ai/subnets/subnet-13-data-universe/readme/gravity.md
+- netuid: 15
+  name: ORO
+  summary: Benchmark and competition for AI shopping agents run in sandboxed ORO Bench worlds, with a public leaderboard API
+  capabilities: [agents]
+  operator: ORO AI
+  website: https://oroagents.com
+  github: https://github.com/ORO-AI/oro
+  docs: https://oroagents.com/docs
+  api: https://api.oroagents.com
+  api_example: curl -s "https://api.oroagents.com/v1/public/leaderboard"
+  api_needs_key: false
+  sources:
+  - https://oroagents.com
+  - https://oroagents.com/docs
+  - https://oroagents.com/docs/api
+  - https://github.com/ORO-AI/oro
+- netuid: 17
+  name: 404-GEN
+  summary: Text-to-3D generation (Gaussian splats and meshes) via a web app and Blender and Unity plugins; miners compete on 3D models
+  capabilities: [3d]
+  operator: null
+  website: https://www.404.xyz
+  github: https://github.com/404-Repo/404-gen-subnet
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.404.xyz
+  - https://www.404.xyz/about
+  - https://www.404.xyz/app
+  - https://www.404.xyz/plugin
+  - https://github.com/404-Repo/404-gen-subnet
+- netuid: 19
+  name: blockmachine
+  summary: Verified RPC and archive nodes for Bittensor, Ethereum and other EVM chains, with free keyless public endpoints
+  capabilities: [data]
+  operator: null
+  website: https://blockmachine.io
+  github: https://github.com/taostat/blockmachine
+  docs: https://blockmachine.io/public-rpc-endpoints
+  api: https://rpc-eth.blockmachine.io
+  api_example: 'curl -X POST "https://rpc-eth.blockmachine.io" -H "Content-Type: application/json" -d ''{"jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1}'''
+  api_needs_key: false
+  sources:
+  - https://blockmachine.io
+  - https://blockmachine.io/public-rpc-endpoints
+  - https://github.com/taostat/blockmachine
+- netuid: 28
+  name: SayGM
+  summary: LLM gateway with OpenAI, Anthropic and Gemini compatible APIs for Claude, GPT, Gemini and open models, some served in TEEs
+  capabilities: [inference]
+  operator: T34 Corporation FZCO
+  website: https://saygm.com/
+  github: https://github.com/taostat/gm-miner
+  docs: https://docs.saygm.com
+  api: https://api.saygm.com/v1
+  api_example: curl -fsSL "https://api.saygm.com/v1/models?api_shape=chat.completions"
+  api_needs_key: false
+  sources:
+  - https://saygm.com/
+  - https://docs.saygm.com
+  - https://docs.saygm.com/getting-started/quickstart/
+  - https://github.com/taostat/gm-miner
+- netuid: 34
+  name: Yugos
+  summary: OpenAI-compatible router API that picks the model, provider and effort for each request; miners compete on the router
+  capabilities: [inference]
+  operator: BitMind Holdings Limited
+  website: https://yugos.ai
+  github: https://github.com/BitMind-AI/yugos
+  docs: https://yugos.ai/docs
+  api: https://api.yugos.ai/v1
+  api_example: 'curl -s https://api.yugos.ai/v1/catalog -H "Authorization: Bearer $API_KEY"'
+  api_needs_key: true
+  sources:
+  - https://yugos.ai
+  - https://yugos.ai/docs
+  - https://github.com/BitMind-AI/yugos
+- netuid: 38
+  name: ChronoLLM
+  summary: LLMs trained only on data up to a cutoff year, for backtesting and quant research without lookahead bias
+  capabilities: [training, finance]
+  operator: Crunch (CrunchDAO)
+  website: https://chronollm.com/
+  github: https://github.com/chronollm/sn38
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://chronollm.crunchdao.com/
+  - https://chronollm.com/
+  - https://github.com/chronollm/sn38
+- netuid: 44
+  name: Score
+  summary: Vision models that turn live video into structured data, starting with professional sports; miners compete on models
+  capabilities: [video]
+  operator: Score
+  website: https://www.wearescore.com/
+  github: https://github.com/score-technologies/turbovision
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.wearescore.com/
+  - https://github.com/score-technologies/turbovision
+- netuid: 51
+  name: lium.io
+  summary: Hourly NVIDIA GPU rental marketplace with web, CLI, Python SDK and API access; nodes are checked by SN51 validators
+  capabilities: [compute]
+  operator: null
+  website: https://lium.io
+  github: https://github.com/Datura-ai/lium-io
+  docs: https://docs.lium.io
+  api: https://lium.io/api/public/v1
+  api_example: curl -sSL https://lium.io/api/public/v1/nodes
+  api_needs_key: false
+  sources:
+  - https://lium.io
+  - https://docs.lium.io/developers
+  - https://docs.lium.io/developers/public-nodes-feed
+  - https://github.com/Datura-ai/lium-io
+- netuid: 53
+  name: engy
+  summary: OpenAI and Anthropic compatible inference for open models, with proofs that the pinned model weights actually ran
+  capabilities: [inference, video]
+  operator: hanlin.ai
+  website: https://engy.ai
+  github: https://github.com/hanlinai/engy
+  docs: https://engy.ai/docs
+  api: https://api.engy.ai/v1
+  api_example: curl -s https://api.engy.ai/v1/models
+  api_needs_key: false
+  sources:
+  - https://engy.ai
+  - https://engy.ai/docs
+  - https://engy.ai/docs/get-started/quickstart
+  - https://engy.ai/docs/api-reference
+  - https://github.com/hanlinai/engy
+- netuid: 56
+  name: Gradients
+  summary: AutoML training of text and image models through a web app and API; miners compete in open-source training tournaments
+  capabilities: [training]
+  operator: null
+  website: https://www.gradients.io/
+  github: https://github.com/gradients-ai/G.O.D
+  docs: null
+  api: https://api.gradients.io/v1
+  api_example: 'curl --request POST --url https://api.gradients.io/v1/tasks/create --header "Authorization: $API_KEY" --header ''Content-Type: application/json'' --data ''{"model_repo": "", "ds_repo": "", "instruction_col": "", "hours_to_complete": 1}'''
+  api_needs_key: true
+  sources:
+  - https://www.gradients.io/
+  - https://github.com/gradients-ai/G.O.D
+- netuid: 61
+  name: RedTeam
+  summary: Cybersecurity programming challenges where miners submit code solutions scored daily for quality and originality
+  capabilities: [security]
+  operator: Innerworks
+  website: https://www.theredteam.io/
+  github: https://github.com/RedTeamSubnet/RedTeam
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.theredteam.io/
+  - https://github.com/RedTeamSubnet/RedTeam
+- netuid: 62
+  name: Ridges
+  summary: 'Software engineering agents: Ridgeline turns a GitHub issue into a pull request; miners compete to improve the agent'
+  capabilities: [agents]
+  operator: null
+  website: https://www.ridges.ai/
+  github: https://github.com/ridgesai/ridges
+  docs: https://docs.ridges.ai
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://docs.ridges.ai
+  - https://docs.ridges.ai/llms.txt
+  - https://github.com/ridgesai/ridges
+- netuid: 64
+  name: Chutes
+  summary: Serverless inference and deployment of open-source AI models on decentralized GPUs, with a REST API and SDK
+  capabilities: [inference, compute]
+  operator: Chutes Global Corp
+  website: https://chutes.ai
+  github: https://github.com/chutesai/chutes
+  docs: https://chutes.ai/docs
+  api: https://api.chutes.ai
+  api_example: curl -X GET "https://api.chutes.ai/invocations/stats/llm"
+  api_needs_key: false
+  sources:
+  - https://chutes.ai/docs
+  - https://chutes.ai/docs/api-reference/overview
+  - https://chutes.ai/docs/api-reference/authentication
+  - https://chutes.ai/docs/api-reference/invocations
+  - https://github.com/chutesai/chutes
+- netuid: 68
+  name: NOVA
+  summary: Open drug discovery competitions for small molecules, nanobodies and chemical search, scored by ML prediction models
+  capabilities: [science]
+  operator: Metanova Labs
+  website: https://www.metanova-labs.ai
+  github: https://github.com/metanova-labs/nova
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.metanova-labs.ai
+  - https://www.metanova-labs.ai/nova
+  - https://github.com/metanova-labs/nova
+- netuid: 75
+  name: Hippius
+  summary: Decentralized cloud with S3-compatible storage, encrypted drive, CDN, model and container registry and confidential VMs
+  capabilities: [storage, compute]
+  operator: null
+  website: https://hippius.com/
+  github: https://github.com/thenervelab/thebrain
+  docs: https://docs.hippius.com
+  api: https://s3.hippius.com
+  api_example: aws s3 presign s3://my-bucket/hello.txt --expires-in 86400 --endpoint-url https://s3.hippius.com
+  api_needs_key: true
+  sources:
+  - https://hippius.com/
+  - https://docs.hippius.com
+  - https://docs.hippius.com/storage/s3/advanced
+  - https://docs.hippius.com/blockchain/api
+  - https://github.com/thenervelab/thebrain
+- netuid: 80
+  name: OpenRoboto
+  summary: Competition to improve robot VLA models in simulation and on real xArm robots, plus egocentric data collection
+  capabilities: [training, data]
+  operator: null
+  website: https://www.openroboto.ai/
+  github: https://github.com/openroboto-ai/openroboto-subnet
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.openroboto.ai/
+  - https://github.com/openroboto-ai/openroboto-subnet
+- netuid: 83
+  name: CliqueAI
+  summary: Distributed solver network for the maximum clique graph problem; miners are scored on optimality and diversity
+  capabilities: [other]
+  operator: null
+  website: https://cliqueai.toptensor.ai/
+  github: https://github.com/toptensor/CliqueAI
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://cliqueai.toptensor.ai/
+  - https://github.com/toptensor/CliqueAI
+- netuid: 90
+  name: KubeTEE
+  summary: Confidential Kubernetes clusters running inference, retrieval, agents and batch jobs inside GPU TEEs on miner hardware
+  capabilities: [compute, inference, security]
+  operator: KubeTEE AI
+  website: https://kubetee.ai
+  github: https://github.com/KubeTEE-AI/kubetee-subnet
+  docs: null
+  api: https://llm.kubetee.ai
+  api_example: 'curl -s https://llm.kubetee.ai/v1/models -H "Authorization: Bearer $API_KEY"'
+  api_needs_key: true
+  sources:
+  - https://kubetee.ai
+  - https://llm.kubetee.ai
+  - https://llm.kubetee.ai/openapi.json
+  - https://github.com/KubeTEE-AI/kubetee-subnet
+- netuid: 92
+  name: REAX
+  summary: Verified inference for typed decision models that answer choice and score questions, sold through the Decision Models API
+  capabilities: [inference]
+  operator: productivity-boost.com Betriebs UG (haftungsbeschränkt) & Co. KG
+  website: https://reax.co/
+  github: https://github.com/reaxlabs/reax-subnet
+  docs: https://reax.dev/
+  api: https://api.decisionmodels.io
+  api_example: 'curl https://api.decisionmodels.io/v1/systemone -H "Authorization: Bearer $DECISIONMODELS_API_KEY" -H "Content-Type: application/json" -H "S1-Region: global" -d ''{"model": "s1-fast", "state": "Mia owns a red bicycle.", "questions": {"color": {"type": "choice", "instructions": "Which color is the bicycle?", "criteria": {"red": null, "blue": null}}}}'''
+  api_needs_key: true
+  sources:
+  - https://reax.co/
+  - https://decisionmodels.io/
+  - https://github.com/reaxlabs/reax-subnet
+- netuid: 93
+  name: Bitcast
+  summary: Pays creators on YouTube and X for content that meets brand briefs, scored on verified audience engagement
+  capabilities: [other]
+  operator: null
+  website: https://bitcast.network/
+  github: https://github.com/bitcast-network/bitcast
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://stats.bitcast.network/
+  - https://bitcast.network/
+  - https://github.com/bitcast-network/bitcast
+- netuid: 97
+  name: Ingot
+  summary: Competition to quantize Qwen3.8-27B to ternary weights closest to the teacher; winning GGUF models go to Hugging Face
+  capabilities: [training]
+  operator: null
+  website: https://theingot.ai
+  github: https://github.com/DendriteLabs/ingot
+  docs: https://theingot.ai/llms.txt
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://theingot.ai
+  - https://theingot.ai/llms.txt
+  - https://github.com/DendriteLabs/ingot
+- netuid: 107
+  name: Minos
+  summary: Genomic variant calling benchmark where miners tune variant callers on synthetic challenge genomes; keyless read-only MCP
+  capabilities: [science]
+  operator: null
+  website: https://theminos.ai
+  github: https://github.com/minos-protocol/minos_subnet
+  docs: https://docs.theminos.ai
+  api: https://mcp.theminos.ai
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://theminos.ai
+  - https://docs.theminos.ai
+  - https://mcp.theminos.ai/docs
+  - https://github.com/minos-protocol/minos_subnet
+- netuid: 110
+  name: Green Compute
+  summary: RTX 4090 GPU rental and OpenAI-compatible inference on hardware powered by renewable and biogas energy
+  capabilities: [compute, inference]
+  operator: Green Compute
+  website: https://www.green-compute.com/
+  github: null
+  docs: https://www.green-compute.com/docs
+  api: https://api.green-compute.com
+  api_example: curl api.green-compute.com/platform/pricing
+  api_needs_key: false
+  sources:
+  - https://www.green-compute.com/
+  - https://www.green-compute.com/llms.txt
+- netuid: 112
+  name: THOR
+  summary: Labels first-person video of hands-on tasks into timed, captioned steps for robotics training data; network not live yet
+  capabilities: [data, video]
+  operator: THOR
+  website: https://thormachines.ai/
+  github: https://github.com/thorrobotics/thor-subnet
+  docs: https://thormachines.ai/docs
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://thormachines.ai/
+  - https://thormachines.ai/docs
+  - https://github.com/thorrobotics/thor-subnet
+- netuid: 114
+  name: SOMA
+  summary: Context compression proxy between coding agents and LLMs that cuts tokens; miners compete on compression methods
+  capabilities: [agents, inference]
+  operator: Dendrite Quantum LTD
+  website: https://thesoma.ai
+  github: https://github.com/DendriteHQ/SOMA
+  docs: https://thesoma.ai/docs
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://thesoma.ai
+  - https://thesoma.ai/docs
+  - https://github.com/DendriteHQ/SOMA
+- netuid: 120
+  name: Affine
+  summary: 'Distributed RL training loop: miners generate verified math reasoning attempts that train the next model checkpoint'
+  capabilities: [training]
+  operator: null
+  website: https://www.affine.io
+  github: https://github.com/AffineFoundation/affine
+  docs: https://www.affine.io/llms.txt
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.affine.io
+  - https://www.affine.io/llms.txt
+  - https://github.com/AffineFoundation/affine
+- netuid: 124
+  name: Swarm
+  summary: Open benchmark for autonomous drone flight models on simulated missions such as search and rescue and interception
+  capabilities: [training, other]
+  operator: Swarm
+  website: https://www.swarm124.com
+  github: https://github.com/swarm-subnet/swarm
+  docs: null
+  api: none
+  api_example: null
+  api_needs_key: false
+  sources:
+  - https://www.swarm124.com
+  - https://www.swarm124.com/benchmark
+  - https://github.com/swarm-subnet/swarm

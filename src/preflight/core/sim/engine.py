@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import bittensor as bt
+from bittensor.signing import Signer
 from bittensor.sp_core import Keypair, ss58_encode
 
 from .. import validate
@@ -47,11 +48,11 @@ CHECKS: dict[str, Checker] = {
 class WatchWallet:
     """Public keys only: enough for the SDK to build and price a call, never to sign."""
 
-    coldkey: Keypair
-    hotkey: Keypair
+    coldkey: Signer
+    hotkey: Signer
 
     @property
-    def coldkeypub(self) -> Keypair:
+    def coldkeypub(self) -> Signer:
         return self.coldkey
 
     @property

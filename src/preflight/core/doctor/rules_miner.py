@@ -27,7 +27,7 @@ from .common import (
     wait,
 )
 
-C, H, M, I = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
+C, H, M, INFO = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
 
 
 def register_command(s: SubnetSnapshot, hotkey: str) -> Fix:
@@ -98,7 +98,7 @@ def pf103_in_immunity(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF103",
         "in_immunity",
-        I,
+        INFO,
         f"In immunity for another {duration(left, s)}",
         [
             ev("Registered at block", f"{n.block_at_registration:,}", "SubtensorModule.BlockAtRegistration"),
@@ -187,7 +187,7 @@ def pf105_axon_not_served(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF105",
         "axon_not_served",
-        I if n.incentive > 0 else H,
+        INFO if n.incentive > 0 else H,
         "No axon published",
         [
             ev("Axon", "empty or 0.0.0.0", "SubtensorModule.Axons"),
@@ -392,7 +392,7 @@ def pf112_duplicate_coldkey_crowding(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF112",
         "duplicate_coldkey_crowding",
-        I,
+        INFO,
         f"{count} UIDs on this subnet share this coldkey",
         [ev("Coldkey", n.coldkey), ev("UIDs on this coldkey", count), block_ev(s)],
         "Many UIDs under one coldkey is a common sybil signature that subnet owners and validators look "
@@ -409,7 +409,7 @@ def pf113_version_mismatch(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF113",
         "version_mismatch",
-        I,
+        INFO,
         f"Subnet requires weights version {s.params.weights_version} or newer",
         [ev("WeightsVersionKey", s.params.weights_version, "SubtensorModule.WeightsVersionKey"), block_ev(s)],
         "Validators running code older than this version key are rejected with IncorrectWeightVersionKey. "
@@ -422,7 +422,7 @@ def pf113_version_mismatch(snap: NeuronSnapshot) -> Finding | None:
 MINER_RULES: list[Rule[NeuronSnapshot]] = [
     Rule("PF101", "not_registered", C, "Not registered", pf101_not_registered, "any"),
     Rule("PF102", "recently_deregistered", C, "Recently deregistered", pf102_recently_deregistered, "any"),
-    Rule("PF103", "in_immunity", I, "In immunity", pf103_in_immunity, "miner"),
+    Rule("PF103", "in_immunity", INFO, "In immunity", pf103_in_immunity, "miner"),
     Rule("PF104", "near_pruning", H, "Near pruning", pf104_near_pruning, "miner"),
     Rule("PF105", "axon_not_served", H, "Axon not served", pf105_axon_not_served, "miner"),
     Rule("PF106", "axon_bad_address", H, "Axon address unreachable", pf106_axon_bad_address, "miner"),
@@ -431,7 +431,7 @@ MINER_RULES: list[Rule[NeuronSnapshot]] = [
     Rule("PF109", "weights_from_stale_validators_only", H, "Only stale validators score it", pf109_weights_from_stale_validators_only, "miner"),
     Rule("PF110", "incentive_zero_but_weighted", H, "Weighted but clipped", pf110_incentive_zero_but_weighted, "miner"),
     Rule("PF111", "low_trust", M, "Low trust", pf111_low_trust, "miner"),
-    Rule("PF112", "duplicate_coldkey_crowding", I, "Coldkey crowding", pf112_duplicate_coldkey_crowding, "miner"),
-    Rule("PF113", "version_mismatch", I, "Weights version", pf113_version_mismatch, "any"),
+    Rule("PF112", "duplicate_coldkey_crowding", INFO, "Coldkey crowding", pf112_duplicate_coldkey_crowding, "miner"),
+    Rule("PF113", "version_mismatch", INFO, "Weights version", pf113_version_mismatch, "any"),
 ]  # fmt: skip
 

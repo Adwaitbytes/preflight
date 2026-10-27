@@ -26,7 +26,7 @@ def test_every_catalog_error_has_a_non_empty_explanation() -> None:
             "bittensor.result.ChainError: SettingWeightsTooFast: The neuron set weights again before",
             "SettingWeightsTooFast",
         ),
-        ("{'Module': {'index': 7, 'error': '0x4d000000'}}", catalog.module_error_name(7, 0x4D)[1] if catalog.module_error_name(7, 0x4D) else ""),
+        ("{'Module': {'index': 7, 'error': '0x4d000000'}}", "TooManyUnrevealedCommits"),
         ("Invalid Transaction: Custom error: 6", "RateLimitExceeded"),
         ("1010: Invalid Transaction: Inability to pay some fees (e.g. account balance too low)", "Payment"),
         ("nothing useful here", None),

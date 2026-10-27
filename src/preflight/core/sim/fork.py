@@ -136,7 +136,7 @@ class Fork:
         client = client_for(self.network)
         _ = client.block  # opens the connection the raw interface needs
         inner = client._client  # pyright: ignore[reportPrivateUsage]  # the SDK exposes no public way to sign with a caller-supplied signature
-        substrate = inner._substrate  # pyright: ignore[reportPrivateUsage]
+        substrate: Any = inner._substrate  # pyright: ignore[reportPrivateUsage]
         nonce = self.nonce(signer)
 
         async def make() -> str:

@@ -29,7 +29,7 @@ from .common import (
     worse,
 )
 
-C, H, M, I = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
+C, H, M, INFO = Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM, Severity.INFO
 
 
 def _owner_exempt(snap: NeuronSnapshot) -> bool:
@@ -78,6 +78,8 @@ def pf202_weights_stale(snap: NeuronSnapshot) -> Finding | None:
     n, s = snap.neuron, snap.subnet
     if n is None or not n.validator_permit:
         return None
+    if _owner_exempt(snap) and n.last_update <= n.block_at_registration:
+        return None  # the owner hotkey often holds a permit as the burn UID and never validates
     since = blocks_since_update(n, s)
     cutoff = s.params.activity_cutoff
     if since > cutoff:
@@ -118,7 +120,7 @@ def pf203_rate_limited(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF203",
         "rate_limited",
-        I,
+        INFO,
         f"A new set_weights would be rejected until block {allowed:,}",
         [
             ev("Last set at block", f"{n.last_update:,}", "SubtensorModule.LastUpdate"),
@@ -163,7 +165,7 @@ def pf205_commit_pending_reveal(snap: NeuronSnapshot) -> Finding | None:
     if not snap.commits:
         return None
     evidence = [ev("Pending commits", len(snap.commits), "SubtensorModule.WeightCommits / TimelockedWeightCommits")]
-    severity = I
+    severity = INFO
     for c in snap.commits[:3]:
         if c.kind == "timelocked":
             evidence.append(ev(f"Commit at block {c.commit_block:,}", f"drand round {c.reveal_round}, reveals automatically at {c.reveals_at or 'unknown'}"))
@@ -295,7 +297,7 @@ def pf208_copier_signature(snap: NeuronSnapshot) -> Finding | None:
     return finding(
         "PF208",
         "copier_signature",
-        I,
+        INFO,
         "Weights look like a copy of last epoch's consensus",
         [
             ev("Correlation with previous epoch consensus", f"{to_previous:.3f}"),
@@ -314,10 +316,10 @@ def pf208_copier_signature(snap: NeuronSnapshot) -> Finding | None:
 VALIDATOR_RULES: list[Rule[NeuronSnapshot]] = [
     Rule("PF201", "no_validator_permit", H, "No validator permit", pf201_no_validator_permit, "validator"),
     Rule("PF202", "weights_stale", C, "Weights stale", pf202_weights_stale, "validator"),
-    Rule("PF203", "rate_limited", I, "Rate limited", pf203_rate_limited, "validator"),
+    Rule("PF203", "rate_limited", INFO, "Rate limited", pf203_rate_limited, "validator"),
     Rule("PF204", "below_min_stake_for_weights", H, "Below weights minimum stake", pf204_below_min_stake_for_weights, "validator"),
-    Rule("PF205", "commit_pending_reveal", I, "Commit pending reveal", pf205_commit_pending_reveal, "validator"),
+    Rule("PF205", "commit_pending_reveal", INFO, "Commit pending reveal", pf205_commit_pending_reveal, "validator"),
     Rule("PF206", "weights_too_few_uids", H, "Weight limits", pf206_weights_too_few_uids, "validator"),
     Rule("PF207", "self_weighting", M, "Self weighting", pf207_self_weighting, "validator"),
-    Rule("PF208", "copier_signature", I, "Copier signature", pf208_copier_signature, "validator"),
+    Rule("PF208", "copier_signature", INFO, "Copier signature", pf208_copier_signature, "validator"),
 ]  # fmt: skip

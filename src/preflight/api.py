@@ -30,9 +30,12 @@ from .core.models import (
     AxonInfo,
     DoctorReport,
     ErrorExplanation,
+    LaunchPlan,
     ServiceHealth,
     SimRequest,
     SimResult,
+    SubnetCard,
+    SubnetDetail,
     TxReport,
 )
 
@@ -237,3 +240,49 @@ def sim(network: str, body: SimRequest) -> SimResult:
 @app.get("/v1/ask", response_model=AskAnswer)
 def ask(q: Annotated[str, Query(min_length=1, max_length=2000)], network: str = "finney") -> AskAnswer:
     return ask_router(q, network_for(network).name)
+
+
+@app.get("/v1/plan/{network}", response_model=LaunchPlan)
+def plan(network: str) -> LaunchPlan:
+    from .core.plan.launch import launch_plan
+
+    net = network_for(network)
+    result = cache.get_or(f"plan:{net.endpoint}", lambda: launch_plan(net))
+    assert isinstance(result, LaunchPlan)
+    return result
+
+
+class _Cards(BaseModel):
+    cards: list[SubnetCard]
+
+
+@app.get("/v1/subnets/{network}", response_model=list[SubnetCard])
+def subnets(network: str, health: Annotated[str | None, Query(max_length=400, description="Comma separated netuids to score")] = None) -> list[SubnetCard]:
+    from .core.directory.live import subnet_cards
+
+    net = network_for(network)
+    wanted = {int(validate.netuid(x) or 0) for x in (health or "").split(",") if x.strip()}
+    if len(wanted) > 32:
+        raise HTTPException(400, "score at most 32 subnets per request")
+    key = f"subnets:{net.endpoint}:{sorted(wanted)}"
+    result = cache.get_or(key, lambda: _Cards(cards=subnet_cards(net, wanted)))
+    assert isinstance(result, _Cards)
+    return result.cards
+
+
+@app.get("/v1/subnets/{network}/{netuid}", response_model=SubnetDetail)
+def subnet(network: str, netuid: int) -> SubnetDetail:
+    from .core.directory.live import subnet_detail
+
+    net = network_for(network)
+    number = int(validate.netuid(netuid) or 0)
+    result = cache.get_or(f"subnet:{net.endpoint}:{number}", lambda: subnet_detail(net, number))
+    assert isinstance(result, SubnetDetail)
+    return result
+
+
+@app.get("/v1/find", response_model=list[SubnetCard])
+def find(q: Annotated[str, Query(min_length=1, max_length=200)]) -> list[SubnetCard]:
+    from .core.directory.catalog import search
+
+    return [SubnetCard(netuid=e.netuid, catalog=e, live=None, health=None) for e in search(q)]

@@ -116,7 +116,8 @@ def subnet(
 
 def snap(uid: int | None, s: SubnetSnapshot | None = None, **overrides: Any) -> NeuronSnapshot:
     s = s or subnet()
-    hotkey = (s.by_uid(uid).hotkey if uid is not None and s.by_uid(uid) else "5Stranger")
+    found = s.by_uid(uid) if uid is not None else None
+    hotkey = found.hotkey if found else "5Stranger"
     fields: dict[str, Any] = {"subnet": s, "hotkey": hotkey, "uid": uid}
     fields.update(overrides)
     return NeuronSnapshot(**fields)

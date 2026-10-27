@@ -8,15 +8,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 from pydantic import BaseModel
 
+from . import __version__
 from .core import validate
 from .core.chain.network import ChainUnreachable, Network
 from .core.models import SimAction, SimRequest
 
-server = FastMCP(
+server = MCPServer(
     "preflight",
+    version=__version__,
     instructions=(
         "Preflight reads live Bittensor chain state and explains it. Use diagnose_neuron when someone asks why a "
         "miner or validator earns zero or is failing; explain_extrinsic for a failed transaction hash or "
