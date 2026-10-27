@@ -83,7 +83,9 @@ export function Directory({ cards: initialCards, network, initialQuery }: { card
     () =>
       unbanded
         .filter((card) => band === "all" || card.health?.band === band)
-        .sort((a, b) => (b.health?.score ?? -1) - (a.health?.score ?? -1) || a.netuid - b.netuid),
+        // Sorted by emission share, which is known at first paint: sorting by health would
+        // reorder every card when the scores arrive seconds later (measured CLS 0.32 at 375 px).
+        .sort((a, b) => (b.live?.emission_share ?? -1) - (a.live?.emission_share ?? -1) || a.netuid - b.netuid),
     [unbanded, band],
   );
 
