@@ -1,0 +1,56 @@
+[project]
+name = "preflight-bt"
+version = "0.1.0"
+description = "Explains why your Bittensor neuron earns zero and lets you try a transaction before you pay for it"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.13"
+dependencies = [
+  "bittensor>=11.3,<12",
+  "pydantic>=2.11,<3",
+  "typer>=0.12",
+  "rich>=13",
+  "httpx>=0.28",
+  "fastapi>=0.115",
+  "uvicorn>=0.34",
+  "pyyaml>=6",
+  "mcp>=1.2",
+]
+
+[project.scripts]
+preflight = "preflight.cli:app"
+
+[dependency-groups]
+dev = ["pytest>=8.3", "pytest-asyncio>=0.25", "ruff>=0.9", "pyright>=1.1.400", "types-pyyaml>=6"]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/preflight"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"catalog" = "preflight/catalog"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.pyright]
+include = ["src", "tests", "scripts"]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownVariableType = false
+reportUnknownArgumentType = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = ["chain: needs a running localnet (docker)", "live: reads a public network"]

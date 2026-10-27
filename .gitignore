@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.preflight/
+.env*
+!.env.example
+node_modules/
+.next/
+.vercel/
+*.tsbuildinfo
+dist/
+.pytest_cache/
+.ruff_cache/
+wallets/
