@@ -305,3 +305,13 @@ def test_permit_without_weights_or_stake_is_still_a_miner() -> None:
     diagnosis = evaluate(snap(2, s))
     assert diagnosis.role == "miner"
     assert "PF108" in [f.id for f in diagnosis.findings]
+
+
+def test_root_network_is_not_diagnosed_as_a_subnet() -> None:
+    import pytest
+
+    from preflight.core.chain.network import Network
+    from preflight.core.doctor.engine import diagnose
+
+    with pytest.raises(ValueError, match="root network"):
+        diagnose(Network.resolve("local"), "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", 0)

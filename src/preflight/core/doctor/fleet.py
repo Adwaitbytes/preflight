@@ -12,7 +12,7 @@ import time
 from ..chain.network import Network, gather, pin, with_retries
 from ..chain.snapshot import NeuronSnapshot, read_neuron, read_subnet
 from ..models import SEVERITY_RANK, FleetReport, FleetRow, Verdict
-from .engine import evaluate
+from .engine import ROOT_NETUID, evaluate
 
 MAX_HOTKEYS = 64
 BLOCKS_PER_DAY = 7200.0
@@ -61,7 +61,7 @@ def fleet(network: Network, coldkey: str) -> FleetReport:
     # Three flat stages, so each subnet is read once however many hotkeys sit on it.
     memberships: dict[str, list[int]] = with_retries(
         network,
-        lambda: gather({h: (lambda h=h: sorted(pinned.view.neurons.netuids_for_hotkey(h))) for h in checked}),
+        lambda: gather({h: (lambda h=h: sorted(n for n in pinned.view.neurons.netuids_for_hotkey(h) if n != ROOT_NETUID)) for h in checked}),
     )
     distinct = sorted({n for netuids in memberships.values() for n in netuids})
     subnets = with_retries(network, lambda: gather({str(n): (lambda n=n: read_subnet(pinned, n)) for n in distinct}))

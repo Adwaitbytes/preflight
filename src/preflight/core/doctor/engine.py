@@ -15,6 +15,7 @@ from .rules_miner import MINER_RULES
 from .rules_subnet import SUBNET_RULES
 from .rules_validator import VALIDATOR_RULES
 
+ROOT_NETUID = 0
 ALL_RULE_IDS = [r.id for r in (*MINER_RULES, *VALIDATOR_RULES, *SUBNET_RULES)]
 
 
@@ -74,11 +75,15 @@ def diagnose(
     block: int | None = None,
     probe_allowed: Callable[[AxonInfo], bool] | None = None,
 ) -> DoctorReport:
+    if netuid == ROOT_NETUID:
+        raise ValueError("SN0 is the root network: it has no miners or incentive to diagnose; pass a subnet netuid")
     started = time.monotonic()
     pinned = pin(network, block)
     if netuid is None:
+        # The root network (SN0) has no miners, axons or incentive; its membership is a root
+        # validator seat, which the subnet rules do not describe.
         netuids = sorted(
-            with_retries(network, lambda: pinned.view.neurons.netuids_for_hotkey(hotkey))
+            n for n in with_retries(network, lambda: pinned.view.neurons.netuids_for_hotkey(hotkey)) if n != ROOT_NETUID
         )
     else:
         netuids = [netuid]
