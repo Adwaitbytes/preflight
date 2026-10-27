@@ -1,6 +1,7 @@
-import { explainErrorAction, recheckDoctor, simulateAction } from "@/app/actions";
+import { explainErrorAction, historyAction, recheckDoctor, simulateAction } from "@/app/actions";
 import type { ApiResult } from "./api";
-import { browserApi } from "./browser-api";
+import { browserApi, localApi } from "./browser-api";
+import type { NeuronHistory } from "./schemas";
 import type { NetworkId } from "./networks";
 import type { DoctorReport, SimRequest, SimResult } from "./types";
 
@@ -16,4 +17,14 @@ export function recheck(network: NetworkId, hotkey: string, netuid: number | nul
   return network === "local" ? browserApi("local").doctor("local", hotkey, { netuid }) : recheckDoctor(network, hotkey, netuid);
 }
 
+export function history(network: NetworkId, hotkey: string, netuid: number): Promise<ApiResult<NeuronHistory>> {
+  return network === "local" ? browserApi("local").history("local", hotkey, netuid) : historyAction(network, hotkey, netuid);
+}
+
+/** Re-runs a predicted simulation on the user's own `preflight serve`, which can fork the chain */
+export function simulateOnLocalFork(network: NetworkId, request: SimRequest): Promise<ApiResult<SimResult>> {
+  return localApi().simulate(network, request);
+}
+
 export { explainErrorAction as explainError };
+export { joinHouseAction as joinHouse, shareReportAction as shareReport } from "@/app/actions";

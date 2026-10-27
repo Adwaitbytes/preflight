@@ -137,7 +137,9 @@ def is_validator(snapshot: NeuronSnapshot) -> bool:
     neuron = snapshot.neuron
     if neuron is None:
         return False
-    if neuron.validator_permit or neuron.uid in snapshot.subnet.weights:
+    # A permit alone does not make a validator: on a subnet with fewer UIDs than permit slots
+    # every miner holds one. Setting weights, or staking enough to be allowed to, does.
+    if neuron.uid in snapshot.subnet.weights:
         return True
     return snapshot.subnet.stake_threshold > 0 and neuron.stake >= snapshot.subnet.stake_threshold
 

@@ -10,7 +10,8 @@ import { ApiErrorState, StateView } from "@/components/ui/state";
 import { truncateMiddle } from "@/lib/format";
 import { isNetwork } from "@/lib/networks";
 import { classifyInput } from "@/lib/route-input";
-import { getApi } from "@/lib/server-api";
+import { summarizeDoctor } from "@/lib/report-summary";
+import { getDoctor } from "@/lib/server-api";
 
 function parseNetuid(value: string | string[] | undefined): number | null {
   const raw = Array.isArray(value) ? value[0] : value;
@@ -18,9 +19,23 @@ function parseNetuid(value: string | string[] | undefined): number | null {
   return Number(raw);
 }
 
-export async function generateMetadata({ params }: PageProps<"/doctor/[network]/[hotkey]">): Promise<Metadata> {
-  const { hotkey } = await params;
-  return { title: `Doctor ${truncateMiddle(decodeURIComponent(hotkey), 6, 4)}` };
+export async function generateMetadata({ params, searchParams }: PageProps<"/doctor/[network]/[hotkey]">): Promise<Metadata> {
+  const { network, hotkey: raw } = await params;
+  const hotkey = decodeURIComponent(raw);
+  const fallback: Metadata = {
+    title: `Doctor ${truncateMiddle(hotkey, 6, 4)}`,
+    description: "Why this hotkey earns what it earns, the cause and the exact command that fixes it",
+  };
+  if (!isNetwork(network) || network === "local" || classifyInput(hotkey).kind !== "hotkey") return fallback;
+  const result = await getDoctor(network, hotkey, parseNetuid((await searchParams).netuid));
+  if (!result.ok) return fallback;
+  const summary = summarizeDoctor(result.data);
+  return {
+    title: summary.title,
+    description: summary.description,
+    openGraph: { title: summary.title, description: summary.description },
+    twitter: { card: "summary_large_image", title: summary.title, description: summary.description },
+  };
 }
 
 export default async function DoctorPage({ params, searchParams }: PageProps<"/doctor/[network]/[hotkey]">) {
@@ -57,8 +72,7 @@ export default async function DoctorPage({ params, searchParams }: PageProps<"/d
     );
   }
 
-  const api = await getApi();
-  const result = await api.doctor(network, hotkey, { netuid });
+  const result = await getDoctor(network, hotkey, netuid);
   return (
     <Container>
       {result.ok ? (

@@ -135,4 +135,16 @@ export const offlineApi: PreflightApi = {
   async house() {
     return miss("Builders House counters are only kept by the live API");
   },
+  async joinHouse() {
+    return miss("Builders House counters are only kept by the live API");
+  },
+  async share() {
+    return miss("Share links are stored by the live API, so they are off in the offline demo");
+  },
+  async report() {
+    return miss("Shared reports are stored by the live API, so they are off in the offline demo");
+  },
+  async history() {
+    return { ok: false, error: { kind: "not_found", status: 404, message: "No recorded history in the offline demo" } };
+  },
 };

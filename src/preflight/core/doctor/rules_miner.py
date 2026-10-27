@@ -177,7 +177,7 @@ def axon_share_of_earners(s: SubnetSnapshot) -> float | None:
 
 def pf105_axon_not_served(snap: NeuronSnapshot) -> Finding | None:
     n, s = snap.neuron, snap.subnet
-    if n is None or n.axon is not None or n.validator_permit:
+    if n is None or n.axon is not None:
         return None
     share = axon_share_of_earners(s)
     # Some subnets (Chutes, for one) reach miners through their own registry, not axons.
@@ -272,7 +272,7 @@ def _weighters(snap: NeuronSnapshot) -> list[tuple[NeuronState, float]]:
 
 def pf108_no_validator_weight(snap: NeuronSnapshot) -> Finding | None:
     n, s = snap.neuron, snap.subnet
-    if n is None or n.validator_permit or _weighters(snap):
+    if n is None or _weighters(snap):
         return None
     validators = sorted(s.validators(), key=lambda v: v.stake, reverse=True)[:5]
     evidence = [ev("Validators weighting this UID", "0 of " + str(len(s.validators())))]
@@ -363,7 +363,7 @@ def pf110_incentive_zero_but_weighted(snap: NeuronSnapshot) -> Finding | None:
 
 def pf111_low_trust(snap: NeuronSnapshot) -> Finding | None:
     n, s = snap.neuron, snap.subnet
-    if n is None or n.validator_permit or n.incentive <= 0:
+    if n is None or n.incentive <= 0:
         return None
     peers = [m.trust for m in s.neurons if not m.validator_permit and m.incentive > 0]
     mid = median(peers)

@@ -1,7 +1,9 @@
 import "server-only";
 
 import { headers } from "next/headers";
+import { cache } from "react";
 import { createHttpApi, type PreflightApi } from "./api";
+import type { NetworkId } from "./networks";
 import { offlineApi } from "./offline";
 
 /** `PREFLIGHT_OFFLINE=1` serves recorded finney fixtures, for a stage demo without Wi Fi */
@@ -21,3 +23,8 @@ export async function getApi(): Promise<PreflightApi> {
   const configured = process.env.PREFLIGHT_API_URL?.trim();
   return createHttpApi({ baseUrl: configured || (await sameOrigin()) });
 }
+
+// One read per request: generateMetadata and the page share the same chain read
+export const getDoctor = cache(async (network: NetworkId, hotkey: string, netuid: number | null) => (await getApi()).doctor(network, hotkey, { netuid }));
+export const getTx = cache(async (network: NetworkId, ref: string) => (await getApi()).tx(network, ref));
+export const getReport = cache(async (id: string) => (await getApi()).report(id));

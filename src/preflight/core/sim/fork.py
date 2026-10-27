@@ -120,7 +120,8 @@ class Fork:
 
     def alive(self) -> bool:
         try:
-            return self.head() > 0
+            response = self._http.post(self.url, json={"jsonrpc": "2.0", "id": 1, "method": "chain_getHeader", "params": []}, timeout=2.0)
+            return bool(response.json().get("result"))
         except (httpx.HTTPError, ForkUnavailable, ValueError):
             return False
 

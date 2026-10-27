@@ -1,12 +1,13 @@
 "use client";
 
-import { FlaskConical } from "lucide-react";
+import { Cpu, FlaskConical } from "lucide-react";
 import { useId, useState, useTransition } from "react";
 import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { ApiErrorState } from "@/components/ui/state";
 import type { ApiResult, SimAction } from "@/lib/api";
-import { simulate } from "@/lib/client-calls";
+import { ShareButton } from "@/components/shared/share-button";
+import { simulate, simulateOnLocalFork } from "@/lib/client-calls";
 import { NETWORK_LABEL, NETWORKS, parseNetwork, type NetworkId } from "@/lib/networks";
 import type { SimRequest, SimResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,7 @@ export function Simulator({ forkAvailable }: { forkAvailable: boolean }) {
   const [values, setValues] = useState<Partial<Record<Field, string>>>(EXAMPLES.burned_register ?? {});
   const [problem, setProblem] = useState<{ error: string; field: Field } | null>(null);
   const [result, setResult] = useState<ApiResult<SimResult> | null>(null);
+  const [lastRun, setLastRun] = useState<{ network: NetworkId; request: SimRequest } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const selected = ACTIONS.find((a) => a.id === action) ?? DEFAULT_ACTION;
@@ -142,9 +144,19 @@ export function Simulator({ forkAvailable }: { forkAvailable: boolean }) {
     }
     setProblem(null);
     startTransition(async () => {
+      setLastRun({ network: activeNetwork, request: built.request });
       setResult(await simulate(activeNetwork, built.request));
     });
   }
+
+  function runOnLocalFork() {
+    if (!lastRun) return;
+    startTransition(async () => {
+      setResult(await simulateOnLocalFork(lastRun.network, lastRun.request));
+    });
+  }
+
+  const offerLocalFork = !!localAvailable && result?.ok === true && result.data.mode === "predicted" && lastRun?.network !== "local";
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,26rem)_1fr]">
@@ -247,7 +259,23 @@ export function Simulator({ forkAvailable }: { forkAvailable: boolean }) {
             <p className="text-sm text-muted-foreground">Executing against chain state</p>
           </div>
         )}
-        {result && !pending && (result.ok ? <SimResultView result={result.data} /> : <ApiErrorState error={result.error} />)}
+        {result && !pending && result.ok && (
+          <SimResultView
+            result={result.data}
+            actions={
+              <>
+                {offerLocalFork && (
+                  <Button variant="accent" size="sm" onClick={runOnLocalFork}>
+                    <Cpu className="size-3.5" aria-hidden />
+                    Run on the local fork
+                  </Button>
+                )}
+                <ShareButton kind="sim" payload={result.data} />
+              </>
+            }
+          />
+        )}
+        {result && !pending && !result.ok && <ApiErrorState error={result.error} />}
       </div>
     </div>
   );

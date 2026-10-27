@@ -2,6 +2,7 @@ import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
+import { ShareButton } from "@/components/shared/share-button";
 import { Badge } from "@/components/ui/badge";
 import { MonoValue } from "@/components/ui/mono-value";
 import { formatBlockIndex, formatInt, formatTao } from "@/lib/format";
@@ -27,7 +28,7 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-export function TxView({ report, network }: { report: TxReport; network: NetworkId }) {
+export function TxView({ report, network, shared = false }: { report: TxReport; network: NetworkId; shared?: boolean }) {
   const explorer = taostatsExtrinsic(network, report.block, report.index);
   const explanation = report.explanation;
   return (
@@ -63,17 +64,20 @@ export function TxView({ report, network }: { report: TxReport; network: Network
         </dl>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <ChainMeta chain={report.chain} />
-          {explorer && (
-            <a
-              href={explorer}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 self-start rounded text-[13px] font-medium text-muted-foreground hover:text-foreground"
-            >
-              Open on Taostats
-              <ExternalLink className="size-3.5" aria-hidden />
-            </a>
-          )}
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            {explorer && (
+              <a
+                href={explorer}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground hover:text-foreground"
+              >
+                Open on Taostats
+                <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            )}
+            {!shared && <ShareButton kind="tx" payload={report} />}
+          </div>
         </div>
       </header>
 
@@ -99,7 +103,7 @@ export function TxView({ report, network }: { report: TxReport; network: Network
               </a>
             )}
           </div>
-          {report.hotkey && (
+          {report.hotkey && !shared && (
             <div className="border-t border-line pt-5">
               <WillItWork network={network} hotkey={report.hotkey} netuid={report.netuid ?? null} />
             </div>

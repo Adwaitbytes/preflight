@@ -11,8 +11,18 @@ import { ThemeProvider } from "@/components/site/theme-provider";
 import { isOffline } from "@/lib/server-api";
 import "./globals.css";
 
+function siteUrl(): URL {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return new URL(explicit);
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return new URL(vercel ? `https://${vercel}` : "http://localhost:3000");
+}
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl(),
   title: { default: "Preflight, the Bittensor debugger", template: "%s | Preflight" },
+  openGraph: { siteName: "Preflight", type: "website" },
+  twitter: { card: "summary_large_image" },
   description:
     "Paste a hotkey, a transaction or a netuid. Preflight tells you why your miner earns zero, and lets you test a transaction before you spend a single rao",
 };

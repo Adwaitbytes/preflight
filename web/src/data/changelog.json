@@ -1,1 +1,87 @@
-[]
+[
+  {
+    "date": "2026-10-28T02:09:54+05:30",
+    "sha": "3124fd7",
+    "subject": "Close pooled clients at exit; re-fork when the upstream discards the fork block; mainnet demo fallback outputs"
+  },
+  {
+    "date": "2026-10-28T02:05:09+05:30",
+    "sha": "a746df4",
+    "subject": "README, demo runbook, llms.txt"
+  },
+  {
+    "date": "2026-10-28T02:04:20+05:30",
+    "sha": "3bd3f59",
+    "subject": "GitHub Action: Doctor as a CI gate on localnet or a live network, self-tested in CI"
+  },
+  {
+    "date": "2026-10-28T00:35:34+05:30",
+    "sha": "e73b297",
+    "subject": "preflight new: scaffold a bittensor 11 subnet with signed requests, pure scoring and tests"
+  },
+  {
+    "date": "2026-10-28T00:34:10+05:30",
+    "sha": "68ca1df",
+    "subject": "Drop unneeded noqa in the Vercel function"
+  },
+  {
+    "date": "2026-10-28T00:32:52+05:30",
+    "sha": "6f1baee",
+    "subject": "Watch and Telegram alerts with one-alert-per-problem dedupe, chat linking by /start code, neuron history endpoint, scheduled worker"
+  },
+  {
+    "date": "2026-10-28T00:29:42+05:30",
+    "sha": "611f768",
+    "subject": "Real finney fixtures replayed offline: five snapshots with their recorded diagnoses"
+  },
+  {
+    "date": "2026-10-28T00:27:35+05:30",
+    "sha": "b6c2778",
+    "subject": "Web app: landing omnibox, Doctor, Tx, Simulator, Directory, Launch planner, changelog and house pages, command palette, offline demo mode"
+  },
+  {
+    "date": "2026-10-28T00:27:31+05:30",
+    "sha": "aabaaae",
+    "subject": "Hosted on Vercel: Python engine as a function with a path-restoring shim; two-level read pools; cheaper block pin; concurrent deregistration probes. Warm mainnet diagnosis 1.8 to 2.2 s"
+  },
+  {
+    "date": "2026-10-28T00:16:33+05:30",
+    "sha": "e5f5170",
+    "subject": "Neon store with house counters and shared reports, fork overrides and warm-up with a 20 s budget, CI workflow"
+  },
+  {
+    "date": "2026-10-28T00:07:24+05:30",
+    "sha": "17285a6",
+    "subject": "Ignore Playwright MCP scratch"
+  },
+  {
+    "date": "2026-10-28T00:07:18+05:30",
+    "sha": "ff05c2e",
+    "subject": "Launch planner, hyperparameter explainer, health score, curated directory of 35 subnets; plan/subnet/find in CLI and API; MCP v2 server; pyright strict clean"
+  },
+  {
+    "date": "2026-10-28T00:01:48+05:30",
+    "sha": "9c0148f",
+    "subject": "Hosting decision: real Python engine on Vercel; verified explorer links"
+  },
+  {
+    "date": "2026-10-27T23:58:29+05:30",
+    "sha": "e7f7e5e",
+    "subject": "Simulator (fork and predicted rungs), HTTP API, MCP server, ask router, CLI sim/fork/serve/mcp"
+  },
+  {
+    "date": "2026-10-27T23:43:27+05:30",
+    "sha": "b54b6ad",
+    "subject": "Rule tests, error catalog parser, traps, contextual explainer, Tx debugger verified on a failed finney extrinsic"
+  },
+  {
+    "date": "2026-10-27T23:35:19+05:30",
+    "sha": "8588518",
+    "subject": "Doctor core: network layer, block-pinned snapshots, 27 rules, headline, engine; verified on finney"
+  },
+  {
+    "date": "2026-10-27T23:16:56+05:30",
+    "sha": "3c51fdd",
+    "subject": "Skeleton: uv project on Python 3.13, vendored Bittensor catalogs, Chopsticks RPC shim"
+  }
+]

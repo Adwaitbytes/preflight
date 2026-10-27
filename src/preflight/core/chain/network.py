@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import atexit
 import contextlib
+import socket
 import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlsplit
 
 import bittensor as bt
 
@@ -93,8 +95,38 @@ _pool: dict[str, bt.Subtensor] = {}
 _pool_lock = threading.Lock()
 
 
+_unreachable: dict[str, float] = {}
+UNREACHABLE_TTL_S = 15.0
+DIAL_TIMEOUT_S = 1.5
+
+
+def _reachable(endpoint: str) -> bool:
+    """A plain TCP connect before the SDK dials. The SDK retries a dead endpoint with
+    backoff for minutes (measured: a stopped localnet stalled a server for 92 s), so a dead
+    endpoint must fail here in under two seconds, and stay failed for a few seconds."""
+    failed_at = _unreachable.get(endpoint)
+    if failed_at is not None and time.monotonic() - failed_at < UNREACHABLE_TTL_S:
+        return False
+    parsed = urlsplit(endpoint)
+    port = parsed.port or (443 if parsed.scheme == "wss" else 80)
+    try:
+        with socket.create_connection((parsed.hostname or "", port), timeout=DIAL_TIMEOUT_S):
+            pass
+    except OSError:
+        _unreachable[endpoint] = time.monotonic()
+        return False
+    _unreachable.pop(endpoint, None)
+    return True
+
+
 def client_for(network: Network) -> bt.Subtensor:
     """One long-lived client per endpoint; reconnects are the SDK's job."""
+    with _pool_lock:
+        client = _pool.get(network.endpoint)
+    if client is not None:
+        return client
+    if not _reachable(network.endpoint):
+        raise ChainUnreachable(f"{network.endpoint} is not accepting connections")
     with _pool_lock:
         client = _pool.get(network.endpoint)
         if client is None:

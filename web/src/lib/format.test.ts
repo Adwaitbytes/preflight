@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatAmount, formatBlockIndex, formatDuration, formatShare, formatTao, pluralize, truncateMiddle } from "./format";
+import { smallestStep, formatAmount, formatBlockIndex, formatDuration, formatShare, formatTao, pluralize, truncateMiddle } from "./format";
 
 describe("truncateMiddle", () => {
   it("keeps both ends of an address", () => {
@@ -44,6 +44,14 @@ describe("formatDuration", () => {
     expect(formatDuration(360)).toBe("1.2 h");
     expect(formatDuration(14400)).toBe("2 days");
     expect(formatDuration(432000)).toBe("60 days");
+  });
+});
+
+describe("smallestStep", () => {
+  it("builds the threshold as text so no float noise leaks into labels", () => {
+    expect(smallestStep(4)).toBe("0.0001");
+    expect(smallestStep(1)).toBe("0.1");
+    expect(smallestStep(0)).toBe("1");
   });
 });
 

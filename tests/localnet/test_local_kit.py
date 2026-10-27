@@ -11,14 +11,23 @@ import json
 import stat
 from pathlib import Path
 
+import bittensor as bt
 import httpx
 import pytest
 
 from preflight.core.chain.harness import signed_extrinsic_hash
 from preflight.core.chain.localnet import LOOPBACK_AXON_IP
-from preflight.core.chain.network import Network
+from preflight.core.chain.network import Network, pin
 from preflight.core.doctor.engine import diagnose
-from preflight.core.local import SCENARIOS, BreakResult, LocalState, break_scenario, status
+from preflight.core.local import (
+    SCENARIOS,
+    BreakResult,
+    KitError,
+    LocalState,
+    break_scenario,
+    fix_scenario,
+    status,
+)
 from preflight.core.models import Diagnosis, Severity
 
 pytestmark = pytest.mark.chain
@@ -48,15 +57,23 @@ def test_up_registers_every_neuron_with_distinct_axons(local_state: LocalState) 
     assert all(n.stake > 0 for n in validators)
 
 
-def test_up_persists_state_and_keys_without_leaking_mnemonics(
+def test_up_persists_state_and_a_disk_wallet_per_neuron(
     local_state: LocalState, local_home: Path
 ) -> None:
     state_file = local_home / "state.json"
-    keys_file = local_home / "keys.json"
     assert json.loads(state_file.read_text())["netuid"] == local_state.netuid
     assert "mnemonic" not in state_file.read_text()
-    assert stat.S_IMODE(keys_file.stat().st_mode) == 0o600
-    assert "mnemonic" not in local_state.model_dump_json()
+    assert not (local_home / "keys.json").exists()
+    for neuron in local_state.neurons:
+        if neuron.role == "owner":
+            assert neuron.wallet is None
+            continue
+        assert neuron.wallet == neuron.name
+        wallet = bt.Wallet(name=neuron.name, hotkey="default", path=str(local_home / "wallets"))
+        assert wallet.hotkey.ss58_address == neuron.hotkey
+        assert wallet.coldkey.ss58_address == neuron.coldkey
+        for key in ("coldkey", "hotkeys/default"):
+            assert stat.S_IMODE((local_home / "wallets" / neuron.name / key).stat().st_mode) == 0o600
 
 
 def test_status_reads_back_the_running_localnet(local_state: LocalState, local_home: Path) -> None:
@@ -97,6 +114,17 @@ def test_break_scenario_makes_the_doctor_report_its_rule(
     result = break_scenario(scenario, home=local_home)
     assert result.expected_rule == rule
     assert rule in rule_ids(result)
+
+
+@pytest.mark.parametrize("scenario", ["unserved-axon", "loopback-axon", "no-weight-miner"])
+def test_doctor_in_the_same_process_sees_a_break_as_soon_as_it_returns(
+    local_state: LocalState, local_home: Path, scenario: str
+) -> None:
+    pin(LOCAL)  # a warm pooled client, as in a long-lived API or MCP process
+    broken = break_scenario(scenario, home=local_home)
+    assert pin(LOCAL).block >= broken.block
+    fixed = fix_scenario(scenario, home=local_home)
+    assert pin(LOCAL).block >= fixed.block
 
 
 def test_break_scenarios_can_run_twice(local_state: LocalState, local_home: Path) -> None:
@@ -143,16 +171,55 @@ def test_deregistered_miner_lost_its_uid(deregistered: BreakResult) -> None:
     assert deregistered.uid is not None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason=(
-        "find_deregistration requires the hotkey to hold a UID at max(1, head - 21600); on a "
-        "localnet younger than 21600 blocks that block predates the subnet, and the node keeps "
-        "only ~256 blocks of state, so PF101 fires instead. See docs/decisions/002-localnet.md"
-    ),
-)
 def test_deregistered_miner_makes_the_doctor_report_pf102(deregistered: BreakResult) -> None:
     assert "PF102" in rule_ids(deregistered)
+
+
+@pytest.mark.parametrize(
+    ("scenario", "rules"),
+    [
+        ("unserved-axon", ["PF105"]),
+        ("loopback-axon", ["PF106"]),
+        ("no-weight-miner", ["PF108"]),
+        ("low-stake-validator", ["PF204"]),
+        ("stale-validator", ["PF202"]),
+        ("rate-limited-validator", ["PF203"]),
+        ("deregistered-miner", ["PF101", "PF102"]),
+    ],
+)
+def test_fix_scenario_makes_the_rule_go_away(
+    local_state: LocalState, local_home: Path, scenario: str, rules: list[str]
+) -> None:
+    broken = break_scenario(scenario, home=local_home)
+    assert broken.expected_rule in rule_ids(broken)
+    fixed = fix_scenario(scenario, home=local_home)
+    assert (fixed.scenario, fixed.hotkey, fixed.netuid) == (scenario, broken.hotkey, broken.netuid)
+    assert fixed.command.startswith("btcli ")
+    remaining = rule_ids(broken)
+    assert not set(rules) & set(remaining), remaining
+    assert "mnemonic" not in fixed.model_dump_json()
+
+
+@pytest.mark.parametrize("scenario", ["unserved-axon", "loopback-axon"])
+def test_axon_fixes_run_the_doctor_command_with_the_kit_wallet(
+    local_state: LocalState, local_home: Path, scenario: str
+) -> None:
+    broken = break_scenario(scenario, home=local_home)
+    fixed = fix_scenario(scenario, home=local_home)
+    current = status(home=local_home)
+    assert current is not None
+    name = next(n.wallet for n in current.neurons if n.hotkey == broken.hotkey)
+    assert fixed.command.startswith(
+        f"btcli axon set --netuid {broken.netuid} --ip ::ffff:127.0.0.1 --port "
+    )
+    assert f"--network local --wallet-path {local_home / 'wallets'} --wallet {name} " in fixed.command
+    assert fixed.ran
+
+
+def test_pending_reveal_has_no_local_fix(local_state: LocalState, local_home: Path) -> None:
+    break_scenario("pending-reveal", home=local_home)
+    with pytest.raises(KitError, match="drand"):
+        fix_scenario("pending-reveal", home=local_home)
 
 
 def test_signed_extrinsic_hash_length_prefixes_the_v4_body() -> None:

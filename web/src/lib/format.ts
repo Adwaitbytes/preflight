@@ -6,6 +6,11 @@ export function formatInt(value: number): string {
   return NUMBER.format(Math.round(value));
 }
 
+/** "0.0001" for 4 decimals, built as text: 10 ** -4 prints as 0.00009999... on some runtimes */
+export function smallestStep(decimals: number): string {
+  return decimals <= 0 ? "1" : `0.${"0".repeat(decimals - 1)}1`;
+}
+
 /** Fixed significant digits for small values, grouped thousands for large ones */
 export function formatAmount(value: number, maxDecimals = 4): string {
   if (!Number.isFinite(value)) return "n/a";
@@ -13,7 +18,7 @@ export function formatAmount(value: number, maxDecimals = 4): string {
   const abs = Math.abs(value);
   if (abs >= 1000) return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
   if (abs >= 1) return new Intl.NumberFormat("en-US", { maximumFractionDigits: Math.min(maxDecimals, 3) }).format(value);
-  if (abs < 10 ** -maxDecimals) return value < 0 ? `>-${10 ** -maxDecimals}` : `<${10 ** -maxDecimals}`;
+  if (abs < Number(smallestStep(maxDecimals))) return value < 0 ? `>-${smallestStep(maxDecimals)}` : `<${smallestStep(maxDecimals)}`;
   return new Intl.NumberFormat("en-US", { maximumSignificantDigits: 3, maximumFractionDigits: maxDecimals }).format(value);
 }
 
@@ -30,8 +35,7 @@ export function formatShare(value: number, digits = 1): string {
   if (!Number.isFinite(value)) return "n/a";
   if (value === 0) return "0%";
   const pct = value * 100;
-  const floor = 10 ** -digits;
-  if (Math.abs(pct) < floor) return `<${floor}%`;
+  if (Math.abs(pct) < Number(smallestStep(digits))) return `<${smallestStep(digits)}%`;
   return `${pct.toFixed(digits)}%`;
 }
 

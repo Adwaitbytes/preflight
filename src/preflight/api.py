@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 from . import __version__
 from .core import store, validate
 from .core.ask import ask as ask_router
-from .core.chain.network import ChainUnreachable, Network, client_for
+from .core.chain.network import ChainUnreachable, Network, client_for, gather
 from .core.models import (
     AskAnswer,
     AxonInfo,
@@ -53,7 +53,21 @@ ALLOWED_ORIGINS = [
     if o.strip()
 ]
 
+class _Lifespan:
+    """Starts the background prefetch when the server starts."""
+
+    def __init__(self, _: FastAPI) -> None:
+        pass
+
+    async def __aenter__(self) -> None:
+        prefetch()
+
+    async def __aexit__(self, *_: object) -> None:
+        return None
+
+
 app = FastAPI(
+    lifespan=_Lifespan,
     title="Preflight API",
     version=__version__,
     description="Explains why a Bittensor neuron earns zero, decodes failed transactions and simulates extrinsics before you pay",
@@ -101,29 +115,52 @@ class _Limiter:
 
 
 class _Cache:
-    def __init__(self, ttl: float, size: int = 512) -> None:
-        self.ttl = ttl
+    """Stale while revalidate: a fresh entry is served as is; an expired one is still served
+    instantly while one background refresh replaces it. Only a cold key waits for the chain."""
+
+    def __init__(self, size: int = 512) -> None:
         self.size = size
         self.items: OrderedDict[str, tuple[float, BaseModel]] = OrderedDict()
+        self.refreshing: set[str] = set()
         self.lock = threading.Lock()
 
-    def get_or(self, key: str, make: Callable[[], BaseModel]) -> BaseModel:
-        now = time.monotonic()
+    def _store(self, key: str, value: BaseModel) -> None:
         with self.lock:
-            hit = self.items.get(key)
-            if hit and now - hit[0] < self.ttl:
-                return hit[1]
-        value = make()
-        with self.lock:
-            self.items[key] = (now, value)
+            self.items[key] = (time.monotonic(), value)
             self.items.move_to_end(key)
             while len(self.items) > self.size:
                 self.items.popitem(last=False)
+
+    def _refresh(self, key: str, make: Callable[[], BaseModel]) -> None:
+        try:
+            self._store(key, make())
+        except Exception:  # keep serving the stale value; the next request retries
+            pass
+        finally:
+            with self.lock:
+                self.refreshing.discard(key)
+
+    def get_or(self, key: str, make: Callable[[], BaseModel], ttl: float = CACHE_SECONDS, stale: float = 0.0) -> BaseModel:
+        now = time.monotonic()
+        with self.lock:
+            hit = self.items.get(key)
+            if hit and now - hit[0] < ttl:
+                return hit[1]
+            if hit and now - hit[0] < ttl + stale:
+                if key not in self.refreshing:
+                    self.refreshing.add(key)
+                    threading.Thread(target=self._refresh, args=(key, make), daemon=True).start()
+                return hit[1]
+        value = make()
+        self._store(key, value)
         return value
 
 
 limiter = _Limiter(RATE_PER_MINUTE)
-cache = _Cache(CACHE_SECONDS)
+cache = _Cache()
+HEALTH_TTL = 15.0
+DIRECTORY_TTL = 60.0
+DIRECTORY_STALE = 3600.0
 
 
 def _client_ip(request: Request) -> str:
@@ -183,18 +220,82 @@ def _probe_allowed(axon: AxonInfo) -> bool:
     return mapped.is_global
 
 
-@app.get("/v1/health", response_model=ServiceHealth)
-def health() -> ServiceHealth:
+def _health() -> ServiceHealth:
     from .core.sim.fork import get_fork
 
-    networks: dict[str, bool] = {}
-    for name in (["local"] if LOCAL_MODE else []) + ["finney", "test"]:
+    names = (["local"] if LOCAL_MODE else []) + ["finney", "test"]
+
+    def reachable(name: str) -> bool:
         try:
-            networks[name] = int(client_for(Network.resolve(name)).block) > 0
+            return int(client_for(Network.resolve(name)).block) > 0
         except Exception:  # health reports reachability, it never fails itself
-            networks[name] = False
+            return False
+
+    networks = gather({name: (lambda name=name: reachable(name)) for name in names})
     fork = any(get_fork(Network.resolve(n)) is not None for n in ("finney", "test"))
     return ServiceHealth(ok=any(networks.values()), version=__version__, networks=networks, fork=fork)
+
+
+@app.get("/v1/health", response_model=ServiceHealth)
+def health() -> ServiceHealth:
+    result = cache.get_or("health", _health, HEALTH_TTL, HEALTH_TTL * 4)
+    assert isinstance(result, ServiceHealth)
+    return result
+
+
+CDN_SECONDS = {"/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+
+
+@app.middleware("http")
+async def cdn_cache(request: Request, call_next: Callable[[Request], Any]) -> Any:
+    """Let Vercel's edge serve repeat reads without waking the function. Errors never cache."""
+    response = await call_next(request)
+    if request.method == "GET" and response.status_code == 200:
+        for prefix, seconds in CDN_SECONDS.items():
+            if request.url.path.startswith(prefix):
+                response.headers["Cache-Control"] = f"public, max-age=0, s-maxage={seconds}, stale-while-revalidate={seconds * 60}"
+                break
+    return response
+
+
+def _quiet(action: Callable[[], object]) -> None:
+    try:
+        action()
+    except Exception:  # prefetch is best effort
+        return
+
+
+def prefetch() -> None:
+    """Warm the slow, shared answers so the first visitor does not pay for them."""
+    from .core.directory.live import subnet_cards
+    from .core.plan.launch import launch_plan
+
+    def warm() -> None:
+        net = Network.resolve("finney")
+        for key, make in (
+            ("subnets:" + net.endpoint + ":[]", lambda: _Cards(cards=subnet_cards(net, set()))),
+            ("plan:" + net.endpoint, lambda: launch_plan(net)),
+        ):
+            try:
+                cache.get_or(key, make, DIRECTORY_TTL, DIRECTORY_STALE)
+            except Exception:  # a warm-up failure only means the first visitor waits
+                continue
+        if LOCAL_MODE:
+            # Locally there is no CDN, so warm every curated subnet's page too, a few at a time.
+            from .core.directory.catalog import load
+            from .core.directory.live import subnet_detail
+
+            netuids = [entry.netuid for entry in load()]
+            for start in range(0, len(netuids), 4):
+                batch = netuids[start : start + 4]
+                gather(
+                    {
+                        str(n): (lambda n=n: _quiet(lambda: cache.get_or(f"subnet:{net.endpoint}:{n}", lambda: subnet_detail(net, n), DIRECTORY_TTL, DIRECTORY_STALE)))
+                        for n in batch
+                    }
+                )
+
+    threading.Thread(target=warm, name="preflight-prefetch", daemon=True).start()
 
 
 @app.get("/v1/doctor/{network}/{hotkey}", response_model=DoctorReport)
@@ -211,7 +312,7 @@ def doctor(
     store.count("doctor", net.name)
     if probe:
         return diagnose(net, key, netuid, probe=True, probe_allowed=_probe_allowed)
-    result = cache.get_or(f"doctor:{net.endpoint}:{key}:{netuid}", lambda: diagnose(net, key, netuid))
+    result = cache.get_or(f"doctor:{net.endpoint}:{key}:{netuid}", lambda: diagnose(net, key, netuid), CACHE_SECONDS, 120.0)
     assert isinstance(result, DoctorReport)
     return result
 
@@ -222,7 +323,7 @@ def neuron_history(network: str, hotkey: str, netuid: Annotated[int, Query(ge=0,
 
     net = network_for(network)
     key = validate.ss58(hotkey)
-    result = cache.get_or(f"history:{net.endpoint}:{key}:{netuid}", lambda: history(net, key, netuid))
+    result = cache.get_or(f"history:{net.endpoint}:{key}:{netuid}", lambda: history(net, key, netuid), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, NeuronHistory)
     return result
 
@@ -273,7 +374,7 @@ def plan(network: str) -> LaunchPlan:
     from .core.plan.launch import launch_plan
 
     net = network_for(network)
-    result = cache.get_or(f"plan:{net.endpoint}", lambda: launch_plan(net))
+    result = cache.get_or(f"plan:{net.endpoint}", lambda: launch_plan(net), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, LaunchPlan)
     return result
 
@@ -291,7 +392,7 @@ def subnets(network: str, health: Annotated[str | None, Query(max_length=400, de
     if len(wanted) > 32:
         raise HTTPException(400, "score at most 32 subnets per request")
     key = f"subnets:{net.endpoint}:{sorted(wanted)}"
-    result = cache.get_or(key, lambda: _Cards(cards=subnet_cards(net, wanted)))
+    result = cache.get_or(key, lambda: _Cards(cards=subnet_cards(net, wanted)), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, _Cards)
     return result.cards
 
@@ -302,7 +403,7 @@ def subnet(network: str, netuid: int) -> SubnetDetail:
 
     net = network_for(network)
     number = int(validate.netuid(netuid) or 0)
-    result = cache.get_or(f"subnet:{net.endpoint}:{number}", lambda: subnet_detail(net, number))
+    result = cache.get_or(f"subnet:{net.endpoint}:{number}", lambda: subnet_detail(net, number), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, SubnetDetail)
     return result
 
@@ -332,7 +433,9 @@ class HouseJoin(BaseModel):
 @app.get("/v1/house", response_model=HouseStats)
 def house() -> HouseStats:
     try:
-        return HouseStats(**store.house_totals(HOUSE_SINCE))
+        result = cache.get_or("house", lambda: HouseStats(**store.house_totals(HOUSE_SINCE)), 10.0, 300.0)
+        assert isinstance(result, HouseStats)
+        return result
     except store.StoreUnavailable as error:
         raise HTTPException(503, f"counters unavailable: {error}") from error
 

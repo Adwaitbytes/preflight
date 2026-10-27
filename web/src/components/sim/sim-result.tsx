@@ -1,11 +1,11 @@
-import { CheckCircle2, Cpu, FlaskConical, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Cpu, FlaskConical, Minus, X, XCircle } from "lucide-react";
+import type { ReactNode } from "react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
-import { Badge } from "@/components/ui/badge";
 import { MonoValue } from "@/components/ui/mono-value";
 import { formatTao } from "@/lib/format";
-import type { SimResult } from "@/lib/types";
+import type { Evidence, SimResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const SS58 = /^5[1-9A-HJ-NP-Za-km-z]{46,47}$/;
@@ -19,7 +19,85 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export function SimResultView({ result }: { result: SimResult }) {
+type CheckStatus = "pass" | "fail" | "info";
+
+/** The engine prefixes each ported pallet check with "pass: " or "fail: " (core/sim/rules.py) */
+export function parseCheck(check: Evidence): { status: CheckStatus; detail: string } {
+  const match = /^(pass|fail):\s*(.*)$/s.exec(check.value);
+  if (!match) return { status: "info", detail: check.value };
+  return { status: match[1] === "pass" ? "pass" : "fail", detail: match[2] ?? "" };
+}
+
+const CHECK_ICON = {
+  pass: <Check className="size-3.5" aria-hidden />,
+  fail: <X className="size-3.5" aria-hidden />,
+  info: <Minus className="size-3.5" aria-hidden />,
+};
+
+function CheckList({ checks }: { checks: Evidence[] }) {
+  const parsed = checks.map((c) => ({ check: c, ...parseCheck(c) }));
+  const failed = parsed.filter((p) => p.status === "fail").length;
+  const passed = parsed.filter((p) => p.status === "pass").length;
+  return (
+    <section className="flex flex-col gap-3" aria-labelledby="checks-heading">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 id="checks-heading" className="text-sm font-semibold text-foreground">
+          Runtime checks
+        </h3>
+        {passed + failed > 0 && (
+          <p className="text-xs text-faint">
+            {passed} passed{failed > 0 && <span className="text-critical">, {failed} failed</span>}
+          </p>
+        )}
+      </div>
+      <ol className="flex flex-col divide-y divide-line overflow-hidden rounded-xl shadow-[0_0_0_1px_var(--line)]">
+        {parsed.map(({ check, status, detail }) => (
+          <li key={check.label} className={cn("flex gap-3 px-3.5 py-3", status === "fail" && "bg-critical-soft")}>
+            <span
+              className={cn(
+                "mt-0.5 grid size-5 shrink-0 place-items-center rounded-full",
+                status === "pass" && "bg-healthy-soft text-healthy",
+                status === "fail" && "bg-critical text-background",
+                status === "info" && "bg-surface-3 text-faint",
+              )}
+            >
+              {CHECK_ICON[status]}
+              <span className="sr-only">{status === "info" ? "read" : status === "pass" ? "passed" : "failed"}</span>
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className={cn("text-[13px] font-medium", status === "fail" ? "text-critical" : "text-foreground")}>{check.label}</p>
+              <p className="mt-0.5 font-mono text-[12.5px] break-words text-muted-foreground">
+                {SS58.test(detail) ? <MonoValue value={detail} label={check.label} /> : detail}
+              </p>
+              {check.source && <p className="mt-1 font-mono text-[11px] text-faint">{check.source}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+export function ModeBanner({ result }: { result: SimResult }) {
+  const fork = result.mode === "fork";
+  const Icon = fork ? Cpu : FlaskConical;
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 rounded-xl px-4 py-3",
+        fork ? "bg-accent-soft shadow-[inset_2px_0_0_var(--accent)]" : "bg-surface-2 shadow-[inset_2px_0_0_var(--line-strong)]",
+      )}
+    >
+      <Icon className={cn("mt-0.5 size-4 shrink-0", fork ? "text-accent-ink" : "text-muted-foreground")} aria-hidden />
+      <div className="min-w-0">
+        <p className={cn("eyebrow", fork && "text-accent-ink")}>{fork ? "Executed, real runtime" : "Predicted, not executed"}</p>
+        <p className="mt-1 text-[15px] leading-6 font-medium text-foreground">{result.mode_label}</p>
+      </div>
+    </div>
+  );
+}
+
+export function SimResultView({ result, actions }: { result: SimResult; actions?: ReactNode }) {
   const ok = result.would_succeed;
   const Icon = ok ? CheckCircle2 : XCircle;
   const changes = result.balance_changes ?? [];
@@ -27,12 +105,7 @@ export function SimResultView({ result }: { result: SimResult }) {
   const overrides = result.overrides ?? [];
   return (
     <div className="panel rise-in flex flex-col gap-6 p-5 sm:p-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge tone={result.mode === "fork" ? "accent" : "neutral"} size="md">
-          {result.mode === "fork" ? <Cpu className="size-3.5" aria-hidden /> : <FlaskConical className="size-3.5" aria-hidden />}
-          {result.mode_label}
-        </Badge>
-      </div>
+      <ModeBanner result={result} />
       <div className="flex items-start gap-3">
         <Icon className={cn("mt-1 size-6 shrink-0", ok ? "text-healthy" : "text-critical")} aria-hidden />
         <div className="min-w-0">
@@ -102,21 +175,7 @@ export function SimResultView({ result }: { result: SimResult }) {
         </Section>
       )}
 
-      {checks.length > 0 && (
-        <Section title="What was checked">
-          <dl className="divide-y divide-line overflow-hidden rounded-xl shadow-[0_0_0_1px_var(--line)]">
-            {checks.map((check) => (
-              <div key={check.label} className="grid gap-1 px-3.5 py-2.5 text-[13px] sm:grid-cols-[1fr_auto] sm:gap-4">
-                <dt className="text-muted-foreground">
-                  {check.label}
-                  {check.source && <span className="mt-0.5 block font-mono text-[11.5px] text-faint">{check.source}</span>}
-                </dt>
-                <dd className="font-mono text-foreground sm:text-right">{SS58.test(check.value) ? <MonoValue value={check.value} label={check.label} /> : check.value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Section>
-      )}
+      {checks.length > 0 && <CheckList checks={checks} />}
 
       {overrides.length > 0 && (
         <Section title="Storage overrides on the fork">
@@ -128,8 +187,9 @@ export function SimResultView({ result }: { result: SimResult }) {
         </Section>
       )}
 
-      <div className="border-t border-line pt-4">
+      <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
         <ChainMeta chain={result.chain} elapsedMs={result.elapsed_ms} />
+        {actions && <div className="flex min-w-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
     </div>
   );

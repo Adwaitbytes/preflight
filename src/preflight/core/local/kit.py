@@ -170,6 +170,16 @@ class Kit:
         self.state = self.state.model_copy(update={"breaks": breaks})
         self.save()
 
+    def settle(self) -> int:
+        """The head after the last write, returned once the chain is two blocks past it.
+
+        Each client follows its own new-head subscription, and a second client (the Doctor's
+        pooled one, in the same process) was measured one block behind for up to 0.6 s, so a
+        diagnosis right after a break could read the block before it."""
+        head = self.chain.block
+        self.chain.wait_blocks(2)
+        return head
+
     def forget(self, scenario: str) -> None:
         breaks = {k: v for k, v in self.state.breaks.items() if k != scenario}
         self.state = self.state.model_copy(update={"breaks": breaks})
@@ -271,7 +281,7 @@ class Kit:
             expected_rule=rule,
             summary=summary,
             steps=steps,
-            block=self.chain.block,
+            block=self.settle(),
             **extrinsics,
         )
         self.record(result)
@@ -382,6 +392,7 @@ def up(
             "miners to earn incentive",
             kit.epoch_timeout(netuid),
         )
+        kit.settle()
         kit.state = _refreshed(kit.chain, kit.state).model_copy(
             update={"up_seconds": round(time.monotonic() - started, 1)}
         )

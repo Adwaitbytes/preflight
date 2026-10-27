@@ -127,7 +127,7 @@ export function SimPreview({ sim }: { sim: SimResult }) {
         {(sim.checks ?? []).slice(0, 3).map((c) => (
           <div key={c.label} className="flex justify-between gap-3">
             <dt className="truncate text-muted-foreground">{c.label}</dt>
-            <dd className="min-w-0 truncate text-right font-mono text-xs text-foreground">{c.value}</dd>
+            <dd className="min-w-0 truncate text-right font-mono text-xs text-foreground">{c.value.replace(/^(pass|fail):\s*/, "")}</dd>
           </div>
         ))}
       </dl>

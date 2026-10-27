@@ -3,7 +3,16 @@
  * so each view can render a precise state for each failure instead of a generic error page.
  */
 
-import { z } from "zod";
+import type { z } from "zod";
+import {
+  houseStatsSchema,
+  neuronHistorySchema,
+  sharedReportSchema,
+  type HouseStats,
+  type NeuronHistory,
+  type SharedReport,
+  type ShareKind,
+} from "./schemas";
 import type { NetworkId } from "./networks";
 import type {
   AskAnswer,
@@ -32,13 +41,7 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError 
 
 export type SimAction = SimRequest["action"];
 
-export const houseStatsSchema = z.object({
-  diagnoses: z.number().int().nonnegative(),
-  errors: z.number().int().nonnegative(),
-  builders: z.number().int().nonnegative(),
-  since: z.string(),
-});
-export type HouseStats = z.infer<typeof houseStatsSchema>;
+export type { HouseStats, NeuronHistory, SharedReport, ShareKind } from "./schemas";
 
 export interface DoctorOptions {
   netuid?: number | null;
@@ -57,6 +60,10 @@ export interface PreflightApi {
   ask(query: string): Promise<ApiResult<AskAnswer>>;
   health(): Promise<ApiResult<ServiceHealth>>;
   house(): Promise<ApiResult<HouseStats>>;
+  joinHouse(id: string): Promise<ApiResult<HouseStats>>;
+  share(kind: ShareKind, payload: DoctorReport | TxReport | SimResult): Promise<ApiResult<SharedReport>>;
+  report(id: string): Promise<ApiResult<SharedReport>>;
+  history(network: NetworkId, hotkey: string, netuid: number): Promise<ApiResult<NeuronHistory>>;
 }
 
 const DEFAULT_TIMEOUT_MS = 45_000;
@@ -149,6 +156,15 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     return { ok: true, data: body as T };
   }
 
+  async function parsed<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<ApiResult<T>> {
+    const result = await call<unknown>(path, () => true, init);
+    if (!result.ok) return result;
+    const checked = schema.safeParse(result.data);
+    return checked.success
+      ? { ok: true, data: checked.data }
+      : { ok: false, error: { kind: "server", status: 200, message: "The API answered with an unexpected shape" } };
+  }
+
   const enc = encodeURIComponent;
 
   return {
@@ -170,14 +186,11 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     find: (query) => call(`/v1/find?q=${enc(query)}`, arrayOf("netuid")),
     ask: (query) => call(`/v1/ask?q=${enc(query)}`, objectWith("intent", "message")),
     health: () => call("/v1/health", objectWith("ok", "networks")),
-    async house() {
-      const result = await call<unknown>("/v1/house", () => true);
-      if (!result.ok) return result;
-      const parsed = houseStatsSchema.safeParse(result.data);
-      return parsed.success
-        ? { ok: true, data: parsed.data }
-        : { ok: false, error: { kind: "server", status: 200, message: "The API answered with an unexpected shape" } };
-    },
+    house: () => parsed("/v1/house", houseStatsSchema),
+    joinHouse: (id) => parsed("/v1/house/join", houseStatsSchema, { method: "POST", body: JSON.stringify({ id }) }),
+    share: (kind, payload) => parsed("/v1/reports", sharedReportSchema, { method: "POST", body: JSON.stringify({ kind, payload }) }),
+    report: (id) => parsed(`/v1/reports/${enc(id)}`, sharedReportSchema),
+    history: (network, hotkey, netuid) => parsed(`/v1/history/${network}/${enc(hotkey)}?netuid=${netuid}`, neuronHistorySchema),
   };
 }
 

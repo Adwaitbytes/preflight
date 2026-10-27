@@ -10,6 +10,7 @@ scenario is safe to rerun: steps already done are skipped and the failure is re-
 from __future__ import annotations
 
 import ipaddress
+import itertools
 import math
 import os
 import shlex
@@ -153,9 +154,20 @@ def _lab_validator(kit: Kit, scenario: str) -> tuple[int, DevWallet, int, int]:
     return netuid, validator, validator_uid, miner_uid
 
 
+def _served(kit: Kit, netuid: int, name: str) -> bool:
+    known = kit.state.neuron(name)
+    if known is None:
+        return False
+    graph = kit.chain.metagraph(netuid)
+    return any(n.hotkey == known.hotkey and n.axon for n in graph.neurons)
+
+
 def unserved_axon(kit: Kit) -> BreakResult:
-    name = "unserved-miner"
     netuid = kit.state.netuid
+    # A fix serves the axon, and serving cannot be undone without leaving 0.0.0.0:1 behind,
+    # so a rerun after a fix brings in a fresh miner that never served.
+    names = itertools.chain(["unserved-miner"], (f"unserved-miner-{k}" for k in itertools.count(2)))
+    name = next(n for n in names if not _served(kit, netuid, n))
     wallet, uid = kit.enroll(name, "miner", netuid, scenario="unserved-axon")
     return kit.result(
         "unserved-axon",
@@ -234,9 +246,12 @@ def low_stake_validator(kit: Kit) -> BreakResult:
     netuid = kit.state.netuid
     wallet, uid = kit.enroll(name, "validator", netuid, scenario=scenario)
     own = kit.stake(name, netuid, LOW_STAKE_TAO)
-    kit.wait_for_permits(netuid, [wallet.hotkey_ss58])
     steps = [f"registered {name} as UID {uid} with {own:.4f} alpha of stake"]
     if uid not in _weight_rows(kit, netuid):
+        # Only a permit holder may weight other UIDs. Once StakeThreshold sits above its stake
+        # the epoch takes the permit away, so a rerun must not wait for one: its weights row
+        # is already there, which is what makes the Doctor treat it as a validator.
+        kit.wait_for_permits(netuid, [wallet.hotkey_ss58])
         weights = {u: 1.0 for u in _main_miner_uids(kit)}
         kit.chain.set_weights(netuid, wallet, weights)
         steps.append(f"set weights on UIDs {sorted(weights)} while it still could")
@@ -450,7 +465,7 @@ def _fixed(
         command=command,
         ran=ran,
         steps=steps,
-        block=kit.chain.block,
+        block=kit.settle(),
     )
 
 

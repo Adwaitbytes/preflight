@@ -297,3 +297,11 @@ def test_engine_verdict_and_headline() -> None:
     assert diagnosis.role == "miner"
     assert evaluate(snap(0)).role == "validator"
     assert evaluate(snap(None)).role == "unregistered"
+
+
+def test_permit_without_weights_or_stake_is_still_a_miner() -> None:
+    # Small subnets give every UID a permit; that must not switch off the miner rules.
+    s = replace(subnet(weights={0: {3: 1.0}, 1: {3: 1.0}}), 2, validator_permit=True, stake=12.0)
+    diagnosis = evaluate(snap(2, s))
+    assert diagnosis.role == "miner"
+    assert "PF108" in [f.id for f in diagnosis.findings]

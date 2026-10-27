@@ -59,7 +59,7 @@ Scenarios that change a subnet-wide parameter would spoil each other on one subn
 | `pending-reveal` | scratch | 9.7 s | PF205 info |
 | `deregistered-miner` | scratch | 7.2 s | PF101 critical, PF302 medium (**expected PF102**, see below) |
 
-The full localnet suite (`uv run pytest tests/localnet -m chain -x -v`) took 151 s: 15 passed and 1 strict xfail.
+The full localnet suite (`uv run pytest tests/localnet -m chain -v`, 29 tests including the fixes) took 191 s on a fresh container, all passing.
 
 ## New quirks
 
@@ -69,11 +69,48 @@ The full localnet suite (`uv run pytest tests/localnet -m chain -x -v`) took 151
 - **The SDK checks the weights rate limit before signing.** A retry inside the limit never reaches the chain: "Weights on netuid 4 were last set 1 blocks ago; the rate limit is 3600 blocks"
 - **Inner sudo failures surface on their own.** The SDK decodes the nested `Sudid` result, so a failed inner call comes back as `success=False` with the inner error's message. Scanning events is not needed
 
-## A rule that cannot fire on localnet: PF102
+## PF102 after the lead's rewrite
 
-`deregistered-miner` produces the right chain state: the victim held UID 1 at block 462 and has no UID at block 467. The Doctor still reports PF101, not PF102. `find_deregistration` (`core/chain/snapshot.py`) starts by reading `Uids` at `low = max(1, head - 21600)`. It returns `None` unless the hotkey held a UID at that block. Two separate problems follow:
+`find_deregistration` now gallops back from the head in doubling steps and then binary searches. `deregistered-miner` reports PF102 and the strict xfail is gone. The search only reaches back as far as the node keeps state, about 256 blocks (75 s). A victim diagnosed about 300 blocks after it was pruned showed PF101 again on this localnet.
 
-1. Unless a chain is older than 21,600 blocks (about 1.7 h at 0.29 s per block), `low` falls before the subnet existed, so the hotkey cannot hold a UID there. This applies on any network for a hotkey that registered less than 21,600 blocks ago
-2. Nodes that are not archive nodes, this localnet included, discard state older than about 256 blocks. The first read raises "State discarded" and the function returns `None`
+## Fixes and wallets (`preflight local fix <scenario>`)
 
-Suggested fix (not applied; out of scope): walk back from the head (1, 2, 4, 8, ... blocks) until a block shows the hotkey with a UID or the state runs out. Then binary search between that block and the next one walked. This makes PF102 work for any deregistration still within the node's history, which is about 256 blocks (75 s) on this localnet. `tests/localnet/test_local_kit.py::test_deregistered_miner_makes_the_doctor_report_pf102` is a strict xfail, so it fails loudly once this is fixed and the marker should come off.
+Every neuron the kit creates has a password-less bittensor wallet at `.preflight/local/wallets/<name>/`, with key files at mode 0600, and its name is recorded in `LocalNeuron.wallet`. The Doctor's own fix runs unchanged with the wallet flags added, for example:
+
+```
+uv run btcli axon set --netuid 2 --ip ::ffff:127.0.0.1 --port 8192 --network local --wallet-path .preflight/local/wallets --wallet loopback-miner --no-prompt
+```
+
+That landed at extrinsic `230-0002`, and the next diagnosis no longer reported PF106.
+
+| Scenario | Fix | Ran as typed |
+|---|---|---|
+| `unserved-axon`, `loopback-axon` | `btcli axon set ... --ip ::ffff:127.0.0.1` | yes |
+| `no-weight-miner` | `btcli weights set` from `validator-1`, including the miner | yes |
+| `low-stake-validator` | `btcli stake add ... --no-mev-shield` | yes |
+| `stale-validator` | `btcli weights set` | yes |
+| `rate-limited-validator` | sudo sets `WeightsSetRateLimit` back to 0, in place of waiting 3,600 blocks; then `btcli weights set` | yes |
+| `deregistered-miner` | the reported command is `btcli subnets register`; the kit submits the raw `burned_register` | **no** |
+| `pending-reveal` | none: reveal needs drand, which the container cannot reach | no |
+
+### btcli and the MEV shield on localnet
+
+- `btcli stake add` is shielded by default. On localnet the decrypted extrinsic was "not included before its era expired". It lands with `--no-mev-shield`, so the Doctor's PF201 and PF204 commands (`btcli stake add ...`) fail on localnet as printed
+- `btcli subnets register` and `btcli call SubtensorModule.burned_register` force the shield and refuse `--no-mev-shield` ("burned_register must be submitted MEV-shielded"). The shielded attempt failed with `AncientBirthBlock`. So no btcli command can register on localnet, and the PF101 and PF102 fix (`btcli subnets register`) cannot succeed there
+
+## A Doctor read in the same process can trail a write by a block
+
+Each SDK client follows its own new-head subscription. Right after a write, a second client in the same process, such as the Doctor's pooled one, pinned the block before the write in 3 of 3 trials, for up to 0.6 s. The diagnosis then showed the state from before the break. `up`, `break` and `fix` now wait until the chain is two blocks past their last write before returning (about 0.6 s). `test_doctor_in_the_same_process_sees_a_break_as_soon_as_it_returns` failed 3 of 3 before that change. Separate CLI invocations never hit this.
+
+## Validator permits on a small subnet
+
+- A permit needs stake at or above `StakeThreshold`. One epoch after `low-stake-validator` raised the threshold, the validator's permit was gone (`validator_permit=False`, stake 1.33 alpha). A rerun therefore must not wait for a permit
+- With 64 permit slots and 6 UIDs, every UID that holds stake gets a permit. Miners earn alpha from emissions: `miner-1` went from 0 to 7.86 alpha in a few epochs, and by block 916 every UID had a permit. From then on the Doctor classifies the kit's miners as validators (`is_validator` reads the permit): it runs validator rules on them, reports PF202 and PF305 against them, and stops running PF105 to PF111. The tests only pass because they diagnose right after the first scored epoch. The same applies to any real subnet with fewer UIDs than `MaxAllowedValidators`. Two possible fixes, for the lead to decide: classify a permitted UID as a validator only when it has a weights row or meets `StakeThreshold`; or have `up` cap `MaxAllowedValidators` at the validator count, which would hide this on localnet without fixing it
+
+## `preflight new` on the kit
+
+Scaffolded `demo-subnet` into a scratch directory. `uv sync` and its 2 tests passed. The miner ran as `miner-1` and the validator as `validator-1`, using `WALLET`, `HOTKEY` and `WALLET_PATH` pointed at the kit's wallets, so no extra hotkeys were needed.
+
+- **Template bug, `package/miner.py` line 38:** `uvicorn.run(app, host="::", ...)` listens IPv6-only, because asyncio sets `IPV6_V6ONLY` on IPv6 listeners. `[::1]:8091` answered, while `127.0.0.1:8091` and the advertised `[::ffff:127.0.0.1]:8091` were refused. The validator scored every miner 0, `normalize` returned `{}`, and it never set weights. Fix: `uvicorn.run(app, host="0.0.0.0", port=settings.miner_port)`. With that one change, signed queries returned 200 and the validator's weights landed (`validator-1` row `{3: 1.0}`, `LastUpdate` 703)
+- **Template UX, `package/validator.py`:** a round in which no miner answers prints nothing, and the `print` output is block-buffered when stdout is a file, so the log stayed empty for minutes. Suggest `print(..., flush=True)` and a line such as "no miner answered correctly; not setting weights" when `weights` is empty
+- With both kit validators running the scaffolded validator, UID 3 reached incentive 1.0 (block 1269), and the Doctor shows no PF108 for it. Because of the permit issue above, it shows `validator`, PF305 and PF202 rather than a miner verdict. When only `validator-1` scored UID 3, the incentive stayed 0: its 47% of permitted stake was below kappa (50%)

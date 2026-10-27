@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { ApiResult } from "@/lib/api";
 import { NETWORKS } from "@/lib/networks";
 import { getApi } from "@/lib/server-api";
+import { doctorReportSchema, simResultSchema, txReportSchema, type HouseStats, type NeuronHistory, type SharedReport } from "@/lib/schemas";
 import type { DoctorReport, ErrorExplanation, SimResult } from "@/lib/types";
 
 // Server Functions are public endpoints: validate everything before it reaches the API
@@ -49,4 +50,30 @@ export async function explainErrorAction(rawText: unknown): Promise<ApiResult<Er
   const text = z.string().trim().min(1).max(20_000).safeParse(rawText);
   if (!text.success) return invalid("Paste the error text first");
   return (await getApi()).explainError(text.data);
+}
+
+const shareRequest = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("doctor"), payload: doctorReportSchema }),
+  z.object({ kind: z.literal("tx"), payload: txReportSchema }),
+  z.object({ kind: z.literal("sim"), payload: simResultSchema }),
+]);
+
+export async function shareReportAction(rawKind: unknown, rawPayload: unknown): Promise<ApiResult<SharedReport>> {
+  const request = shareRequest.safeParse({ kind: rawKind, payload: rawPayload });
+  if (!request.success) return invalid("That report cannot be shared");
+  return (await getApi()).share(request.data.kind, request.data.payload);
+}
+
+export async function joinHouseAction(rawId: unknown): Promise<ApiResult<HouseStats>> {
+  const id = z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).safeParse(rawId);
+  if (!id.success) return invalid("Invalid builder id");
+  return (await getApi()).joinHouse(id.data);
+}
+
+export async function historyAction(rawNetwork: unknown, rawHotkey: unknown, rawNetuid: unknown): Promise<ApiResult<NeuronHistory>> {
+  const net = network.safeParse(rawNetwork);
+  const hotkey = ss58.safeParse(rawHotkey);
+  const uid = netuid.safeParse(rawNetuid);
+  if (!net.success || !hotkey.success || !uid.success) return invalid("Invalid network, hotkey or netuid");
+  return (await getApi()).history(net.data, hotkey.data, uid.data);
 }
