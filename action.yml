@@ -1,0 +1,42 @@
+name: Preflight Doctor
+description: Fail CI when a Bittensor neuron has findings at or above a severity, on localnet or a live network
+branding:
+  icon: activity
+  color: green
+inputs:
+  hotkeys:
+    description: Comma separated hotkey ss58 addresses to diagnose; empty with localnet means every neuron the kit created
+    default: ""
+  netuid:
+    description: Subnet to diagnose on
+    default: ""
+  network:
+    description: local, test, finney or a ws:// endpoint
+    default: local
+  fail-on:
+    description: critical, high, medium or info
+    default: high
+outputs:
+  findings:
+    description: Number of findings at or above fail-on
+    value: ${{ steps.doctor.outputs.findings }}
+runs:
+  using: composite
+  steps:
+    - uses: astral-sh/setup-uv@v10.3.2
+      with:
+        python-version: "3.13"
+    - name: Boot a localnet subnet
+      if: inputs.network == 'local'
+      shell: bash
+      run: uv run --project "${{ github.action_path }}" preflight local up
+    - id: doctor
+      name: Diagnose
+      shell: bash
+      env:
+        HOTKEYS: ${{ inputs.hotkeys }}
+        NETUID: ${{ inputs.netuid }}
+        NETWORK: ${{ inputs.network }}
+        FAIL_ON: ${{ inputs.fail-on }}
+        PF: uv run --project ${{ github.action_path }} preflight
+      run: bash "${{ github.action_path }}/scripts/action_doctor.sh"
