@@ -27,9 +27,12 @@ CHOPSTICKS = "@acala-network/chopsticks@1.5.2"
 MOCK_SIGNATURE = b"\xde\xad\xbe\xef" + b"\xcd" * 60
 STATE_DIR = Path(os.environ.get("PREFLIGHT_HOME", ".preflight")) / "chopsticks"
 DEFAULT_PORTS = {"finney": 8011, "test": 8012, "local": 8013}
-# The public entrypoint load-sheds the 1000-key `state_getKeysPaged` pages Chopsticks
-# requests ("upstream_pool ... load_shed"); the archive pool serves them.
-FORK_UPSTREAM = {"finney": "wss://archive.chain.opentensor.ai:443"}
+# Measured 2026-10-28: the archive pool hung a storage request with no timeout and stalled the
+# fork; the public entrypoint served every read `apply_extrinsic` needs (it only load-sheds
+# the large key pages that block building asks for, which we never do). Override with
+# PREFLIGHT_FORK_UPSTREAM_<NETWORK> to point a fork at your own node.
+def fork_upstream(network: Network) -> str:
+    return os.environ.get(f"PREFLIGHT_FORK_UPSTREAM_{network.name.upper()}", network.endpoint)
 
 
 class ForkUnavailable(RuntimeError):
@@ -87,6 +90,18 @@ def decode_apply_result(hex_result: str) -> ApplyOutcome:
     return ApplyOutcome(False, name, "TransactionValidity", hex_result)
 
 
+def js_safe(value: Any) -> Any:
+    """Integers as strings: AccountInfo.flags is a u128 that JSON numbers lose precision on,
+    and Chopsticks' polkadot.js codec rejects anything above 2**53."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, dict):
+        return {k: js_safe(v) for k, v in value.items()}  # pyright: ignore[reportUnknownVariableType]  # decoded SCALE dict
+    return value
+
+
 class Fork:
     """A Chopsticks fork reachable over HTTP JSON-RPC."""
 
@@ -125,10 +140,10 @@ class Fork:
         data = dict(original.get("data") or {})
         data["free"] = free_rao
         entry = {**original, "providers": max(int(original.get("providers") or 0), 1), "data": data}
-        self.rpc("dev_setStorage", [{"System": {"Account": [[[address], entry]]}}])
+        self.rpc("dev_setStorage", [{"System": {"Account": [[[address], js_safe(entry)]]}}])
 
     def restore(self, address: str, original: dict[str, Any]) -> None:
-        entry: Any = original if original else None
+        entry: Any = js_safe(original) if original else None
         self.rpc("dev_setStorage", [{"System": {"Account": [[[address], entry]]}}])
 
     def build(self, call: Any, signer: str) -> str:
@@ -198,7 +213,7 @@ def start_fork(network: Network, *, wait_s: float = 180.0) -> Fork:
     process = subprocess.Popen(
         [
             "npx", "-y", CHOPSTICKS,
-            "--endpoint", FORK_UPSTREAM.get(network.name, network.endpoint),
+            "--endpoint", fork_upstream(network),
             "--port", str(port),
             "--allow-unresolved-imports", "true",
             "--mock-signature-host", "true",
@@ -217,9 +232,46 @@ def start_fork(network: Network, *, wait_s: float = 180.0) -> Fork:
             raise ForkUnavailable(f"chopsticks exited with code {process.returncode}; see {STATE_DIR / f'{network.name}.log'}")
         if fork.alive():
             _forks[network.name] = fork
+            warm_in_background(fork)
             return fork
         time.sleep(1.0)
     raise ForkUnavailable(f"chopsticks did not start within {wait_s:.0f} s")
+
+
+WARM_NETUID = {"finney": 64, "test": 1, "local": 2}
+
+
+def warm(fork: Fork) -> list[str]:
+    """Run each simulated action once with throwaway keys so the storage it touches is cached.
+
+    The first execution of a call path on a fresh fork fetches every key lazily (measured
+    222 s for a registration on finney); afterwards the same path runs in about 2 s.
+    """
+    import bittensor as bt
+
+    netuid = WARM_NETUID.get(fork.network.name, 1)
+    cold = Keypair.create_from_mnemonic(Keypair.generate_mnemonic()).ss58_address
+    hot = Keypair.create_from_mnemonic(Keypair.generate_mnemonic()).ss58_address
+    calls: list[tuple[str, Any, str]] = [
+        ("burned_register", bt.calls.SubtensorModule.burned_register(netuid=netuid, hotkey=hot), cold),
+        ("add_stake", bt.calls.SubtensorModule.add_stake(hotkey=hot, netuid=netuid, amount_staked=1_000_000_000), cold),
+        ("serve_axon", bt.calls.SubtensorModule.serve_axon(netuid=netuid, version=0, ip=int.from_bytes(bytes([34, 1, 2, 3])), port=8091, ip_type=4, protocol=0, placeholder1=0, placeholder2=0), hot),
+        ("set_weights", bt.calls.SubtensorModule.set_weights(netuid=netuid, dests=[0], weights=[65535], version_key=0), hot),
+    ]
+    done: list[str] = []
+    for name, call, signer in calls:
+        try:
+            fork.apply(call, signer, coldkey=cold, free_tao=100.0)
+            done.append(name)
+        except ForkUnavailable:
+            continue
+    return done
+
+
+def warm_in_background(fork: Fork) -> threading.Thread:
+    thread = threading.Thread(target=warm, args=(fork,), name="preflight-fork-warm", daemon=True)
+    thread.start()
+    return thread
 
 
 def stop_forks() -> None:

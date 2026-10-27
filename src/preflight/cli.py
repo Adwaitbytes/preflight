@@ -184,6 +184,7 @@ def fork(network: NetworkOpt = "finney") -> None:
 def serve(
     port: Annotated[int, typer.Option("--port")] = 7979,
     host: Annotated[str, typer.Option("--host")] = "127.0.0.1",
+    with_fork: Annotated[str | None, typer.Option("--fork", help="Also start a Chopsticks fork of this network for real simulation")] = None,
 ) -> None:
     """Run the API locally (localnet and custom endpoints enabled) for the web app and scripts"""
     import os
@@ -191,6 +192,14 @@ def serve(
     import uvicorn
 
     os.environ["PREFLIGHT_LOCAL"] = "1"
+    if with_fork:
+        from .core.sim.fork import ForkUnavailable, start_fork
+
+        try:
+            started = start_fork(Network.resolve(with_fork))
+            console.print(f"Fork of {with_fork} at block {started.head():,}; warming its cache in the background")
+        except ForkUnavailable as error:
+            err.print(f"[yellow]No fork, simulations will be predicted:[/yellow] {error}")
     console.print(f"Preflight API on http://{host}:{port}/v1  (docs at /v1/docs). The web app shows a Local network option while this runs")
     uvicorn.run("preflight.api:app", host=host, port=port, log_level="warning")
 

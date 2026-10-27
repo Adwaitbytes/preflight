@@ -52,3 +52,19 @@ Needs a real signature from the user's key, so it cannot simulate for an address
 - **Local CLI, MCP and `preflight serve`:** rung 1b. Label: "Executed on a fork of block N with the real runtime"
 - **Hosted site on Vercel:** cannot run a long-lived Chopsticks process, so it uses rung 3 (live reads plus the pallet checks ported from subtensor source, cited by file and line) and labels it "Predicted from live state and runtime rules". When a local API is detected, the web UI routes simulations to it and gets rung 1b
 - The rung 3 checks double as the explanation layer for rung 1b: when the fork says `Err(Module(...))`, the same ported check says which number caused it
+
+## Update, Day 1 night: what shipped and measured
+
+- Chopsticks runs against the public entrypoint. The archive pool (`archive.chain.opentensor.ai`) hung one storage request with no timeout and stalled the fork for 45 minutes; Chopsticks 1.5.2 has no RPC timeout option. The entrypoint load-sheds only the 1000-key pages that block building asks for, which `apply_extrinsic` never needs. `PREFLIGHT_FORK_UPSTREAM_FINNEY` points it at your own node
+- `dev_setStorage` rejects `AccountInfo.flags` (a u128, here 2^127) as a JSON number above 2^53, so overrides are sent with integers as strings
+- Measured on a fork of finney block 9,376,889, all through `preflight.core.sim.engine.simulate`, each agreeing with the rung 3 prediction:
+
+| Action on SN64 | Fork result | Time |
+|---|---|---|
+| `burned_register`, coldkey with 0 TAO | `Err(Invalid(Payment))` | 10.8 s, first use |
+| `burned_register`, balance overridden to 10 TAO | `Ok` | 222 s cold, about 2 s once cached |
+| `burned_register`, balance overridden to 0.0001 TAO | `Err(Invalid(Payment))` | 1.8 s |
+| `serve_axon` at 127.0.0.1 | `InvalidIpAddress` | 9.0 s |
+| `start_call` from a stranger with 0 TAO | `Err(Invalid(Payment))` | 4.5 s |
+
+- A cold call path is too slow for a request, so `simulate` gives the fork 20 s and otherwise returns the prediction, labelled "the fork is still warming", while the fork run finishes and fills the cache. `start_fork` runs every action once in the background (`warm`): 10.3 s on a primed cache

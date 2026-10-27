@@ -1,0 +1,51 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.13"
+      - run: uv sync
+      - run: uv run ruff check
+      - run: uv run pyright
+      - run: uv run pytest -m "not chain and not live"
+      - name: Python and TypeScript contracts match
+        run: uv run python scripts/gen_contract.py --check
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+        env:
+          PREFLIGHT_OFFLINE: "1"
+
+  localnet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.13"
+      - run: uv sync
+      - run: docker pull ghcr.io/raofoundation/subtensor-localnet:devnet
+      - name: Every break scenario is diagnosed on a fresh chain
+        run: |
+          docker rm -f preflight_localnet || true
+          uv run pytest tests/localnet -m chain -v

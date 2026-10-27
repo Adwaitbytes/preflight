@@ -3,14 +3,15 @@
 `up` always starts from a fresh container, builds one subnet with funded, registered,
 staked and scored neurons, and persists everything later commands need to
 `.preflight/local/` (override with `PREFLIGHT_LOCAL_DIR` or `home=`): `state.json` holds
-public facts only, `keys.json` (mode 0600) holds the throwaway dev mnemonics, which are
-never printed or returned.
+public facts only; `wallets/<neuron name>/` holds a password-less bittensor wallet per
+neuron (key files mode 0600) so `btcli --wallet-path ... --wallet <name>` can sign as it.
+Mnemonics live only in those key files and are never printed or returned.
 """
 
 from __future__ import annotations
 
-import json
 import os
+import shutil
 import time
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -25,9 +26,8 @@ from ..chain.harness import (
     ChainError,
     DevWallet,
     Harness,
-    new_mnemonic,
+    disk_wallet,
     wait_until,
-    wallet_from_mnemonics,
 )
 from ..chain.localnet import ENDPOINT, LOOPBACK_AXON_IP, Localnet
 from ..models import Model
@@ -43,6 +43,7 @@ FIRST_MINER_PORT = 8091
 # Assumed worst case seconds per block when turning tempos into timeouts. The devnet
 # image measured 0.29 s; the slack is for loaded CI runners.
 SLOW_BLOCK_S = 1.0
+WALLETS = "wallets"
 
 Role = Literal["owner", "validator", "miner"]
 Progress = Callable[[str], None]
@@ -62,6 +63,10 @@ class LocalNeuron(Model):
     axon: str | None = None
     stake: float = Field(default=0.0, description="Stake in alpha, as the chain reports it")
     scenario: str | None = None
+    wallet: str | None = Field(
+        default=None,
+        description="Wallet name under the kit's wallets directory; None for the sudo owner",
+    )
 
 
 class SubmittedExtrinsic(Model):
@@ -121,31 +126,6 @@ def local_dir(home: Path | None = None) -> Path:
     return Path(configured) if configured else Path.cwd() / ".preflight" / "local"
 
 
-class KeyStore:
-    """Dev mnemonics by neuron name, in a file only the owner can read."""
-
-    def __init__(self, path: Path) -> None:
-        self.path = path
-        self._keys: dict[str, dict[str, str]] = (
-            json.loads(path.read_text()) if path.exists() else {}
-        )
-
-    def wallet(self, name: str) -> DevWallet:
-        keys = self._keys.get(name)
-        if keys is None:
-            keys = {"coldkey": new_mnemonic(), "hotkey": new_mnemonic()}
-            self._keys[name] = keys
-            self._save()
-        return wallet_from_mnemonics(keys["coldkey"], keys["hotkey"])
-
-    def _save(self) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        descriptor = os.open(self.path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-        with os.fdopen(descriptor, "w") as handle:
-            json.dump(self._keys, handle, indent=2)
-        os.chmod(self.path, 0o600)
-
-
 def _quiet(_: str) -> None:
     return None
 
@@ -157,7 +137,6 @@ class Kit:
         self.home = home
         self.state = state
         self.progress = progress
-        self.keys = KeyStore(home / "keys.json")
         self.chain = Harness(state.endpoint)
 
     def close(self) -> None:
@@ -166,8 +145,16 @@ class Kit:
     def save(self) -> None:
         save_state(self.home, self.state)
 
+    @property
+    def wallets_dir(self) -> Path:
+        return self.home / WALLETS
+
     def wallet(self, name: str) -> DevWallet:
-        return self.keys.wallet(name)
+        return disk_wallet(self.wallets_dir, name)
+
+    def wallet_flags(self, name: str) -> list[str]:
+        """btcli flags that sign as this neuron's on-disk wallet."""
+        return ["--wallet-path", str(self.wallets_dir), "--wallet", name, "--wallet-hotkey", "default"]
 
     def epoch_timeout(self, netuid: int, epochs: int = 3) -> float:
         tempo = int(self.chain.hyperparameters(netuid).get("tempo", self.state.tempo))
@@ -180,6 +167,11 @@ class Kit:
 
     def record(self, result: BreakResult) -> None:
         breaks = {**self.state.breaks, result.scenario: result}
+        self.state = self.state.model_copy(update={"breaks": breaks})
+        self.save()
+
+    def forget(self, scenario: str) -> None:
+        breaks = {k: v for k, v in self.state.breaks.items() if k != scenario}
         self.state = self.state.model_copy(update={"breaks": breaks})
         self.save()
 
@@ -214,6 +206,7 @@ class Kit:
                 axon=address or (previous.axon if previous else None),
                 stake=previous.stake if previous else 0.0,
                 scenario=scenario,
+                wallet=name,
             )
         )
         return wallet, uid
@@ -438,20 +431,25 @@ def break_scenario(
     scenario = SCENARIOS.get(name)
     if scenario is None:
         raise KitError(f"unknown scenario {name!r}; choose one of {', '.join(SCENARIOS)}")
-    directory = local_dir(home)
-    state = load_state(directory)
-    if state is None or not Localnet(endpoint=state.endpoint, container=state.container).is_running():
-        raise KitError("no localnet is up; run `preflight local up` first")
-    kit = Kit(directory, state, progress)
+    kit = open_kit(home, progress)
     try:
         return scenario.run(kit)
     finally:
         kit.close()
 
 
+def open_kit(home: Path | None = None, progress: Progress | None = None) -> Kit:
+    """The running localnet's kit; the caller closes it."""
+    directory = local_dir(home)
+    state = load_state(directory)
+    if state is None or not Localnet(endpoint=state.endpoint, container=state.container).is_running():
+        raise KitError("no localnet is up; run `preflight local up` first")
+    return Kit(directory, state, progress or _quiet)
+
+
 def _clear(directory: Path) -> None:
-    for file in ("state.json", "keys.json"):
-        (directory / file).unlink(missing_ok=True)
+    (directory / "state.json").unlink(missing_ok=True)
+    shutil.rmtree(directory / WALLETS, ignore_errors=True)
 
 
 def _spec(client: bt.Subtensor) -> int | None:

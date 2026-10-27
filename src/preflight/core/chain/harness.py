@@ -19,6 +19,7 @@ import ipaddress
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import bittensor as bt
@@ -79,8 +80,23 @@ def new_mnemonic() -> str:
     return Keypair.generate_mnemonic()
 
 
-def wallet_from_mnemonics(coldkey: str, hotkey: str) -> DevWallet:
-    return DevWallet(Keypair.create_from_mnemonic(coldkey), Keypair.create_from_mnemonic(hotkey))
+WALLET_HOTKEY = "default"
+
+
+def disk_wallet(root: Path, name: str) -> DevWallet:
+    """A password-less bittensor wallet at `root/name`, created on first use, so `btcli
+    --wallet-path root --wallet name` signs as the same keys. The mnemonics are written to
+    the key files only; `suppress` keeps the SDK from printing them."""
+    wallet = bt.Wallet(name=name, hotkey=WALLET_HOTKEY, path=str(root))
+    if not (root / name / "coldkey").exists():
+        wallet.regenerate_coldkey(
+            mnemonic=new_mnemonic(), use_password=False, overwrite=True, suppress=True
+        )
+    if not (root / name / "hotkeys" / WALLET_HOTKEY).exists():
+        wallet.regenerate_hotkey(
+            mnemonic=new_mnemonic(), use_password=False, overwrite=True, suppress=True
+        )
+    return DevWallet(wallet.coldkey, wallet.hotkey)
 
 
 def serve_axon_call(netuid: int, ip: str, port: int) -> Any:

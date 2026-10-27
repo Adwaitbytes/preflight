@@ -14,15 +14,16 @@ import threading
 import time
 from collections import OrderedDict, deque
 from collections.abc import Callable
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
-from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi import FastAPI, HTTPException, Path, Query, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import __version__
-from .core import validate
+from .core import store, validate
 from .core.ask import ask as ask_router
 from .core.chain.network import ChainUnreachable, Network, client_for
 from .core.models import (
@@ -61,7 +62,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https://preflight[a-z0-9-]*\.vercel\.app",
+    allow_origin_regex=r"https://preflight[a-z0-9-]*\.vercel\.app|http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["content-type"],
     max_age=600,
@@ -146,6 +147,14 @@ async def invalid(_: Request, error: validate.InvalidInput) -> JSONResponse:
     return JSONResponse({"detail": str(error), "kind": "invalid_input"}, status_code=400)
 
 
+@app.exception_handler(RequestValidationError)
+async def unprocessable(_: Request, error: RequestValidationError) -> JSONResponse:
+    first = error.errors()[0] if error.errors() else {}
+    where = ".".join(str(part) for part in first.get("loc", ()) if part not in ("body", "query", "path"))
+    message = f"{where}: {first.get('msg', 'invalid input')}" if where else str(first.get("msg", "invalid input"))
+    return JSONResponse({"detail": message, "kind": "invalid_input"}, status_code=422)
+
+
 @app.exception_handler(LookupError)
 async def not_found(_: Request, error: LookupError) -> JSONResponse:
     return JSONResponse({"detail": str(error), "kind": "not_found"}, status_code=404)
@@ -198,6 +207,7 @@ def doctor(
 
     net = network_for(network)
     key = validate.ss58(hotkey)
+    store.count("doctor", net.name)
     if probe:
         return diagnose(net, key, netuid, probe=True, probe_allowed=_probe_allowed)
     result = cache.get_or(f"doctor:{net.endpoint}:{key}:{netuid}", lambda: diagnose(net, key, netuid))
@@ -212,6 +222,7 @@ def tx(network: str, ref: str) -> TxReport:
     net = network_for(network)
     if not is_tx_ref(ref):
         raise HTTPException(400, "expected a 0x extrinsic hash or block-index such as 9376733-28; POST error text to /v1/explain-error")
+    store.count("tx", net.name)
     result = cache.get_or(f"tx:{net.endpoint}:{ref.lower()}", lambda: debug(net, ref))
     assert isinstance(result, TxReport)
     return result
@@ -227,6 +238,7 @@ def explain_error(body: ErrorText) -> ErrorExplanation:
 
     if not body.text.strip() or len(body.text) > 20_000:
         raise HTTPException(400, "paste between 1 and 20,000 characters of error output")
+    store.count("explain", "any")
     return explain_text(body.text)
 
 
@@ -234,7 +246,9 @@ def explain_error(body: ErrorText) -> ErrorExplanation:
 def sim(network: str, body: SimRequest) -> SimResult:
     from .core.sim.engine import simulate
 
-    return simulate(network_for(network), body)
+    net = network_for(network)
+    store.count("sim", net.name)
+    return simulate(net, body)
 
 
 @app.get("/v1/ask", response_model=AskAnswer)
@@ -286,3 +300,96 @@ def find(q: Annotated[str, Query(min_length=1, max_length=200)]) -> list[SubnetC
     from .core.directory.catalog import search
 
     return [SubnetCard(netuid=e.netuid, catalog=e, live=None, health=None) for e in search(q)]
+
+
+HOUSE_SINCE = "2026-10-27"
+
+
+class HouseStats(BaseModel):
+    diagnoses: int
+    errors: int
+    simulations: int
+    builders: int
+    since: str
+
+
+class HouseJoin(BaseModel):
+    id: Annotated[str, Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")]
+
+
+@app.get("/v1/house", response_model=HouseStats)
+def house() -> HouseStats:
+    try:
+        return HouseStats(**store.house_totals(HOUSE_SINCE))
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, f"counters unavailable: {error}") from error
+
+
+@app.post("/v1/house/join", response_model=HouseStats)
+def house_join(body: HouseJoin) -> HouseStats:
+    """Opt in from the /house page with a random browser id. Nothing about the person is stored."""
+    try:
+        store.join_house(body.id)
+        return HouseStats(**store.house_totals(HOUSE_SINCE))
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, f"counters unavailable: {error}") from error
+
+
+class ShareRequest(BaseModel):
+    kind: Literal["doctor", "tx", "sim"]
+    payload: dict[str, Any]
+
+
+class Shared(BaseModel):
+    id: str
+    kind: str
+    network: str
+    subject: str
+    block: int
+    payload: dict[str, Any]
+    created_at: str
+
+
+@app.post("/v1/reports", response_model=Shared)
+def share(body: ShareRequest) -> Shared:
+    """Store a report the user chose to share; it gets a short id for /d/<id>."""
+    model: DoctorReport | TxReport | SimResult
+    if body.kind == "doctor":
+        model = DoctorReport.model_validate(body.payload)
+        subject = model.hotkey
+    elif body.kind == "tx":
+        model = TxReport.model_validate(body.payload)
+        subject = model.ref
+    else:
+        model = SimResult.model_validate(body.payload)
+        subject = model.action
+    try:
+        report_id = store.save_report(body.kind, model.chain.network, subject, model.chain.block, model.model_dump(mode="json"))
+        found = store.load_report(report_id)
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, f"sharing unavailable: {error}") from error
+    assert found is not None
+    return _shared(found)
+
+
+def _shared(row: dict[str, Any]) -> Shared:
+    return Shared(
+        id=str(row["id"]),
+        kind=str(row["kind"]),
+        network=str(row["network"]),
+        subject=str(row["subject"]),
+        block=int(row["block"]),
+        payload=dict(row["payload"]),
+        created_at=str(row["created_at"]),
+    )
+
+
+@app.get("/v1/reports/{report_id}", response_model=Shared)
+def shared_report(report_id: Annotated[str, Path(min_length=4, max_length=32, pattern=r"^[A-Za-z0-9]+$")]) -> Shared:
+    try:
+        found = store.load_report(report_id)
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, f"sharing unavailable: {error}") from error
+    if found is None:
+        raise HTTPException(404, "no shared report with that id")
+    return _shared(found)

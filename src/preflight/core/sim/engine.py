@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeout
 from dataclasses import dataclass
 from typing import Any
 
@@ -28,6 +30,8 @@ from . import rules
 from .fork import ApplyOutcome, ForkUnavailable, get_fork
 
 RAO = 1_000_000_000
+FORK_BUDGET_S = 20.0
+_fork_pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="preflight-fork")
 # `Owner` is a ValueQuery: an unknown hotkey reads as the all-zero account, not None.
 ZERO_ACCOUNT = ss58_encode(bytes(32), 42)
 HOTKEY_SIGNED = {"set_weights", "serve_axon"}
@@ -219,10 +223,15 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
 
     outcome: ApplyOutcome | None = None
     fork_block = None
+    warming = False
     fork = get_fork(network) if use_fork else None
     if fork is not None:
+        pending = _fork_pool.submit(fork.apply, _raw_call(req, plan.call), signer, coldkey=req.coldkey, free_tao=req.balance_override_tao)
         try:
-            outcome, fork_block = fork.apply(_raw_call(req, plan.call), signer, coldkey=req.coldkey, free_tao=req.balance_override_tao)
+            outcome, fork_block = pending.result(timeout=FORK_BUDGET_S)
+        except FutureTimeout:
+            # A cold fork fetches storage lazily; this run keeps warming it for the next one.
+            warming = True
         except ForkUnavailable:
             outcome = None
 
@@ -233,7 +242,11 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
     else:
         mode, ok = "predicted", prediction.error is None
         error, pallet = prediction.error, "SubtensorModule" if prediction.error else None
-        label = f"Predicted from live state at block {pinned.block:,} and the runtime's own checks; start a fork with `preflight fork` to execute it for real"
+        label = f"Predicted from live state at block {pinned.block:,} and the runtime's own checks; " + (
+            "the fork is still warming its cache, so it will execute the next run for real"
+            if warming
+            else "start a fork with `preflight fork` to execute it for real"
+        )
 
     failure = explanation = None
     if not ok and error:

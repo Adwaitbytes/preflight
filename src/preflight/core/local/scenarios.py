@@ -1,4 +1,5 @@
-"""`preflight local break <scenario>`: each creates one failure the Doctor must report.
+"""`preflight local break|fix <scenario>`: each break creates one failure the Doctor must
+report, and each fix undoes it the way a user would, with btcli where btcli can do it.
 
 Scenarios that only add neurons run on the main subnet. Scenarios that change a subnet-wide
 parameter (activity cutoff, weights rate limit, commit reveal, UID cap) each get a small
@@ -9,9 +10,15 @@ scenario is safe to rerun: steps already done are skipped and the failure is re-
 from __future__ import annotations
 
 import ipaddress
+import math
+import os
+import shlex
 import socket
+import subprocess
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 import bittensor as bt
 
@@ -24,7 +31,17 @@ from ..chain.harness import (
     wait_until,
 )
 from ..chain.localnet import LOOPBACK_AXON_IP
-from .kit import BreakResult, Kit, KitError, SubmittedExtrinsic, format_axon
+from ..models import Model
+from .kit import (
+    BreakResult,
+    Kit,
+    KitError,
+    LocalNeuron,
+    Progress,
+    SubmittedExtrinsic,
+    format_axon,
+    open_kit,
+)
 
 ADMIN = bt.calls.AdminUtils
 LAB_TEMPO = 20
@@ -39,7 +56,20 @@ RATE_LIMIT_BLOCKS = 3_600
 # reveal period keeps them pending even on a machine where drand does answer.
 REVEAL_PERIOD_EPOCHS = 50
 SCENARIO_PORT = 8191
+UNSERVED_FIX_PORT = SCENARIO_PORT + 3
 FALLBACK_LAN_IP = "192.168.1.100"
+BTCLI_TIMEOUT_S = 180
+
+
+class FixResult(Model):
+    scenario: str
+    netuid: int
+    hotkey: str
+    rule: str
+    command: str
+    ran: bool
+    steps: list[str]
+    block: int
 
 
 @dataclass(frozen=True)
@@ -48,6 +78,7 @@ class Scenario:
     rule: str
     description: str
     run: Callable[[Kit], BreakResult]
+    fix: Callable[[Kit], FixResult]
 
 
 def lan_ip() -> str:
@@ -364,18 +395,224 @@ def deregistered_miner(kit: Kit) -> BreakResult:
     )
 
 
+def run_btcli(args: list[str]) -> str:
+    """Run btcli exactly as a user would type it and return that command line.
+
+    The btcli next to this interpreter goes first on PATH, and BT_* variables are dropped so
+    a user's own btcli defaults cannot redirect the call to another network or wallet."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("BT_")}
+    beside = Path(sys.executable).parent
+    if (beside / "btcli").exists():
+        env["PATH"] = str(beside) + os.pathsep + env.get("PATH", "")
+    argv = ["btcli", *args]
+    command = shlex.join(argv)
+    try:
+        done = subprocess.run(
+            argv, env=env, capture_output=True, text=True, timeout=BTCLI_TIMEOUT_S, check=False
+        )
+    except FileNotFoundError as error:
+        raise KitError("btcli is not installed in this environment") from error
+    except subprocess.TimeoutExpired as error:
+        raise KitError(f"`{command}` did not finish within {BTCLI_TIMEOUT_S}s") from error
+    if done.returncode != 0:
+        output = (done.stderr or done.stdout).strip().splitlines()[-6:]
+        raise KitError(f"`{command}` failed: {' '.join(output)}")
+    return command
+
+
+def _broken(kit: Kit, scenario: str) -> tuple[BreakResult, LocalNeuron, str]:
+    """The recorded break, its neuron and that neuron's wallet name."""
+    result = kit.state.breaks.get(scenario)
+    if result is None:
+        raise KitError(f"nothing to fix: run `preflight local break {scenario}` first")
+    neuron = next((n for n in kit.state.neurons if n.hotkey == result.hotkey), None)
+    if neuron is None or neuron.wallet is None:
+        raise KitError(f"the {scenario} neuron has no wallet in this kit")
+    return result, neuron, neuron.wallet
+
+
+def _uid_of(kit: Kit, name: str) -> int:
+    neuron = kit.state.neuron(name)
+    if neuron is None or neuron.uid is None:
+        raise KitError(f"{name} is not registered in this kit")
+    return neuron.uid
+
+
+def _fixed(
+    kit: Kit, broken: BreakResult, command: str, steps: list[str], *, ran: bool = True
+) -> FixResult:
+    kit.forget(broken.scenario)
+    return FixResult(
+        scenario=broken.scenario,
+        netuid=broken.netuid,
+        hotkey=broken.hotkey,
+        rule=broken.expected_rule,
+        command=command,
+        ran=ran,
+        steps=steps,
+        block=kit.chain.block,
+    )
+
+
+def _local(kit: Kit, wallet: str, *args: str) -> list[str]:
+    return [*args, "--network", "local", *kit.wallet_flags(wallet), "--no-prompt"]
+
+
+def _serve_mapped_loopback(kit: Kit, scenario: str, port: int) -> FixResult:
+    broken, neuron, wallet = _broken(kit, scenario)
+    command = run_btcli(
+        _local(
+            kit,
+            wallet,
+            "axon", "set", "--netuid", str(broken.netuid), "--ip", LOOPBACK_AXON_IP, "--port", str(port),
+        )
+    )  # fmt: skip
+    kit.remember(neuron.model_copy(update={"axon": format_axon(LOOPBACK_AXON_IP, port)}))
+    return _fixed(kit, broken, command, [f"served {LOOPBACK_AXON_IP}:{port}, the address every local validator reaches"])
+
+
+def _weights_command(kit: Kit, wallet: str, netuid: int, uids: list[int]) -> str:
+    return run_btcli(
+        _local(
+            kit,
+            wallet,
+            "weights", "set", "--netuid", str(netuid),
+            "--uids", ",".join(map(str, uids)), "--weights", ",".join("1" for _ in uids),
+        )
+    )  # fmt: skip
+
+
+def fix_unserved_axon(kit: Kit) -> FixResult:
+    return _serve_mapped_loopback(kit, "unserved-axon", UNSERVED_FIX_PORT)
+
+
+def fix_loopback_axon(kit: Kit) -> FixResult:
+    return _serve_mapped_loopback(kit, "loopback-axon", SCENARIO_PORT + 1)
+
+
+def fix_no_weight_miner(kit: Kit) -> FixResult:
+    broken, miner, _ = _broken(kit, "no-weight-miner")
+    validator = next(
+        (n for n in kit.state.neurons if n.role == "validator" and n.scenario is None and n.wallet),
+        None,
+    )
+    if validator is None or validator.wallet is None or miner.uid is None:
+        raise KitError("no main validator and registered miner to fix no-weight-miner with")
+    uids = sorted({*_main_miner_uids(kit), miner.uid})
+    command = _weights_command(kit, validator.wallet, broken.netuid, uids)
+    return _fixed(kit, broken, command, [f"{validator.name} set weights on UIDs {uids}, including UID {miner.uid}"])
+
+
+def fix_low_stake_validator(kit: Kit) -> FixResult:
+    broken, neuron, wallet = _broken(kit, "low-stake-validator")
+    threshold = int(kit.chain.client.query(bt.storage.SubtensorModule.StakeThreshold) or 0) / RAO_PER_TAO
+    own = kit.alpha_stake(broken.netuid, broken.hotkey)
+    # Alpha costs about 1.5 TAO on a fresh 10,000 TAO pool; 3x the gap leaves room for slippage.
+    amount = max(1, math.ceil((threshold - own) * 3) + 1)
+    command = run_btcli(
+        _local(
+            kit,
+            wallet,
+            "stake", "add", "--netuid", str(broken.netuid), "--hotkey", broken.hotkey,
+            "--amount", str(amount), "--no-mev-shield",
+        )
+    )  # fmt: skip
+    after = wait_until(
+        lambda: stake if (stake := kit.alpha_stake(broken.netuid, broken.hotkey)) >= threshold else None,
+        "the stake to reach StakeThreshold",
+        30,
+    )
+    kit.remember(neuron.model_copy(update={"stake": after}))
+    return _fixed(
+        kit,
+        broken,
+        command,
+        [
+            f"staked {amount} TAO; stake went from {own:.4f} to {after:.4f} alpha, above the {threshold:.4f} threshold",
+            "--no-mev-shield is needed on localnet: a shielded stake never lands there",
+        ],
+    )
+
+
+def fix_stale_validator(kit: Kit) -> FixResult:
+    broken, _, wallet = _broken(kit, "stale-validator")
+    command = _weights_command(kit, wallet, broken.netuid, [_uid_of(kit, "stale-validator-miner")])
+    return _fixed(kit, broken, command, ["the validator set weights again, so LastUpdate is fresh"])
+
+
+def fix_rate_limited_validator(kit: Kit) -> FixResult:
+    broken, _, wallet = _broken(kit, "rate-limited-validator")
+    miner_uid = _uid_of(kit, "rate-limited-validator-miner")
+    allowed = _last_update(kit, broken.netuid, broken.hotkey) + RATE_LIMIT_BLOCKS
+    kit.chain.sudo(
+        ADMIN.sudo_set_weights_set_rate_limit(netuid=broken.netuid, weights_set_rate_limit=0), "rate limit off"
+    )
+    command = _weights_command(kit, wallet, broken.netuid, [miner_uid])
+    return _fixed(
+        kit,
+        broken,
+        command,
+        [
+            f"a user waits until block {allowed:,}; the kit stands in for that wait by setting "
+            "WeightsSetRateLimit back to 0 with sudo",
+            "the validator set weights again and the chain accepted them",
+        ],
+    )
+
+
+def fix_pending_reveal(kit: Kit) -> FixResult:
+    raise KitError(
+        "pending-reveal has no fix on localnet: timelocked commits reveal only when the chain "
+        "receives the drand round, and the container cannot reach drand"
+    )
+
+
+def fix_deregistered_miner(kit: Kit) -> FixResult:
+    broken, neuron, wallet = _broken(kit, "deregistered-miner")
+    command = shlex.join(
+        ["btcli", *_local(kit, wallet, "subnets", "register", "--netuid", str(broken.netuid))]
+    )
+    # btcli forces the MEV shield for burned_register (and refuses --no-mev-shield), and the
+    # shielded extrinsic never lands on localnet, so the kit submits the same call in the clear.
+    uid = kit.chain.register(broken.netuid, kit.wallet(wallet))
+    kit.remember(neuron.model_copy(update={"uid": uid}))
+    return _fixed(
+        kit,
+        broken,
+        command,
+        [
+            f"registered again and got UID {uid}",
+            "btcli cannot do this on localnet: it forces the MEV shield for burned_register, which "
+            "never lands there, so the kit submitted the same burned_register unshielded",
+        ],
+        ran=False,
+    )
+
+
+def fix_scenario(name: str, *, home: Path | None = None, progress: Progress | None = None) -> FixResult:
+    """Undo a break the way a user would, so the Doctor stops reporting its rule."""
+    scenario = SCENARIOS.get(name)
+    if scenario is None:
+        raise KitError(f"unknown scenario {name!r}; choose one of {', '.join(SCENARIOS)}")
+    kit = open_kit(home, progress)
+    try:
+        return scenario.fix(kit)
+    finally:
+        kit.close()
+
+
 SCENARIOS: dict[str, Scenario] = {
     s.name: s
     for s in (
-        Scenario("unserved-axon", "PF105", "a registered miner that never served an axon", unserved_axon),
-        Scenario("loopback-axon", "PF106", "127.0.0.1 refused by the chain, then a LAN address served", loopback_axon),
-        Scenario("stale-validator", "PF202", "a validator that stopped setting weights", stale_validator),
-        Scenario("rate-limited-validator", "PF203", "a validator inside WeightsSetRateLimit", rate_limited_validator),
-        Scenario("low-stake-validator", "PF204", "a validator below StakeThreshold", low_stake_validator),
-        Scenario("pending-reveal", "PF205", "committed weights not yet revealed", pending_reveal),
-        Scenario("deregistered-miner", "PF102", "a miner pruned by a newer registration", deregistered_miner),
-        Scenario("no-weight-miner", "PF108", "a served miner no validator scores", no_weight_miner),
+        Scenario("unserved-axon", "PF105", "a registered miner that never served an axon", unserved_axon, fix_unserved_axon),
+        Scenario("loopback-axon", "PF106", "127.0.0.1 refused by the chain, then a LAN address served", loopback_axon, fix_loopback_axon),
+        Scenario("stale-validator", "PF202", "a validator that stopped setting weights", stale_validator, fix_stale_validator),
+        Scenario("rate-limited-validator", "PF203", "a validator inside WeightsSetRateLimit", rate_limited_validator, fix_rate_limited_validator),
+        Scenario("low-stake-validator", "PF204", "a validator below StakeThreshold", low_stake_validator, fix_low_stake_validator),
+        Scenario("pending-reveal", "PF205", "committed weights not yet revealed", pending_reveal, fix_pending_reveal),
+        Scenario("deregistered-miner", "PF102", "a miner pruned by a newer registration", deregistered_miner, fix_deregistered_miner),
+        Scenario("no-weight-miner", "PF108", "a served miner no validator scores", no_weight_miner, fix_no_weight_miner),
     )
-}
+}  # fmt: skip
 
-__all__ = ["SCENARIOS", "Scenario", "lan_ip"]
+__all__ = ["SCENARIOS", "FixResult", "Scenario", "fix_scenario", "lan_ip", "run_btcli"]
