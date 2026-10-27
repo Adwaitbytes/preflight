@@ -1,0 +1,133 @@
+{
+  "additionalProperties": false,
+  "description": "One action to try. Hotkey-signed actions (set_weights, serve_axon) use `hotkey` as\nthe signer; coldkey-signed actions use `coldkey`.",
+  "properties": {
+    "action": {
+      "enum": [
+        "burned_register",
+        "add_stake",
+        "remove_stake",
+        "set_weights",
+        "serve_axon",
+        "register_network",
+        "start_call"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "amount": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "TAO for add_stake, alpha for remove_stake",
+      "title": "Amount"
+    },
+    "balance_override_tao": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Pretend the coldkey holds this much free TAO (fork mode only)",
+      "title": "Balance Override Tao"
+    },
+    "coldkey": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Signing coldkey ss58 for coldkey actions",
+      "title": "Coldkey"
+    },
+    "hotkey": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Hotkey ss58 the action targets or signs with",
+      "title": "Hotkey"
+    },
+    "ip": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ip"
+    },
+    "netuid": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Netuid"
+    },
+    "port": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Port"
+    },
+    "uids": {
+      "default": [],
+      "items": {
+        "type": "integer"
+      },
+      "title": "Uids",
+      "type": "array"
+    },
+    "version_key": {
+      "default": 0,
+      "title": "Version Key",
+      "type": "integer"
+    },
+    "weights": {
+      "default": [],
+      "items": {
+        "type": "number"
+      },
+      "title": "Weights",
+      "type": "array"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "title": "SimRequest",
+  "type": "object"
+}

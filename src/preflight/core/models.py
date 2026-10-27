@@ -195,6 +195,25 @@ SimAction = Literal[
 ]
 
 
+class SimRequest(Model):
+    """One action to try. Hotkey-signed actions (set_weights, serve_axon) use `hotkey` as
+    the signer; coldkey-signed actions use `coldkey`."""
+
+    action: SimAction
+    coldkey: str | None = Field(default=None, description="Signing coldkey ss58 for coldkey actions")
+    hotkey: str | None = Field(default=None, description="Hotkey ss58 the action targets or signs with")
+    netuid: int | None = None
+    amount: float | None = Field(default=None, description="TAO for add_stake, alpha for remove_stake")
+    uids: list[int] = []
+    weights: list[float] = []
+    ip: str | None = None
+    port: int | None = None
+    version_key: int = 0
+    balance_override_tao: float | None = Field(
+        default=None, description="Pretend the coldkey holds this much free TAO (fork mode only)"
+    )
+
+
 class BalanceChange(Model):
     account: str
     label: str

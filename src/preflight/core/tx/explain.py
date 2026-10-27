@@ -145,7 +145,7 @@ def explain(name: str, ctx: ExplainContext | None = None, pallet: str | None = N
         title, code = POOL_ERRORS[name]
         base = f"{title}. The transaction was rejected before it ran, so no state changed"
     elif entry is None:
-        title, code = name, None
+        title, code = _title(name), None
         base = ""
     else:
         title, code = _title(name), entry.code

@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 
 from ..chain.network import Network, gather, pin, with_retries
 from ..chain.snapshot import NeuronSnapshot, read_neuron, read_subnet
-from ..models import SEVERITY_RANK, Diagnosis, DoctorReport, Finding, Severity, Verdict
+from ..models import SEVERITY_RANK, AxonInfo, Diagnosis, DoctorReport, Finding, Severity, Verdict
 from .common import is_validator
 from .headline import headline
 from .probe import probe_axon
@@ -64,17 +65,6 @@ def evaluate(snap: NeuronSnapshot) -> Diagnosis:
     )
 
 
-def snapshot_for(
-    network: Network, hotkey: str, netuid: int, *, probe: bool = False, block: int | None = None
-) -> NeuronSnapshot:
-    pinned = pin(network, block)
-    snap = with_retries(network, lambda: read_neuron(pinned, netuid, hotkey))
-    neuron = snap.neuron
-    if probe and neuron is not None and neuron.axon is not None:
-        snap = snap.model_copy(update={"probe": probe_axon(neuron.axon)})
-    return snap
-
-
 def diagnose(
     network: Network,
     hotkey: str,
@@ -82,6 +72,7 @@ def diagnose(
     *,
     probe: bool = False,
     block: int | None = None,
+    probe_allowed: Callable[[AxonInfo], bool] | None = None,
 ) -> DoctorReport:
     started = time.monotonic()
     pinned = pin(network, block)
@@ -95,8 +86,9 @@ def diagnose(
     def one(n: int) -> Diagnosis:
         subnet = with_retries(network, lambda: read_subnet(pinned, n))
         snap = with_retries(network, lambda: read_neuron(pinned, n, hotkey, subnet=subnet))
-        if probe and snap.neuron is not None and snap.neuron.axon is not None:
-            snap = snap.model_copy(update={"probe": probe_axon(snap.neuron.axon)})
+        axon = snap.neuron.axon if snap.neuron is not None else None
+        if probe and axon is not None and (probe_allowed is None or probe_allowed(axon)):
+            snap = snap.model_copy(update={"probe": probe_axon(axon)})
         return evaluate(snap)
 
     results = gather({str(n): (lambda n=n: one(n)) for n in netuids})

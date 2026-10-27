@@ -3,8 +3,10 @@
 Adapted from Crucible's harness. Localnet quirks it absorbs (bittensor 11.3, devnet image):
 - `BurnedRegister` forces the MEV shield, whose decrypted extrinsic never lands on
   localnet, so registration goes through the raw `burned_register` call in the clear.
-- Admin hyperparameters need sudo, which `//Alice` holds on devnet.
-- The chain refuses `127.0.0.1` axons; see `localnet.LOOPBACK_AXON_IP`.
+- Admin hyperparameters need sudo, which `//Alice` holds on devnet. The SDK decodes the
+  nested `Sudid` result, so an inner failure comes back as a failed result.
+- The chain refuses `127.0.0.1` axons in transaction pool validation; see
+  `localnet.LOOPBACK_AXON_IP`.
 - Register every neuron before anyone stakes, keep `collateral_lock_share` at 0 and seed
   the pool with a 10,000 TAO lock, or registration fails with "reserves too low".
 """
@@ -12,6 +14,8 @@ Adapted from Crucible's harness. Localnet quirks it absorbs (bittensor 11.3, dev
 from __future__ import annotations
 
 import contextlib
+import hashlib
+import ipaddress
 import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
@@ -31,10 +35,12 @@ RAO_PER_TAO = 1_000_000_000
 # fail with "reserves too low".
 MIN_LOCK_TAO = 10_000
 SUDO_FLOAT_TAO = 10_000_000
+POLL_S = 0.25
 
 
 class ChainError(RuntimeError):
-    """An extrinsic failed for a reason other than a transient pool error."""
+    """An extrinsic failed for a reason other than a transient pool error, or the chain
+    did not reach an expected state in time."""
 
 
 @dataclass(frozen=True)
@@ -57,6 +63,18 @@ class DevWallet:
         return self.coldkey.ss58_address
 
 
+@dataclass(frozen=True)
+class Submission:
+    """One signed extrinsic as it was sent, kept whether or not the chain took it."""
+
+    result: bt.ExtrinsicResult
+    extrinsic_hash: str
+    call_data: str
+    signer: str
+    nonce: int
+    head_block: int
+
+
 def new_mnemonic() -> str:
     return Keypair.generate_mnemonic()
 
@@ -65,15 +83,47 @@ def wallet_from_mnemonics(coldkey: str, hotkey: str) -> DevWallet:
     return DevWallet(Keypair.create_from_mnemonic(coldkey), Keypair.create_from_mnemonic(hotkey))
 
 
+def serve_axon_call(netuid: int, ip: str, port: int) -> Any:
+    address = ipaddress.ip_address(ip)
+    return bt.calls.SubtensorModule.serve_axon(
+        netuid=netuid,
+        version=1,
+        ip=int(address),
+        port=port,
+        ip_type=address.version,
+        protocol=4,
+        placeholder1=0,
+        placeholder2=0,
+    )
+
+
+def wait_until[T](
+    read: Callable[[], T | None], what: str, timeout_s: float, interval_s: float = POLL_S
+) -> T:
+    """Poll `read` until it returns something other than None or False."""
+    deadline = time.monotonic() + timeout_s
+    while True:
+        value = read()
+        if value is not None and value is not False:
+            return value
+        if time.monotonic() > deadline:
+            raise ChainError(f"timed out after {timeout_s:.0f}s waiting for {what}")
+        time.sleep(interval_s)
+
+
 class Harness:
-    def __init__(self, endpoint: str) -> None:
+    def __init__(self, endpoint: str, *, finalize: bool = False) -> None:
         self.client = bt.Subtensor(endpoint)
+        # Inclusion is enough on a single-authority-set devnet and is several times faster
+        # than waiting for GRANDPA; see docs/decisions/002-localnet.md.
+        self.finalize = finalize
         self.sudo_wallet = DevWallet(
             Keypair.create_from_uri(SUDO_URI), Keypair.create_from_uri(f"{SUDO_URI}//preflight")
         )
 
     def close(self) -> None:
-        with contextlib.suppress(Exception):  # closing a dead socket can fail; nothing to keep
+        # Closing a dead socket can fail; nothing is left to release either way.
+        with contextlib.suppress(Exception):
             self.client.close()
 
     @property
@@ -83,14 +133,13 @@ class Harness:
     def wait_blocks(self, count: int, timeout_s: float = 120.0) -> int:
         """Poll until `count` more blocks are produced; returns the new head."""
         target = self.block + count
-        deadline = time.monotonic() + timeout_s
-        while (head := self.block) < target:
-            if time.monotonic() > deadline:
-                raise ChainError(f"chain stalled at block {head}, waiting for {target}")
-            time.sleep(0.25)
-        return head
+        return wait_until(
+            lambda: head if (head := self.block) >= target else None,
+            f"block {target}",
+            timeout_s,
+        )
 
-    def _submit(self, what: str, send: Callable[[], Any]) -> Any:
+    def _submit(self, what: str, send: Callable[[], bt.ExtrinsicResult]) -> bt.ExtrinsicResult:
         """Submit with retries for transient pool errors.
 
         Several signers share one localnet (the sudo key above all), so nonce races and
@@ -110,30 +159,48 @@ class Harness:
             time.sleep(0.5 * (attempt + 1))
         raise ChainError(f"{what} failed")
 
-    def attempt(self, send: Callable[[], Any]) -> bt.ExtrinsicResult:
-        """Submit once and hand back the result, failed or not, for callers that expect a
-        rejection and want to keep it (block, index, error) for the Tx debugger."""
+    def call(self, what: str, call: Any, wallet: DevWallet, *, signer: str = "coldkey") -> bt.ExtrinsicResult:
+        return self._submit(
+            what,
+            lambda: self.client.submit_call(
+                call, wallet, signer=signer, wait_for_finalization=self.finalize
+            ),
+        )
+
+    def execute(self, what: str, intent: Any, wallet: DevWallet) -> bt.ExtrinsicResult:
+        return self._submit(
+            what, lambda: self.client.execute(intent, wallet, wait_for_finalization=self.finalize)
+        )
+
+    def submit_signed(self, call: Any, signer: Signer) -> Submission:
+        """Sign and submit through the prepare/sign/submit flow so the exact extrinsic hash
+        is known even when the pool rejects it and it never reaches a block."""
         for attempt in range(RETRIES):
-            try:
-                result: bt.ExtrinsicResult = send()
-            except bt.BittensorError as error:
-                if not is_transient(str(error)) or attempt == RETRIES - 1:
-                    return bt.ExtrinsicResult(success=False, message=str(error))
-            else:
-                if result.success or not is_transient(str(result.message)):
-                    return result
+            head = self.block
+            unsigned = self.client.prepare_call(call, address=signer.ss58_address)
+            signature = bytes(signer.sign(bytes(unsigned.payload)))
+            result: bt.ExtrinsicResult = self.client.submit_signature(
+                unsigned, signature, wait_for_finalization=self.finalize
+            )
+            if result.success or not is_transient(result.message) or attempt == RETRIES - 1:
+                return Submission(
+                    result=result,
+                    extrinsic_hash=signed_extrinsic_hash(
+                        bytes(unsigned.public_key),
+                        signature,
+                        bytes(unsigned.included_in_extrinsic),
+                        bytes(unsigned.call_data),
+                    ),
+                    call_data="0x" + bytes(unsigned.call_data).hex(),
+                    signer=signer.ss58_address,
+                    nonce=int(unsigned.nonce),
+                    head_block=head,
+                )
             time.sleep(0.5 * (attempt + 1))
-        return bt.ExtrinsicResult(success=False, message="gave up after transient pool errors")
+        raise ChainError("submit failed")
 
     def sudo(self, call: Any, what: str) -> None:
-        sudo_call = bt.calls.Sudo.sudo(call=self.client.compose(call))
-        result = self._submit(what, lambda: self.client.submit_call(sudo_call, self.sudo_wallet))
-        # Sudo wraps the inner dispatch: the outer extrinsic succeeds even when the inner
-        # call fails, and the failure only shows up as a Sudid event carrying an Err.
-        for event in result.events or []:
-            text = str(event)
-            if "Sudid" in text and "Err" in text:
-                raise ChainError(f"{what} failed inside sudo: {text}")
+        self.call(what, bt.calls.Sudo.sudo(call=self.client.compose(call)), self.sudo_wallet)
 
     def mint(self, address: str, tao: float) -> None:
         """Set a free balance outright, so repeated runs never drain the sudo account."""
@@ -146,8 +213,8 @@ class Harness:
 
     def create_subnet(self) -> int:
         admin = bt.calls.AdminUtils
-        # Each run registers a fresh subnet; these global limits otherwise throttle repeat runs,
-        # and the lock cost would double with every registration.
+        # Every subnet here is throwaway; these global limits otherwise throttle repeat
+        # creation, and the lock cost would double with every registration.
         self.sudo(admin.sudo_set_admin_freeze_window(window=0), "disable admin freeze window")
         self.sudo(admin.sudo_set_network_rate_limit(rate_limit=0), "disable network rate limit")
         self.sudo(admin.sudo_set_start_call_delay(delay=0), "disable start call delay")
@@ -158,21 +225,17 @@ class Harness:
         )
         self.mint(self.sudo_wallet.coldkey_ss58, SUDO_FLOAT_TAO)
         before = {info.netuid for info in self.client.subnets.all()}
-        self._submit(
+        self.execute(
             "register subnet",
-            lambda: self.client.execute(
-                bt.RegisterSubnet(hotkey_ss58=self.sudo_wallet.hotkey_ss58), self.sudo_wallet
-            ),
+            bt.RegisterSubnet(hotkey_ss58=self.sudo_wallet.hotkey_ss58),
+            self.sudo_wallet,
         )
-        created = {info.netuid for info in self.client.subnets.all()} - before
-        if not created:
-            raise ChainError("subnet registered but no new netuid appeared")
+        created = wait_until(
+            lambda: {info.netuid for info in self.client.subnets.all()} - before or None,
+            "the new netuid to appear",
+            30,
+        )
         return max(created)
-
-    def start_subnet(self, netuid: int) -> None:
-        self._submit(
-            "start call", lambda: self.client.execute(bt.StartCall(netuid), self.sudo_wallet)
-        )
 
     def configure(self, netuid: int, *, tempo: int) -> None:
         admin = bt.calls.AdminUtils
@@ -204,61 +267,69 @@ class Harness:
             "regs per interval",
         )
 
+    def start_subnet(self, netuid: int) -> None:
+        self.execute("start call", bt.StartCall(netuid), self.sudo_wallet)
+
     def register(self, netuid: int, wallet: DevWallet) -> int:
         existing = self.uid_or_none(netuid, wallet.hotkey_ss58)
         if existing is not None:
             return existing
-        self._submit(
+        self.call(
             f"register {wallet.hotkey_ss58[:8]}",
-            lambda: self.client.submit_call(
-                bt.calls.SubtensorModule.burned_register(netuid=netuid, hotkey=wallet.hotkey_ss58),
-                wallet,
-            ),
+            bt.calls.SubtensorModule.burned_register(netuid=netuid, hotkey=wallet.hotkey_ss58),
+            wallet,
         )
-        return self.uid_of(netuid, wallet.hotkey_ss58)
+        return wait_until(
+            lambda: self.uid_or_none(netuid, wallet.hotkey_ss58),
+            f"{wallet.hotkey_ss58[:8]} to get a UID on netuid {netuid}",
+            30,
+        )
 
     def stake(self, netuid: int, wallet: DevWallet, tao: float) -> None:
-        self._submit(
-            "add stake",
-            lambda: self.client.execute(
-                bt.AddStake(wallet.hotkey_ss58, netuid, tao, slippage_protection=False), wallet
-            ),
+        self.execute(
+            "add stake", bt.AddStake(wallet.hotkey_ss58, netuid, tao, slippage_protection=False), wallet
         )
 
     def serve(self, netuid: int, wallet: DevWallet, ip: str, port: int) -> bt.ExtrinsicResult:
-        result: bt.ExtrinsicResult = self._submit(
-            "serve axon", lambda: self.client.execute(bt.ServeAxon(netuid, ip, port), wallet)
-        )
-        return result
+        return self.execute("serve axon", bt.ServeAxon(netuid, ip, port), wallet)
 
-    def try_serve(self, netuid: int, wallet: DevWallet, ip: str, port: int) -> bt.ExtrinsicResult:
-        return self.attempt(lambda: self.client.execute(bt.ServeAxon(netuid, ip, port), wallet))
-
-    def set_weights(self, netuid: int, wallet: DevWallet, weights: dict[int, float]) -> None:
-        if not weights:
-            return
+    def set_weights(self, netuid: int, wallet: DevWallet, weights: dict[int, float]) -> bt.ExtrinsicResult:
         uids = sorted(weights)
-        self._submit(
-            "set weights",
-            lambda: self.client.execute(
-                bt.SetWeights(netuid, uids=uids, weights=[weights[u] for u in uids]), wallet
-            ),
+        return self.execute(
+            "set weights", bt.SetWeights(netuid, uids=uids, weights=[weights[u] for u in uids]), wallet
         )
 
     def uid_or_none(self, netuid: int, hotkey: str) -> int | None:
         value = self.client.query(bt.storage.SubtensorModule.Uids, [netuid, hotkey])
         return None if value is None else int(value)
 
-    def uid_of(self, netuid: int, hotkey: str) -> int:
-        uid = self.uid_or_none(netuid, hotkey)
-        if uid is None:
-            raise ChainError(f"hotkey {hotkey[:8]} is not registered on netuid {netuid}")
-        return uid
+    def metagraph(self, netuid: int) -> bt.Metagraph:
+        graph = self.client.subnets.metagraph(netuid, commitments=False)
+        if graph is None:
+            raise ChainError(f"netuid {netuid} has no metagraph")
+        return graph
 
-    def neurons(self, netuid: int) -> list[Any]:
-        return list(self.client.neurons.all(netuid))
+    def hyperparameters(self, netuid: int) -> dict[str, Any]:
+        return dict(self.client.subnets.subnet_hyperparameters(netuid) or {})
 
-    def weights(self, netuid: int) -> dict[int, dict[int, float]]:
-        """Validator uid to its last weight row, normalized."""
-        rows = self.client.weights.weights(netuid)
-        return {int(v): {int(u): float(w) for u, w in row.items()} for v, row in rows.items()}
+    def netuids(self) -> set[int]:
+        return {int(info.netuid) for info in self.client.subnets.all()}
+
+
+def signed_extrinsic_hash(public_key: bytes, signature: bytes, extra: bytes, call: bytes) -> str:
+    """blake2b-256 of a v4 signed extrinsic: version byte, MultiAddress::Id signer,
+    MultiSignature::Sr25519, signed extensions, call; the whole thing length-prefixed."""
+    body = b"\x84" + b"\x00" + public_key + b"\x01" + signature + extra + call
+    encoded = _compact(len(body)) + body
+    return "0x" + hashlib.blake2b(encoded, digest_size=32).hexdigest()
+
+
+def _compact(value: int) -> bytes:
+    if value < 1 << 6:
+        return bytes([value << 2])
+    if value < 1 << 14:
+        return ((value << 2) | 1).to_bytes(2, "little")
+    if value < 1 << 30:
+        return ((value << 2) | 2).to_bytes(4, "little")
+    raw = value.to_bytes((value.bit_length() + 7) // 8, "little")
+    return bytes([((len(raw) - 4) << 2) | 3]) + raw
