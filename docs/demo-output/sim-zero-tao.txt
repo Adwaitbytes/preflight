@@ -1,0 +1,35 @@
+
+ WOULD FAIL   burned_register  as 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+Predicted from live state at block 9,377,481 and the runtime's own checks; start a fork with `preflight fork` 
+to execute it for real
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  coldkey                        5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY                           │
+│  hotkey                         5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY                           │
+│  netuid                         SN64                                                                       │
+│  fee                            0.001070890 TAO                                                            │
+│  effect                         register 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY on netuid 64     │
+│                                 (burned/collateral)                                                        │
+│  effect                         burn τ0.000500000 (destroyed)                                              │
+│  effect                         lock none (full cost is burned)                                            │
+│  Balance covers the fee         fail: 0.000000 TAO free for a 0.001071 fee                                 │
+│  Registration open              pass: NetworkRegistrationAllowed is True                                   │
+│  Per block cap                  pass: 0 of 1 used this block                                               │
+│  Per interval cap               pass: 0 of 3 used this interval                                            │
+│  Hotkey not already registered  pass: no UID yet                                                           │
+│  Balance covers burn and fee    fail: 0.0000 TAO free, needs 0.0005 burn + 0.001071 fee                    │
+│  time                           51,425 ms                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─  SubtensorModule.Payment: The account cannot pay the transaction fee  ────────────────────────────────────╮
+│ You tried to register with 0.0005 TAO needed, but the coldkey held 0.0000 TAO free.                        │
+│                                                                                                            │
+│ The account cannot pay the transaction fee. The transaction was rejected before it ran, so no state        │
+│ changed                                                                                                    │
+│                                                                                                            │
+│ The burn rises with every registration and decays over time, so a balance that covered the quote can fall  │
+│ short a block later, and a failed attempt can still cost its fee. Check `btcli subnets burn-cost` right    │
+│ before retrying and keep some headroom                                                                     │
+│ ╭─ Next step ────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Top up the coldkey by at least 0.0005 TAO plus fees, or wait for the burn to decay                     │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ code insufficient_balance trap burn_moved                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

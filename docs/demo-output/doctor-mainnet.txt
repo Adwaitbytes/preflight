@@ -1,0 +1,29 @@
+
+ BROKEN   UID 0 on SN64 earns nothing because no validator has scored it
+finney at block 9,377,476, runtime 486  4,451 ms  5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq
+
+╭─  SN64 Chutes  ────────────────────────────────────────────────────────────────────────────────────────────╮
+│ UID 0  miner  stake 0.40  incentive 0.0000  trust 0.000  emission 0.0000  axon none                        │
+│                                                                                                            │
+│  CRITICAL PF108 No validator has scored this UID                                                           │
+│   Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest   │
+│ weights include this one, so it earns nothing until they do                                                │
+│   Validators weighting this UID  0 of 17                                                                   │
+│   UID 1 (5DU1dv...S7ww)          stake 1,385,572 alpha, last set weights 163    SubtensorModule.LastUpdate │
+│                                  blocks (about 33 min) ago                                                 │
+│   UID 252 (5E2LP6...eZ5u)        stake 908,518 alpha, last set weights 164      SubtensorModule.LastUpdate │
+│                                  blocks (about 33 min) ago                                                 │
+│   UID 59 (5CS3g6...2xbV)         stake 766,112 alpha, last set weights 163      SubtensorModule.LastUpdate │
+│                                  blocks (about 33 min) ago                                                 │
+│   UID 46 (5CAAxT...pQ1C)         stake 335,974 alpha, last set weights 145      SubtensorModule.LastUpdate │
+│                                  blocks (about 29 min) ago                                                 │
+│   UID 61 (5GRbxc...CdXc)         stake 205,328 alpha, last set weights 166      SubtensorModule.LastUpdate │
+│                                  blocks (about 33 min) ago                                                 │
+│   Read at block                  9,377,476                                                                 │
+│ ╭─ Next step ────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Check that the axon is reachable and that the miner answers the subnet's queries in the format         │ │
+│ │ validators expect                                                                                      │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│   https://www.bittensor.com/docs/guides/mining                                                             │
+│                                                                                                            │
+╰───────────────────────────────────────────────────────────────────────────────────────────────── 19 rules ─╯

@@ -274,6 +274,35 @@ def warm_in_background(fork: Fork) -> threading.Thread:
     return thread
 
 
+_refreshing: set[str] = set()
+
+
+def refresh_in_background(network: Network) -> None:
+    """Re-fork at the current head after the upstream discarded the old fork block's state.
+    Only forks this process started can be restarted; others are left to their owner."""
+    if network.name in _refreshing or network.name not in _processes:
+        return
+    _refreshing.add(network.name)
+
+    def run() -> None:
+        try:
+            process = _processes.pop(network.name)
+            process.terminate()
+            process.wait(timeout=15)
+            _forks.pop(network.name, None)
+            start_fork(network)
+        except (ForkUnavailable, subprocess.TimeoutExpired, KeyError):
+            pass
+        finally:
+            _refreshing.discard(network.name)
+
+    threading.Thread(target=run, name="preflight-fork-refresh", daemon=True).start()
+
+
+def stale_state(error: Exception) -> bool:
+    return "discarded" in str(error).lower() or "unknownblock" in str(error).lower()
+
+
 def stop_forks() -> None:
     for process in _processes.values():
         process.terminate()

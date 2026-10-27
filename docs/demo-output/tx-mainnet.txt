@@ -1,0 +1,30 @@
+
+ FAILED   SubtensorModule.commit_timelocked_mechanism_weights  block 9,376,733 index 28
+0xec72cb3b448c58cfbdb44325844e166979996d42b8f24704f72ebaa1a08bdcbf
+╭─ Call ─────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  signer                 5FLoWCDovMPeH3Gv4syQSZ8TuKcMv6N27g8diDU8zJSeRv8m                                   │
+│  netuid                 SN28                                                                               │
+│  mecid                  0                                                                                  │
+│  commit                 0xa7ef65010bd15b607cf86449b4e9af46c077a7e0... (869 bytes)                          │
+│  reveal_round           33441416                                                                           │
+│  commit_reveal_version  4                                                                                  │
+│  fee                    0.000000000 TAO                                                                    │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Events ───────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  0  TransactionPayment.TransactionFeePaid  Fee paid 0.000000000 TAO                                        │
+│  1  System.ExtrinsicFailed                 Failed with SubtensorModule.TooManyUnrevealedCommits            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─  SubtensorModule.TooManyUnrevealedCommits: Too many unrevealed commits  ──────────────────────────────────╮
+│ Before this block the hotkey already had 10 unrevealed commits queued on the subnet, so the runtime        │
+│ refused another.                                                                                           │
+│                                                                                                            │
+│ `commit_weights` (or a CRv3 commit) failed because the hotkey already has 10 unrevealed commits queued on  │
+│ the subnet. Inspect `WeightCommits` for the hotkey and reveal or let old commits expire before committing  │
+│ again.                                                                                                     │
+│ ╭─ Wait ─────────────────────────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Let the queued commits reveal (timelocked commits reveal on their drand round) before committing again │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ code limit_exceeded                                                                                        │
+│ https://www.bittensor.com/code/pallets/subtensor/src/macros/errors.rs#L180                                 │
+│ https://www.bittensor.com/docs/errors/chain/TooManyUnrevealedCommits                                       │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯

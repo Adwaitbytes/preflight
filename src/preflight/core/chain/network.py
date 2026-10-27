@@ -6,6 +6,7 @@ carries the block number, hash and runtime spec into the result as a `ChainRef`.
 
 from __future__ import annotations
 
+import atexit
 import contextlib
 import threading
 import time
@@ -110,6 +111,18 @@ def drop_client(network: Network) -> None:
         client = _pool.pop(network.endpoint, None)
     if client is not None:
         # Closing a dead socket can fail; the client is gone either way.
+        with contextlib.suppress(Exception):
+            client.close()
+
+
+@atexit.register
+def close_all() -> None:
+    """Close pooled clients before interpreter shutdown so their event loop tasks end cleanly
+    instead of printing "Task was destroyed but it is pending" on every CLI run."""
+    with _pool_lock:
+        clients = list(_pool.values())
+        _pool.clear()
+    for client in clients:
         with contextlib.suppress(Exception):
             client.close()
 

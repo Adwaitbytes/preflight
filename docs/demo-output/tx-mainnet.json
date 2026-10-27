@@ -1,0 +1,84 @@
+{
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9376733,
+    "block_hash": "0x9e97be11369d9a9b18e0153ab07e85ee757182bc4b87d763d10bffe459b14faf",
+    "runtime_spec": 486
+  },
+  "ref": "9376733-28",
+  "extrinsic_hash": "0xec72cb3b448c58cfbdb44325844e166979996d42b8f24704f72ebaa1a08bdcbf",
+  "block": 9376733,
+  "index": 28,
+  "signer": "5FLoWCDovMPeH3Gv4syQSZ8TuKcMv6N27g8diDU8zJSeRv8m",
+  "pallet": "SubtensorModule",
+  "call": "commit_timelocked_mechanism_weights",
+  "args": [
+    {
+      "name": "netuid",
+      "value": "SN28",
+      "raw": "28"
+    },
+    {
+      "name": "mecid",
+      "value": "0",
+      "raw": "0"
+    },
+    {
+      "name": "commit",
+      "value": "0xa7ef65010bd15b607cf86449b4e9af46c077a7e0... (869 bytes)",
+      "raw": null
+    },
+    {
+      "name": "reveal_round",
+      "value": "33441416",
+      "raw": "33441416"
+    },
+    {
+      "name": "commit_reveal_version",
+      "value": "4",
+      "raw": "4"
+    }
+  ],
+  "success": false,
+  "fee_tao": 0.0,
+  "events": [
+    {
+      "index": 0,
+      "pallet": "TransactionPayment",
+      "name": "TransactionFeePaid",
+      "summary": "Fee paid 0.000000000 TAO"
+    },
+    {
+      "index": 1,
+      "pallet": "System",
+      "name": "ExtrinsicFailed",
+      "summary": "Failed with SubtensorModule.TooManyUnrevealedCommits"
+    }
+  ],
+  "failure": {
+    "pallet": "SubtensorModule",
+    "error": "TooManyUnrevealedCommits",
+    "code": "limit_exceeded",
+    "description": "`commit_weights` (or a CRv3 commit) failed because the hotkey already has 10 unrevealed commits queued on the subnet. Inspect `WeightCommits` for the hotkey and reveal or let old commits expire before committing again.",
+    "docs": "https://www.bittensor.com/docs/errors/chain/TooManyUnrevealedCommits"
+  },
+  "explanation": {
+    "error": "TooManyUnrevealedCommits",
+    "pallet": "SubtensorModule",
+    "code": "limit_exceeded",
+    "title": "Too many unrevealed commits",
+    "explanation": "Before this block the hotkey already had 10 unrevealed commits queued on the subnet, so the runtime refused another.\n\n`commit_weights` (or a CRv3 commit) failed because the hotkey already has 10 unrevealed commits queued on the subnet. Inspect `WeightCommits` for the hotkey and reveal or let old commits expire before committing again.",
+    "fix": {
+      "kind": "wait",
+      "text": "Let the queued commits reveal (timelocked commits reveal on their drand round) before committing again",
+      "note": null
+    },
+    "trap": null,
+    "source": "https://www.bittensor.com/code/pallets/subtensor/src/macros/errors.rs#L180",
+    "docs": "https://www.bittensor.com/docs/errors/chain/TooManyUnrevealedCommits",
+    "found": true
+  },
+  "hotkey": null,
+  "netuid": 28
+}

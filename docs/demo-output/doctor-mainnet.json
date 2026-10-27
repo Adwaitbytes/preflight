@@ -1,0 +1,99 @@
+{
+  "hotkey": "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq",
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9377477,
+    "block_hash": "0xb927c035f018b202f4a1bc32538f4c11b5e3058cc546ccdad039c21b19537f45",
+    "runtime_spec": 486
+  },
+  "diagnoses": [
+    {
+      "hotkey": "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq",
+      "netuid": 64,
+      "subnet_name": "Chutes",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9377477,
+        "block_hash": "0xb927c035f018b202f4a1bc32538f4c11b5e3058cc546ccdad039c21b19537f45",
+        "runtime_spec": 486
+      },
+      "verdict": "broken",
+      "headline": "UID 0 on SN64 earns nothing because no validator has scored it",
+      "findings": [
+        {
+          "id": "PF108",
+          "rule": "no_validator_weight",
+          "severity": "critical",
+          "title": "No validator has scored this UID",
+          "evidence": [
+            {
+              "label": "Validators weighting this UID",
+              "value": "0 of 17",
+              "source": null
+            },
+            {
+              "label": "UID 1 (5DU1dv...S7ww)",
+              "value": "stake 1,385,572 alpha, last set weights 164 blocks (about 33 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 252 (5E2LP6...eZ5u)",
+              "value": "stake 908,518 alpha, last set weights 165 blocks (about 33 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 59 (5CS3g6...2xbV)",
+              "value": "stake 766,112 alpha, last set weights 164 blocks (about 33 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 46 (5CAAxT...pQ1C)",
+              "value": "stake 335,974 alpha, last set weights 146 blocks (about 29 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 61 (5GRbxc...CdXc)",
+              "value": "stake 205,328 alpha, last set weights 167 blocks (about 33 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "Read at block",
+              "value": "9,377,477",
+              "source": null
+            }
+          ],
+          "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+          "fix": {
+            "kind": "info",
+            "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+            "note": null
+          },
+          "docs": "https://www.bittensor.com/docs/guides/mining"
+        }
+      ],
+      "neuron": {
+        "uid": 0,
+        "hotkey": "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq",
+        "coldkey": "5HDgs3ThsX8SoNFqVJUgbdqAZRJX9B6KR7QUbSmLFAfdFYJK",
+        "active": false,
+        "validator_permit": false,
+        "stake": 0.402097378,
+        "incentive": 0.0,
+        "trust": 0.0,
+        "consensus": 0.0,
+        "dividends": 0.0,
+        "emission": 0.0,
+        "last_update": 4531296,
+        "block_at_registration": 7849527,
+        "axon": null
+      },
+      "role": "miner",
+      "rules_run": 19
+    }
+  ],
+  "verdict": "broken",
+  "headline": "UID 0 on SN64 earns nothing because no validator has scored it",
+  "elapsed_ms": 4396
+}

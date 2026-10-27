@@ -27,7 +27,7 @@ from ..models import BalanceChange, DecodedArg, DispatchFailure, SimRequest, Sim
 from ..tx.context import ExplainContext
 from ..tx.explain import explain
 from . import rules
-from .fork import ApplyOutcome, ForkUnavailable, get_fork
+from .fork import ApplyOutcome, ForkUnavailable, get_fork, refresh_in_background, stale_state
 
 RAO = 1_000_000_000
 FORK_BUDGET_S = 20.0
@@ -232,8 +232,10 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
         except FutureTimeout:
             # A cold fork fetches storage lazily; this run keeps warming it for the next one.
             warming = True
-        except ForkUnavailable:
+        except ForkUnavailable as error:
             outcome = None
+            if stale_state(error):
+                refresh_in_background(network)
 
     if outcome is not None:
         mode, ok = "fork", outcome.ok

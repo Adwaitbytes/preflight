@@ -1,0 +1,26 @@
+
+Launching a subnet on finney costs 346.37 TAO right now
+finney at block 9,377,485, runtime 486
+╭─ Cost ─────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  lock cost     346.3660 TAO (floor 1.00, last paid 224.64)                                                 │
+│  subnets       128 of 128                                                                                  │
+│  at the cap    registering would dissolve SN16 Zero Hour                                                   │
+│  rate limit    14,400 blocks between registrations                                                         │
+│  next allowed  block 9,378,690                                                                             │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Timeline ─────────────────────────────────────────────────────────────────────────────────────────────────╮
+│  Step                    Block  Detail                                                                     │
+│  Register network    9,378,690  Locks 346.3660 TAO at block 9,377,485; the cost falls by about 0.0078 TAO  │
+│                                 per block and reaches the 1.0000 TAO floor at block 9,421,762; about       │
+│                                 336.9668 TAO at block 9,378,690; each registration doubles the cost for    │
+│                                 the next one; network registration is rate limited until block 9,378,690,  │
+│                                 1,205 blocks (about 4.0 h) from now; the subnet cap is reached, so the     │
+│                                 runtime dissolves SN16 Zero Hour and queues this registration until its    │
+│                                 cleanup finishes                                                           │
+│  Start call allowed  9,378,690  The owner can call start_call right after registering                      │
+│  First emissions     9,379,051  Emission starts the block after start_call (9,378,691); the first epoch    │
+│                                 pays it out within one tempo, 360 blocks (about 72 min), by block          │
+│                                 9,379,051                                                                  │
+│  Immunity ends       9,810,690  After 432,000 blocks (about 60.0 days) the subnet can be dissolved when a  │
+│                                 new one registers at the cap, if its moving alpha price is the lowest      │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
