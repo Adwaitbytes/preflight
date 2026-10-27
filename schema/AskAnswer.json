@@ -1,0 +1,55 @@
+{
+  "additionalProperties": false,
+  "description": "The deterministic Ask box: what we understood and where it routes.",
+  "properties": {
+    "intent": {
+      "enum": [
+        "doctor",
+        "tx",
+        "explain_error",
+        "subnet",
+        "plan",
+        "find",
+        "sim",
+        "unknown"
+      ],
+      "title": "Intent",
+      "type": "string"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "params": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Params",
+      "type": "object"
+    },
+    "query": {
+      "title": "Query",
+      "type": "string"
+    },
+    "route": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Route"
+    }
+  },
+  "required": [
+    "query",
+    "intent",
+    "route",
+    "params",
+    "message"
+  ],
+  "title": "AskAnswer",
+  "type": "object"
+}

@@ -1,0 +1,498 @@
+{
+  "$defs": {
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Storage item or runtime API the value came from",
+          "title": "Source"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "description": "Rule id such as PF101",
+          "title": "Id",
+          "type": "string"
+        },
+        "rule": {
+          "description": "Rule slug such as not_registered",
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "title",
+        "evidence",
+        "explanation"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "band": {
+          "enum": [
+            "healthy",
+            "watch",
+            "at_risk"
+          ],
+          "title": "Band",
+          "type": "string"
+        },
+        "factors": {
+          "items": {
+            "$ref": "#/$defs/HealthFactor"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "score": {
+          "maximum": 100,
+          "minimum": 0,
+          "title": "Score",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "netuid",
+        "score",
+        "band",
+        "factors",
+        "findings"
+      ],
+      "title": "Health",
+      "type": "object"
+    },
+    "HealthFactor": {
+      "additionalProperties": false,
+      "properties": {
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "weight": {
+          "title": "Weight",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "score",
+        "weight",
+        "value",
+        "explanation"
+      ],
+      "title": "HealthFactor",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SubnetCatalogEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "api": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Public API base URL, or 'none'",
+          "title": "Api"
+        },
+        "api_example": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Api Example"
+        },
+        "api_needs_key": {
+          "default": false,
+          "title": "Api Needs Key",
+          "type": "boolean"
+        },
+        "capabilities": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "array"
+        },
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "github": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Github"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "operator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Operator"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "website": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Website"
+        }
+      },
+      "required": [
+        "netuid",
+        "name",
+        "summary",
+        "capabilities",
+        "api",
+        "sources"
+      ],
+      "title": "SubnetCatalogEntry",
+      "type": "object"
+    },
+    "SubnetLive": {
+      "additionalProperties": false,
+      "properties": {
+        "emission_share": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Emission Share"
+        },
+        "max_uids": {
+          "title": "Max Uids",
+          "type": "integer"
+        },
+        "miners": {
+          "title": "Miners",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "owner_coldkey": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Coldkey"
+        },
+        "price_tao": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price Tao"
+        },
+        "registration_allowed": {
+          "title": "Registration Allowed",
+          "type": "boolean"
+        },
+        "registration_cost_tao": {
+          "title": "Registration Cost Tao",
+          "type": "number"
+        },
+        "symbol": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Symbol"
+        },
+        "tempo": {
+          "title": "Tempo",
+          "type": "integer"
+        },
+        "validators": {
+          "title": "Validators",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "netuid",
+        "name",
+        "miners",
+        "validators",
+        "max_uids",
+        "registration_cost_tao",
+        "registration_allowed",
+        "tempo"
+      ],
+      "title": "SubnetLive",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "catalog": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SubnetCatalogEntry"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "health": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Health"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "live": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SubnetLive"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "netuid",
+    "catalog",
+    "live",
+    "health"
+  ],
+  "title": "SubnetCard",
+  "type": "object"
+}

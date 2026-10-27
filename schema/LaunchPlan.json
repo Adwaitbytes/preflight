@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "Hyperparam": {
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "enum": [
+            "Registration",
+            "Weights",
+            "Consensus",
+            "Emissions",
+            "Commit reveal",
+            "Other"
+          ],
+          "title": "Group",
+          "type": "string"
+        },
+        "meaning": {
+          "title": "Meaning",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "range": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Range"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "who": {
+          "enum": [
+            "owner",
+            "root",
+            "chain"
+          ],
+          "title": "Who",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "group",
+        "value",
+        "meaning",
+        "who"
+      ],
+      "title": "Hyperparam",
+      "type": "object"
+    },
+    "TimelineStep": {
+      "additionalProperties": false,
+      "properties": {
+        "block": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Block"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "block",
+        "detail"
+      ],
+      "title": "TimelineStep",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "block_seconds": {
+      "title": "Block Seconds",
+      "type": "number"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "defaults": {
+      "items": {
+        "$ref": "#/$defs/Hyperparam"
+      },
+      "title": "Defaults",
+      "type": "array"
+    },
+    "last_lock_tao": {
+      "title": "Last Lock Tao",
+      "type": "number"
+    },
+    "lock_cost_tao": {
+      "title": "Lock Cost Tao",
+      "type": "number"
+    },
+    "lock_reduction_interval": {
+      "title": "Lock Reduction Interval",
+      "type": "integer"
+    },
+    "min_lock_tao": {
+      "title": "Min Lock Tao",
+      "type": "number"
+    },
+    "network_immunity_blocks": {
+      "title": "Network Immunity Blocks",
+      "type": "integer"
+    },
+    "next_registration_block": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Registration Block"
+    },
+    "rate_limit_blocks": {
+      "title": "Rate Limit Blocks",
+      "type": "integer"
+    },
+    "replaced_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Replaced Name"
+    },
+    "replaced_netuid": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Subnet the runtime would dissolve if a new one registers at the cap",
+      "title": "Replaced Netuid"
+    },
+    "start_call_delay": {
+      "title": "Start Call Delay",
+      "type": "integer"
+    },
+    "subnet_count": {
+      "title": "Subnet Count",
+      "type": "integer"
+    },
+    "subnet_limit": {
+      "title": "Subnet Limit",
+      "type": "integer"
+    },
+    "timeline": {
+      "items": {
+        "$ref": "#/$defs/TimelineStep"
+      },
+      "title": "Timeline",
+      "type": "array"
+    }
+  },
+  "required": [
+    "chain",
+    "lock_cost_tao",
+    "min_lock_tao",
+    "last_lock_tao",
+    "lock_reduction_interval",
+    "rate_limit_blocks",
+    "next_registration_block",
+    "subnet_count",
+    "subnet_limit",
+    "replaced_netuid",
+    "network_immunity_blocks",
+    "start_call_delay",
+    "timeline",
+    "defaults",
+    "block_seconds"
+  ],
+  "title": "LaunchPlan",
+  "type": "object"
+}

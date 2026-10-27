@@ -1,0 +1,448 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "DecodedArg": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "DecodedArg",
+      "type": "object"
+    },
+    "DispatchFailure": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Semantic code from errors.json",
+          "title": "Code"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "error": {
+          "title": "Error",
+          "type": "string"
+        },
+        "pallet": {
+          "title": "Pallet",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pallet",
+        "error"
+      ],
+      "title": "DispatchFailure",
+      "type": "object"
+    },
+    "ErrorExplanation": {
+      "additionalProperties": false,
+      "description": "What an error means, why it happened and what to run, with this case's numbers.",
+      "properties": {
+        "code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Code"
+        },
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "error": {
+          "title": "Error",
+          "type": "string"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "found": {
+          "default": true,
+          "title": "Found",
+          "type": "boolean"
+        },
+        "pallet": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pallet"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Subtensor source file and line",
+          "title": "Source"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "trap": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Id of a hand written trap explainer",
+          "title": "Trap"
+        }
+      },
+      "required": [
+        "error",
+        "title",
+        "explanation"
+      ],
+      "title": "ErrorExplanation",
+      "type": "object"
+    },
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    },
+    "TxEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "pallet": {
+          "title": "Pallet",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "pallet",
+        "name",
+        "summary"
+      ],
+      "title": "TxEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "args": {
+      "items": {
+        "$ref": "#/$defs/DecodedArg"
+      },
+      "title": "Args",
+      "type": "array"
+    },
+    "block": {
+      "title": "Block",
+      "type": "integer"
+    },
+    "call": {
+      "title": "Call",
+      "type": "string"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/TxEvent"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "explanation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ErrorExplanation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "extrinsic_hash": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Extrinsic Hash"
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DispatchFailure"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "fee_tao": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Fee Tao"
+    },
+    "hotkey": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hotkey"
+    },
+    "index": {
+      "title": "Index",
+      "type": "integer"
+    },
+    "netuid": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Netuid"
+    },
+    "pallet": {
+      "title": "Pallet",
+      "type": "string"
+    },
+    "ref": {
+      "title": "Ref",
+      "type": "string"
+    },
+    "signer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Signer"
+    },
+    "success": {
+      "title": "Success",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "chain",
+    "ref",
+    "extrinsic_hash",
+    "block",
+    "index",
+    "signer",
+    "pallet",
+    "call",
+    "args",
+    "success",
+    "fee_tao",
+    "events"
+  ],
+  "title": "TxReport",
+  "type": "object"
+}

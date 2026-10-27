@@ -1,0 +1,309 @@
+{
+  "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9376730,
+    "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+    "runtime_spec": 486
+  },
+  "diagnoses": [
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 26,
+      "subnet_name": "Perturb",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376730,
+        "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+        "runtime_spec": 486
+      },
+      "verdict": "broken",
+      "headline": "UID 82 on SN26 earns nothing because no validator has scored it, and it is on a subnet where most validators stopped setting weights",
+      "findings": [
+        {
+          "id": "PF108",
+          "rule": "no_validator_weight",
+          "severity": "critical",
+          "title": "No validator has scored this UID",
+          "evidence": [
+            {
+              "label": "Validators weighting this UID",
+              "value": "0 of 5",
+              "source": null
+            },
+            {
+              "label": "UID 0 (5DFJZv...kk2V)",
+              "value": "stake 1,403,238 alpha, last set weights 88 blocks (about 18 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 143 (5CDK1b...m7LZ)",
+              "value": "stake 209,026 alpha, last set weights 26 blocks (about 5 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 152 (5FxczA...j2PN)",
+              "value": "stake 168,774 alpha, last set weights 49,757 blocks (about 6.9 days) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 45 (5CvgGz...pctr)",
+              "value": "stake 5,059 alpha, last set weights 955,951 blocks (about 132.8 days) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 36 (5DZh8j...sMdd)",
+              "value": "stake 5,016 alpha, last set weights 1,003,768 blocks (about 139.4 days) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,730",
+              "source": null
+            }
+          ],
+          "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+          "fix": {
+            "kind": "info",
+            "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+            "note": null
+          },
+          "docs": "https://www.bittensor.com/docs/guides/mining"
+        },
+        {
+          "id": "PF305",
+          "rule": "weights_mostly_stale",
+          "severity": "high",
+          "title": "3 of 5 validators have stopped setting weights",
+          "evidence": [
+            {
+              "label": "Stale validators",
+              "value": "3 of 5 (60.0%)",
+              "source": null
+            },
+            {
+              "label": "Stale means no weights for",
+              "value": "720 blocks (about 2.4 h)",
+              "source": null
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,730",
+              "source": null
+            }
+          ],
+          "explanation": "Most permitted validators have not set weights for more than two tempos, so miner scores barely move and new miners struggle to get scored at all",
+          "fix": null,
+          "docs": null
+        },
+        {
+          "id": "PF304",
+          "rule": "near_full_burn",
+          "severity": "medium",
+          "title": "100.0% of miner incentive goes to the owner's burn UID",
+          "evidence": [
+            {
+              "label": "Incentive to the owner hotkey's UID",
+              "value": "100.0%",
+              "source": "SubtensorModule.Incentive"
+            },
+            {
+              "label": "Recycle or burn",
+              "value": "Burn",
+              "source": "SubtensorModule.RecycleOrBurn"
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,730",
+              "source": null
+            }
+          ],
+          "explanation": "Validators are sending almost all weight to the owner's UID, so almost nothing reaches real miners. Near full miner burn was one of the reasons given for halting emissions on 57 subnets in June 2026. For a miner, this means there is little to earn here right now",
+          "fix": null,
+          "docs": "https://www.bittensor.com/docs/concepts/emissions"
+        }
+      ],
+      "neuron": {
+        "uid": 82,
+        "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+        "coldkey": "5FyBy1yBnm1ZLoLGEskzXWLbsCuC9961fkLG1ZTs9DbcnpMB",
+        "active": false,
+        "validator_permit": false,
+        "stake": 0.0,
+        "incentive": 0.0,
+        "trust": 0.0,
+        "consensus": 0.0,
+        "dividends": 0.0,
+        "emission": 0.0,
+        "last_update": 8607734,
+        "block_at_registration": 8607734,
+        "axon": {
+          "ip": "83.195.246.217",
+          "port": 50573,
+          "ip_type": 4
+        }
+      },
+      "role": "miner",
+      "rules_run": 19
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 54,
+      "subnet_name": "Yanez",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376730,
+        "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+        "runtime_spec": 486
+      },
+      "verdict": "broken",
+      "headline": "UID 188 on SN54 earns nothing because no validator has scored it",
+      "findings": [
+        {
+          "id": "PF108",
+          "rule": "no_validator_weight",
+          "severity": "critical",
+          "title": "No validator has scored this UID",
+          "evidence": [
+            {
+              "label": "Validators weighting this UID",
+              "value": "0 of 9",
+              "source": null
+            },
+            {
+              "label": "UID 59 (5DUB7k...Wgpr)",
+              "value": "stake 3,718,045 alpha, last set weights 105 blocks (about 21 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 198 (5GWzXS...8PVs)",
+              "value": "stake 605,979 alpha, last set weights 42 blocks (about 8 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 61 (5GQqAh...fs54)",
+              "value": "stake 44,702 alpha, last set weights 215 blocks (about 43 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 217 (5Dvgtk...SL54)",
+              "value": "stake 36,398 alpha, last set weights 120 blocks (about 24 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "UID 64 (5FWvVp...QK54)",
+              "value": "stake 33,175 alpha, last set weights 129 blocks (about 26 min) ago",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,730",
+              "source": null
+            }
+          ],
+          "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+          "fix": {
+            "kind": "info",
+            "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+            "note": null
+          },
+          "docs": "https://www.bittensor.com/docs/guides/mining"
+        }
+      ],
+      "neuron": {
+        "uid": 188,
+        "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+        "coldkey": "5FyBy1yBnm1ZLoLGEskzXWLbsCuC9961fkLG1ZTs9DbcnpMB",
+        "active": false,
+        "validator_permit": false,
+        "stake": 6.167673245,
+        "incentive": 0.0,
+        "trust": 0.0,
+        "consensus": 0.0,
+        "dividends": 0.0,
+        "emission": 0.0,
+        "last_update": 9223835,
+        "block_at_registration": 9223835,
+        "axon": {
+          "ip": "46.5.35.99",
+          "port": 8091,
+          "ip_type": 4
+        }
+      },
+      "role": "miner",
+      "rules_run": 19
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 51,
+      "subnet_name": "lium.io",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376730,
+        "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+        "runtime_spec": 486
+      },
+      "verdict": "healthy",
+      "headline": "UID 50 on SN51 looks healthy: registered, reachable as far as the chain shows, and scored",
+      "findings": [],
+      "neuron": {
+        "uid": 50,
+        "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+        "coldkey": "5FyBy1yBnm1ZLoLGEskzXWLbsCuC9961fkLG1ZTs9DbcnpMB",
+        "active": false,
+        "validator_permit": false,
+        "stake": 145.106326224,
+        "incentive": 0.006027313649195087,
+        "trust": 0.0,
+        "consensus": 0.006027313649195087,
+        "dividends": 0.0,
+        "emission": 0.890597641,
+        "last_update": 8569580,
+        "block_at_registration": 8569580,
+        "axon": null
+      },
+      "role": "miner",
+      "rules_run": 19
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 64,
+      "subnet_name": "Chutes",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376730,
+        "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+        "runtime_spec": 486
+      },
+      "verdict": "healthy",
+      "headline": "UID 207 on SN64 looks healthy: registered, reachable as far as the chain shows, and scored",
+      "findings": [],
+      "neuron": {
+        "uid": 207,
+        "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+        "coldkey": "5FyBy1yBnm1ZLoLGEskzXWLbsCuC9961fkLG1ZTs9DbcnpMB",
+        "active": false,
+        "validator_permit": false,
+        "stake": 632.975568012,
+        "incentive": 0.15809872587167162,
+        "trust": 0.0,
+        "consensus": 0.15797665369649805,
+        "dividends": 0.0,
+        "emission": 23.337173948,
+        "last_update": 4894545,
+        "block_at_registration": 6613911,
+        "axon": null
+      },
+      "role": "miner",
+      "rules_run": 19
+    }
+  ],
+  "verdict": "broken",
+  "headline": "UID 82 on SN26 earns nothing because no validator has scored it, and it is on a subnet where most validators stopped setting weights (3 other subnets checked)",
+  "elapsed_ms": 3905
+}

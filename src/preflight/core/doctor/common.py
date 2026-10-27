@@ -158,7 +158,9 @@ def unreachable_reason(ip: str, network: str) -> str | None:
         return f"{ip} is a loopback address, so it only points back at each validator's own machine"
     if target.is_private or target.is_link_local:
         if network == "local":
-            return None
+            # Verified on macOS: stealth mode firewalls drop connections to the LAN IP even
+            # from the same machine, while the mapped loopback form always works.
+            return f"{ip} is a LAN address; host firewalls (macOS stealth mode among them) drop connections to it even locally"
         return f"{ip} is a private LAN address that validators on the internet cannot route to"
     if target.is_multicast or target.is_reserved:
         return f"{ip} is a reserved or multicast address"

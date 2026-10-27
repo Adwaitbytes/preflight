@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "fork": {
+      "description": "True when a Chopsticks fork is available for simulation",
+      "title": "Fork",
+      "type": "boolean"
+    },
+    "networks": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "title": "Networks",
+      "type": "object"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ok",
+    "version",
+    "networks",
+    "fork"
+  ],
+  "title": "ServiceHealth",
+  "type": "object"
+}

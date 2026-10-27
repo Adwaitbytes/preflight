@@ -1,0 +1,143 @@
+{
+  "$defs": {
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What an error means, why it happened and what to run, with this case's numbers.",
+  "properties": {
+    "code": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Code"
+    },
+    "docs": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Docs"
+    },
+    "error": {
+      "title": "Error",
+      "type": "string"
+    },
+    "explanation": {
+      "title": "Explanation",
+      "type": "string"
+    },
+    "fix": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Fix"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "found": {
+      "default": true,
+      "title": "Found",
+      "type": "boolean"
+    },
+    "pallet": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Pallet"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Subtensor source file and line",
+      "title": "Source"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "trap": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Id of a hand written trap explainer",
+      "title": "Trap"
+    }
+  },
+  "required": [
+    "error",
+    "title",
+    "explanation"
+  ],
+  "title": "ErrorExplanation",
+  "type": "object"
+}

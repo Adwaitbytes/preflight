@@ -1,0 +1,436 @@
+{
+  "$defs": {
+    "AxonInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "ip": {
+          "title": "Ip",
+          "type": "string"
+        },
+        "ip_type": {
+          "default": 4,
+          "title": "Ip Type",
+          "type": "integer"
+        },
+        "port": {
+          "title": "Port",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "ip",
+        "port"
+      ],
+      "title": "AxonInfo",
+      "type": "object"
+    },
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "Diagnosis": {
+      "additionalProperties": false,
+      "description": "The Doctor's answer for one hotkey on one subnet.",
+      "properties": {
+        "chain": {
+          "$ref": "#/$defs/ChainRef"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "title": "Findings",
+          "type": "array"
+        },
+        "headline": {
+          "title": "Headline",
+          "type": "string"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "neuron": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NeuronState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "role": {
+          "enum": [
+            "miner",
+            "validator",
+            "unregistered"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "rules_run": {
+          "title": "Rules Run",
+          "type": "integer"
+        },
+        "subnet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subnet Name"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        }
+      },
+      "required": [
+        "hotkey",
+        "netuid",
+        "chain",
+        "verdict",
+        "headline",
+        "findings",
+        "role",
+        "rules_run"
+      ],
+      "title": "Diagnosis",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Storage item or runtime API the value came from",
+          "title": "Source"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "description": "Rule id such as PF101",
+          "title": "Id",
+          "type": "string"
+        },
+        "rule": {
+          "description": "Rule slug such as not_registered",
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "title",
+        "evidence",
+        "explanation"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    },
+    "NeuronState": {
+      "additionalProperties": false,
+      "description": "One UID as the chain sees it at the pinned block.",
+      "properties": {
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "axon": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AxonInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "block_at_registration": {
+          "title": "Block At Registration",
+          "type": "integer"
+        },
+        "coldkey": {
+          "title": "Coldkey",
+          "type": "string"
+        },
+        "consensus": {
+          "title": "Consensus",
+          "type": "number"
+        },
+        "dividends": {
+          "title": "Dividends",
+          "type": "number"
+        },
+        "emission": {
+          "description": "Alpha per tempo",
+          "title": "Emission",
+          "type": "number"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "incentive": {
+          "title": "Incentive",
+          "type": "number"
+        },
+        "last_update": {
+          "title": "Last Update",
+          "type": "integer"
+        },
+        "stake": {
+          "description": "Stake weight in alpha units, as the epoch uses it",
+          "title": "Stake",
+          "type": "number"
+        },
+        "trust": {
+          "title": "Trust",
+          "type": "number"
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "integer"
+        },
+        "validator_permit": {
+          "title": "Validator Permit",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "uid",
+        "hotkey",
+        "coldkey",
+        "active",
+        "validator_permit",
+        "stake",
+        "incentive",
+        "trust",
+        "consensus",
+        "dividends",
+        "emission",
+        "last_update",
+        "block_at_registration"
+      ],
+      "title": "NeuronState",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "Verdict": {
+      "enum": [
+        "healthy",
+        "warning",
+        "broken"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "diagnoses": {
+      "items": {
+        "$ref": "#/$defs/Diagnosis"
+      },
+      "title": "Diagnoses",
+      "type": "array"
+    },
+    "elapsed_ms": {
+      "title": "Elapsed Ms",
+      "type": "integer"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "hotkey": {
+      "title": "Hotkey",
+      "type": "string"
+    },
+    "verdict": {
+      "$ref": "#/$defs/Verdict"
+    }
+  },
+  "required": [
+    "hotkey",
+    "chain",
+    "diagnoses",
+    "verdict",
+    "headline",
+    "elapsed_ms"
+  ],
+  "title": "DoctorReport",
+  "type": "object"
+}
