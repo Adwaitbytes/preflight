@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { capabilityLabel, hasPublicApi } from "./capabilities";
 import { BAND_LABEL, bandText, HealthRing } from "./health-ring";
 import { subnetName } from "./subnet-card";
+import { MineLink } from "./mine-link";
 import { TryIt } from "./try-it";
 
 function hostOf(url: string): string {
@@ -30,7 +31,9 @@ function Stat({ label, value, hint }: { label: string; value: string; hint?: str
   );
 }
 
-const FACTOR_BAR = (score: number) => (score >= 75 ? "bg-healthy" : score >= 50 ? "bg-medium" : "bg-critical");
+/** Factor scores arrive as 0..1; bars and colour bands work in whole percent */
+const factorPercent = (score: number) => Math.max(0, Math.min(100, Math.round(score * 100)));
+const FACTOR_BAR = (pct: number) => (pct >= 75 ? "bg-healthy" : pct >= 50 ? "bg-medium" : "bg-critical");
 
 export function SubnetDetailView({ detail, network }: { detail: SubnetDetail; network: string }) {
   const { card, hyperparams, chain } = detail;
@@ -67,6 +70,7 @@ export function SubnetDetailView({ detail, network }: { detail: SubnetDetail; ne
             </Badge>
           ))}
           {live && <Badge tone={live.registration_allowed ? "healthy" : "critical"}>{live.registration_allowed ? "Registration open" : "Registration closed"}</Badge>}
+          <MineLink netuid={card.netuid} network={network} />
           {catalog?.api_example && <TryIt name={name} example={catalog.api_example} needsKey={!!catalog.api_needs_key} />}
         </div>
         {links.length > 0 && (
@@ -99,7 +103,7 @@ export function SubnetDetailView({ detail, network }: { detail: SubnetDetail; ne
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] *:min-w-0">
         <section aria-labelledby="health" className="panel flex flex-col gap-5 p-5">
           <div className="flex items-center gap-4">
             <div className="sm:hidden">
@@ -120,18 +124,21 @@ export function SubnetDetailView({ detail, network }: { detail: SubnetDetail; ne
           </div>
           {health && (
             <ul className="flex flex-col gap-4">
-              {health.factors.map((f) => (
-                <li key={f.id} className="flex flex-col gap-1.5">
-                  <div className="flex items-baseline justify-between gap-3 text-[13px]">
-                    <span className="font-medium text-foreground">{f.label}</span>
-                    <span className="shrink-0 font-mono text-xs text-muted-foreground">{f.value}</span>
-                  </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${f.label}: ${Math.round(f.score)} of 100`}>
-                    <div className={cn("h-full rounded-full", FACTOR_BAR(f.score))} style={{ width: `${Math.max(2, Math.min(100, f.score))}%` }} />
-                  </div>
-                  <p className="text-xs leading-5 text-faint">{f.explanation}</p>
-                </li>
-              ))}
+              {health.factors.map((f) => {
+                const pct = factorPercent(f.score);
+                return (
+                  <li key={f.id} className="flex flex-col gap-1.5">
+                    <div className="flex items-baseline justify-between gap-3 text-[13px]">
+                      <span className="font-medium text-foreground">{f.label}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted-foreground">{f.value}</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-surface-3" role="img" aria-label={`${f.label}: ${pct} of 100`}>
+                      <div className={cn("h-full rounded-full", FACTOR_BAR(pct))} style={{ width: `${Math.max(2, pct)}%` }} />
+                    </div>
+                    <p className="text-xs leading-5 text-faint">{f.explanation}</p>
+                  </li>
+                );
+              })}
             </ul>
           )}
           {catalog && catalog.sources.length > 0 && (

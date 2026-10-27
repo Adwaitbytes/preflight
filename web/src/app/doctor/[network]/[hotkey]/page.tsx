@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DoctorView } from "@/components/doctor/doctor-view";
-import { LocalView } from "@/components/shared/local-view";
+import { LocalView } from "@/components/shared/local-view-loader";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { ApiErrorState, StateView } from "@/components/ui/state";
@@ -22,15 +22,19 @@ function parseNetuid(value: string | string[] | undefined): number | null {
 export async function generateMetadata({ params, searchParams }: PageProps<"/doctor/[network]/[hotkey]">): Promise<Metadata> {
   const { network, hotkey: raw } = await params;
   const hotkey = decodeURIComponent(raw);
+  const netuid = parseNetuid((await searchParams).netuid);
+  const alternates = { canonical: `/doctor/${network}/${hotkey}${netuid == null ? "" : `?netuid=${netuid}`}` };
   const fallback: Metadata = {
     title: `Doctor ${truncateMiddle(hotkey, 6, 4)}`,
     description: "Why this hotkey earns what it earns, the cause and the exact command that fixes it",
+    alternates,
   };
   if (!isNetwork(network) || network === "local" || classifyInput(hotkey).kind !== "hotkey") return fallback;
-  const result = await getDoctor(network, hotkey, parseNetuid((await searchParams).netuid));
+  const result = await getDoctor(network, hotkey, netuid);
   if (!result.ok) return fallback;
   const summary = summarizeDoctor(result.data);
   return {
+    alternates,
     title: summary.title,
     description: summary.description,
     openGraph: { title: summary.title, description: summary.description },

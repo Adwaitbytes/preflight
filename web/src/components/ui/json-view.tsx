@@ -48,7 +48,7 @@ function Line({ text }: { text: string }) {
       );
       if (colon) parts.push(colon);
     } else if (literal) {
-      parts.push(<span key={at} className="text-accent">{literal}</span>);
+      parts.push(<span key={at} className="text-accent-ink">{literal}</span>);
     } else if (num) {
       parts.push(<span key={at} className="text-medium">{num}</span>);
     } else {

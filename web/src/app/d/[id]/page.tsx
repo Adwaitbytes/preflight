@@ -38,10 +38,12 @@ function formatShared(iso: string): string {
 export async function generateMetadata({ params }: PageProps<"/d/[id]">): Promise<Metadata> {
   const { id } = await params;
   if (!ID.test(id)) return { title: "Shared report" };
+  const alternates = { canonical: `/d/${id}` };
   const result = await getReport(id);
-  if (!result.ok) return { title: "Shared report" };
+  if (!result.ok) return { title: "Shared report", alternates };
   const summary = summarizeShared(result.data);
   return {
+    alternates,
     title: summary.title,
     description: summary.description,
     openGraph: { title: summary.title, description: summary.description, type: "article" },

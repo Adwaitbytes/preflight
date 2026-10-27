@@ -8,7 +8,8 @@ export function subnetName(card: SubnetCardData): string {
   return card.catalog?.name ?? card.live?.name ?? `Subnet ${card.netuid}`;
 }
 
-export function SubnetCard({ card, network }: { card: SubnetCardData; network: string }) {
+/** `scoring` is true while the directory waits for health scores, so a missing ring pulses */
+export function SubnetCard({ card, network, scoring = false }: { card: SubnetCardData; network: string; scoring?: boolean }) {
   const live = card.live;
   const name = subnetName(card);
   return (
@@ -21,11 +22,13 @@ export function SubnetCard({ card, network }: { card: SubnetCardData; network: s
           <p className="font-mono text-xs text-faint">SN{card.netuid}</p>
           <h3 className="mt-1 truncate text-[15px] font-semibold tracking-[-0.01em] text-foreground">{name}</h3>
         </div>
-        <HealthRing health={card.health} />
+        <HealthRing health={card.health} pending={scoring} />
       </div>
-      <p className="line-clamp-2 min-h-10 text-[13px] leading-5 text-muted-foreground">
-        {card.catalog?.summary ?? "Not in the curated catalog yet. Live numbers only"}
-      </p>
+      {card.catalog ? (
+        <p className="line-clamp-2 min-h-10 text-[13px] leading-5 text-muted-foreground">{card.catalog.summary}</p>
+      ) : (
+        <p className="min-h-10 text-xs leading-5 text-faint">No catalog entry yet</p>
+      )}
       <div className="flex min-h-6 flex-wrap gap-1.5 overflow-hidden">
         {card.catalog?.capabilities.slice(0, hasPublicApi(card.catalog.api) ? 2 : 3).map((cap) => (
           <span key={cap} className="rounded-md bg-surface-2 px-2 py-0.5 text-[11.5px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)]">

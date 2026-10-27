@@ -1,0 +1,93 @@
+{
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9377754,
+    "block_hash": "0x5cf83c523bad64402d2382c8ac39a7f8c8755731b06e6560822b714ee4dde93e",
+    "runtime_spec": 486
+  },
+  "netuid": 51,
+  "name": "lium.io",
+  "verdict": "competitive",
+  "headline": "84 of 246 miners on SN51 lium.io earn today; the median earner makes 0.0649 TAO a day, so the 0.5000 TAO registration pays back in about 8 days if validators score you like them",
+  "registration_cost_tao": 0.5,
+  "burn_history": [
+    [
+      9374874,
+      0.5
+    ],
+    [
+      9375234,
+      0.5
+    ],
+    [
+      9375594,
+      0.5
+    ],
+    [
+      9375954,
+      0.5
+    ],
+    [
+      9376314,
+      0.5
+    ],
+    [
+      9376674,
+      0.5
+    ],
+    [
+      9377034,
+      0.5
+    ],
+    [
+      9377394,
+      0.5
+    ],
+    [
+      9377754,
+      0.5
+    ]
+  ],
+  "seats_used": 256,
+  "seats_max": 256,
+  "miners": 246,
+  "earning_miners": 84,
+  "alpha_price_tao": 0.122686604,
+  "bands": [
+    {
+      "label": "Lowest earning miner",
+      "alpha_per_day": 0.03784042770083102,
+      "tao_per_day": 0.004642513568522486
+    },
+    {
+      "label": "Median earning miner",
+      "alpha_per_day": 0.5291034182825485,
+      "tao_per_day": 0.06491390155387738
+    },
+    {
+      "label": "Top 25 percent",
+      "alpha_per_day": 3.4348428299168976,
+      "tao_per_day": 0.42140920207625376
+    },
+    {
+      "label": "Top 10 percent",
+      "alpha_per_day": 13.46619193130194,
+      "tao_per_day": 1.6521213568636364
+    }
+  ],
+  "immunity_blocks": 5000,
+  "immunity_hours": 16.666666666666668,
+  "prune_bar_alpha_per_day": 0.0,
+  "prune_bar_tao_per_day": 0.0,
+  "registrations_per_day": 20.0,
+  "seat_turnover_hours": 1.2,
+  "payback_days": 7.702510371911768,
+  "notes": [
+    "Immunity lasts 5,000 blocks (about 16.7 h): use it to get scored",
+    "161 seats out of immunity earn nothing; each registration prunes the oldest of them, so a miner still unscored when immunity ends joins that queue",
+    "Seats turn over about every 1.2 h at the 20.0 registrations a day the burn steers toward",
+    "Amounts are today's emission at today's alpha price, not a forecast"
+  ],
+  "findings": []
+}

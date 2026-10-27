@@ -5,7 +5,11 @@ import { StateView } from "@/components/ui/state";
 import { loadChangelog } from "@/lib/changelog";
 import type { ChangelogEntry } from "@/lib/schemas";
 
-export const metadata: Metadata = { title: "Changelog" };
+export const metadata: Metadata = {
+  title: "Changelog",
+  description: "Every Preflight commit as it shipped, straight from git log, newest first",
+  alternates: { canonical: "/changelog" },
+};
 
 function byDay(entries: ChangelogEntry[]): [string, ChangelogEntry[]][] {
   const days = new Map<string, ChangelogEntry[]>();

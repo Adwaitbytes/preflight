@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { detectLocalApi } from "@/lib/browser-api";
+import { detectLocalApi } from "@/lib/detect-local";
 import { isNetwork, type NetworkId } from "@/lib/networks";
 
 interface AppState {

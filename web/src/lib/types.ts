@@ -127,6 +127,8 @@ export interface FleetReport {
   broken: number;
   warning: number;
   healthy: number;
+  /** Owned hotkeys that hold no seat on any subnet */
+  unseated?: number;
   /** All rows' emission at today's alpha prices */
   tao_per_day: number;
   headline: string;

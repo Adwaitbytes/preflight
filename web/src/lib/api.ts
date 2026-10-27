@@ -18,6 +18,7 @@ import type {
   AskAnswer,
   DoctorReport,
   ErrorExplanation,
+  HealthScores,
   LaunchPlan,
   ServiceHealth,
   SimRequest,
@@ -27,15 +28,9 @@ import type {
   TxReport,
 } from "./types";
 
-export type ApiErrorKind = "invalid_input" | "not_found" | "unreachable" | "rate_limited" | "server" | "offline_miss" | "network";
+import type { ApiError } from "./api-errors";
 
-export interface ApiError {
-  kind: ApiErrorKind;
-  status: number | null;
-  message: string;
-  /** Seconds, from Retry-After on a 429 */
-  retryAfter?: number | null;
-}
+export { API_ERROR_TITLE, type ApiError, type ApiErrorKind } from "./api-errors";
 
 export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: ApiError };
 
@@ -66,7 +61,20 @@ export interface PreflightApi {
   history(network: NetworkId, hotkey: string, netuid: number): Promise<ApiResult<NeuronHistory>>;
 }
 
+/** Served by the HTTP API only: the offline recording already carries health on every card */
+export interface ScoresApi {
+  scores(network: NetworkId): Promise<ApiResult<HealthScores>>;
+}
+
+export type HttpApi = PreflightApi & ScoresApi;
+
+export function hasScores(api: PreflightApi): api is HttpApi {
+  return "scores" in api && typeof api.scores === "function";
+}
+
 const DEFAULT_TIMEOUT_MS = 45_000;
+// Scoring every subnet takes about 40 s on a cold cache
+const SCORES_TIMEOUT_MS = 90_000;
 
 export function errorForStatus(status: number, detail: string | null, retryAfter: string | null): ApiError {
   const message = detail ?? `The API answered ${status}`;
@@ -81,7 +89,7 @@ export function errorForStatus(status: number, detail: string | null, retryAfter
 }
 
 /** FastAPI puts a string in `detail` for HTTPException and a list of issues for validation */
-function readDetail(body: unknown): string | null {
+export function readDetail(body: unknown): string | null {
   if (typeof body !== "object" || body === null || !("detail" in body)) return null;
   const detail = (body as { detail: unknown }).detail;
   if (typeof detail === "string") return detail;
@@ -116,16 +124,16 @@ export interface HttpApiOptions {
   timeoutMs?: number;
 }
 
-export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS }: HttpApiOptions): PreflightApi {
+export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS }: HttpApiOptions): HttpApi {
   const root = baseUrl.replace(/\/+$/, "");
 
-  async function call<T>(path: string, guard: Guard, init?: RequestInit): Promise<ApiResult<T>> {
+  async function call<T>(path: string, guard: Guard, init?: RequestInit, limitMs = timeoutMs): Promise<ApiResult<T>> {
     let response: Response;
     try {
       response = await fetchImpl(`${root}${path}`, {
         ...init,
         headers: { accept: "application/json", ...(init?.body ? { "content-type": "application/json" } : {}) },
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: AbortSignal.timeout(limitMs),
         cache: "no-store",
       });
     } catch (cause) {
@@ -135,7 +143,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
         error: {
           kind: "network",
           status: null,
-          message: timedOut ? `The Preflight API did not answer within ${Math.round(timeoutMs / 1000)} s` : "Could not reach the Preflight API",
+          message: timedOut ? `The Preflight API did not answer within ${Math.round(limitMs / 1000)} s` : "Could not reach the Preflight API",
         },
       };
     }
@@ -183,6 +191,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     plan: (network) => call(`/v1/plan/${network}`, objectWith("lock_cost_tao", "timeline", "defaults")),
     subnets: (network) => call(`/v1/subnets/${network}`, arrayOf("netuid")),
     subnet: (network, netuid) => call(`/v1/subnets/${network}/${netuid}`, objectWith("card", "hyperparams")),
+    scores: (network) => call(`/v1/scores/${network}`, objectWith("chain", "scores"), undefined, Math.max(timeoutMs, SCORES_TIMEOUT_MS)),
     find: (query) => call(`/v1/find?q=${enc(query)}`, arrayOf("netuid")),
     ask: (query) => call(`/v1/ask?q=${enc(query)}`, objectWith("intent", "message")),
     health: () => call("/v1/health", objectWith("ok", "networks")),
@@ -194,12 +203,3 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
   };
 }
 
-export const API_ERROR_TITLE: Record<ApiErrorKind, string> = {
-  invalid_input: "That input does not look right",
-  not_found: "Nothing found",
-  unreachable: "The chain is not answering",
-  rate_limited: "Too many requests",
-  server: "The API had a problem",
-  offline_miss: "Not in the offline demo",
-  network: "The Preflight API is not reachable",
-};

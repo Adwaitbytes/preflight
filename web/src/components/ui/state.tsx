@@ -1,6 +1,6 @@
 import { Archive, CircleSlash, CloudOff, SearchX, ServerCrash, Timer, Unplug, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import { API_ERROR_TITLE, type ApiError, type ApiErrorKind } from "@/lib/api";
+import { API_ERROR_TITLE, type ApiError, type ApiErrorKind } from "@/lib/api-errors";
 import { cn } from "@/lib/utils";
 
 const ICON: Record<ApiErrorKind, LucideIcon> = {
@@ -29,6 +29,7 @@ export function StateView({
   children,
   action,
   tone = "neutral",
+  headingLevel = 2,
   className,
 }: {
   icon: LucideIcon;
@@ -36,8 +37,11 @@ export function StateView({
   children?: ReactNode;
   action?: ReactNode;
   tone?: "neutral" | "critical";
+  /** 1 when the state is the whole page, such as not found */
+  headingLevel?: 1 | 2;
   className?: string;
 }) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <div role={tone === "critical" ? "alert" : "status"} className={cn("panel flex flex-col items-center px-6 py-14 text-center sm:py-20", className)}>
       <div
@@ -48,7 +52,7 @@ export function StateView({
       >
         <Icon className="size-5" aria-hidden />
       </div>
-      <h2 className="mt-5 text-lg font-semibold tracking-[-0.015em] text-balance">{title}</h2>
+      <Heading className="mt-5 text-lg font-semibold tracking-[-0.015em] text-balance">{title}</Heading>
       {children && <div className="mt-2 max-w-[52ch] text-sm leading-6 text-pretty text-muted-foreground">{children}</div>}
       {action && <div className="mt-6 flex flex-wrap items-center justify-center gap-2">{action}</div>}
     </div>

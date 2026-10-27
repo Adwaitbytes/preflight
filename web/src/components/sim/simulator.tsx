@@ -1,7 +1,8 @@
 "use client";
 
 import { Cpu, FlaskConical } from "lucide-react";
-import { useId, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense, useId, useState, useTransition } from "react";
 import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { ApiErrorState } from "@/components/ui/state";
@@ -9,11 +10,12 @@ import type { ApiResult, SimAction } from "@/lib/api";
 import { ShareButton } from "@/components/shared/share-button";
 import { simulate, simulateOnLocalFork } from "@/lib/client-calls";
 import { NETWORK_LABEL, NETWORKS, parseNetwork, type NetworkId } from "@/lib/networks";
+import { parseSimPrefill, type SimField, type SimPrefill } from "@/lib/sim-prefill";
 import type { SimRequest, SimResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { SimResultView } from "./sim-result";
 
-type Field = "coldkey" | "hotkey" | "netuid" | "amount" | "uids" | "weights" | "version_key" | "ip" | "port" | "balance_override_tao";
+type Field = SimField;
 
 interface ActionSpec {
   id: SimAction;
@@ -112,19 +114,37 @@ export function buildRequest(action: SimAction, fields: Field[], values: Partial
 const INPUT =
   "h-10 w-full min-w-0 rounded-lg bg-surface-2 px-3 text-sm text-foreground shadow-[0_0_0_1px_var(--line)] outline-none placeholder:text-faint focus-visible:shadow-[0_0_0_2px_var(--ring)] aria-invalid:shadow-[0_0_0_1.5px_var(--critical)]";
 
+/**
+ * Links such as the Doctor's `/sim?action=burned_register&hotkey=...` prefill the form. The query is
+ * only known in the browser on a prerendered page, so the example form stands in until it is read.
+ */
 export function Simulator({ forkAvailable }: { forkAvailable: boolean }) {
+  return (
+    <Suspense fallback={<SimulatorForm forkAvailable={forkAvailable} prefill={null} />}>
+      <SimulatorFromQuery forkAvailable={forkAvailable} />
+    </Suspense>
+  );
+}
+
+function SimulatorFromQuery({ forkAvailable }: { forkAvailable: boolean }) {
+  const params = useSearchParams();
+  return <SimulatorForm key={params.toString()} forkAvailable={forkAvailable} prefill={parseSimPrefill(params)} />;
+}
+
+function SimulatorForm({ forkAvailable, prefill }: { forkAvailable: boolean; prefill: SimPrefill | null }) {
   const { network: preferred, localAvailable } = useAppState();
   const formId = useId();
-  const [action, setAction] = useState<SimAction>("burned_register");
-  const [network, setNetwork] = useState<NetworkId | null>(null);
-  const [values, setValues] = useState<Partial<Record<Field, string>>>(EXAMPLES.burned_register ?? {});
+  const [action, setAction] = useState<SimAction>(prefill?.action ?? "burned_register");
+  const [network, setNetwork] = useState<NetworkId | null>(prefill?.network ?? null);
+  const [values, setValues] = useState<Partial<Record<Field, string>>>(prefill ? prefill.values : (EXAMPLES.burned_register ?? {}));
   const [problem, setProblem] = useState<{ error: string; field: Field } | null>(null);
   const [result, setResult] = useState<ApiResult<SimResult> | null>(null);
   const [lastRun, setLastRun] = useState<{ network: NetworkId; request: SimRequest } | null>(null);
   const [pending, startTransition] = useTransition();
 
   const selected = ACTIONS.find((a) => a.id === action) ?? DEFAULT_ACTION;
-  const activeNetwork = network ?? (preferred === "local" && !localAvailable ? "finney" : preferred);
+  const chosen = network === "local" && !localAvailable ? null : network;
+  const activeNetwork = chosen ?? (preferred === "local" && !localAvailable ? "finney" : preferred);
   const networks = NETWORKS.filter((n) => n !== "local" || localAvailable);
 
   function pick(next: SimAction) {
@@ -249,7 +269,9 @@ export function Simulator({ forkAvailable }: { forkAvailable: boolean }) {
             <FlaskConical className="size-5 text-faint" aria-hidden />
             <p className="mt-3 text-sm font-medium text-foreground">Try it before you pay for it</p>
             <p className="mt-1 max-w-[40ch] text-[13px] leading-5 text-muted-foreground">
-              The example is a coldkey with 0 TAO registering on SN64. Press Simulate to see why it would fail before a rao moves
+              {prefill
+                ? "Fill in what the link left out, such as the signing coldkey, then press Simulate to see whether it would go through before a rao moves"
+                : "The example is a coldkey with 0 TAO registering on SN64. Press Simulate to see why it would fail before a rao moves"}
             </p>
           </div>
         )}

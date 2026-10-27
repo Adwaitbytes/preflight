@@ -9,8 +9,11 @@ export function bandText(band: Health["band"]): string {
   return BAND_TEXT[band];
 }
 
-/** 0 to 100 score as a ring. The arc draws in once; reduced motion skips straight to the end */
-export function HealthRing({ health, size = 44 }: { health: Health | null; size?: number }) {
+/**
+ * 0 to 100 score as a ring. The arc draws in once; reduced motion skips straight to the end.
+ * Without a score it is an empty track: pulsing while the score is computed, still otherwise.
+ */
+export function HealthRing({ health, size = 44, pending = false }: { health: Health | null; size?: number; pending?: boolean }) {
   const stroke = size >= 80 ? 6 : 4;
   const r = (size - stroke) / 2;
   const length = 2 * Math.PI * r;
@@ -18,11 +21,13 @@ export function HealthRing({ health, size = 44 }: { health: Health | null; size?
     return (
       <div
         role="img"
-        aria-label="No health score"
+        aria-label={pending ? "Health score loading" : "No health score yet"}
+        className={cn("shrink-0", pending && "animate-pulse")}
         style={{ width: size, height: size }}
-        className="grid shrink-0 place-items-center rounded-full text-xs text-faint shadow-[inset_0_0_0_1.5px_var(--line-strong)]"
       >
-        n/a
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" strokeWidth={stroke} className="stroke-surface-3" />
+        </svg>
       </div>
     );
   }

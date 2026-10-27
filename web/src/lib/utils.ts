@@ -3,7 +3,7 @@ import { extendTailwindMerge } from "tailwind-merge";
 
 // The custom type scale in globals.css would otherwise be read as colours and merged away
 const twMerge = extendTailwindMerge({
-  extend: { classGroups: { "font-size": [{ text: ["2xs", "display", "headline", "title"] }] } },
+  extend: { classGroups: { "font-size": [{ text: ["2xs", "display", "headline", "title", "subtitle"] }] } },
 });
 
 export function cn(...inputs: ClassValue[]): string {

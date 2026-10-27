@@ -345,6 +345,12 @@
       "title": "Tao Per Day",
       "type": "number"
     },
+    "unseated": {
+      "default": 0,
+      "description": "Owned hotkeys that hold no seat on any subnet",
+      "title": "Unseated",
+      "type": "integer"
+    },
     "warning": {
       "title": "Warning",
       "type": "integer"

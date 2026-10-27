@@ -37,12 +37,10 @@ export function HyperparamTable({ params, caption }: { params: Hyperparam[]; cap
           <h3 className="eyebrow border-b border-line bg-surface-2/60 px-4 py-2 sm:px-5">{group}</h3>
           <dl className="divide-y divide-line">
             {rows.map((p) => (
-              <div key={p.name} className="flex flex-col gap-1 px-4 py-3 sm:px-5">
-                <div className="flex items-baseline justify-between gap-4">
-                  <dt className="min-w-0 font-mono text-[13px] break-words text-foreground">{p.name}</dt>
-                  <dd className="shrink-0 font-mono text-[13px] font-medium text-foreground">{p.value}</dd>
-                </div>
-                <dd className="max-w-[70ch] text-[13px] leading-5 text-muted-foreground">
+              <div key={p.name} className="grid grid-cols-[minmax(0,1fr)_auto] items-baseline gap-x-4 gap-y-1 px-4 py-3 sm:px-5">
+                <dt className="min-w-0 font-mono text-[13px] break-words text-foreground">{p.name}</dt>
+                <dd className="font-mono text-[13px] font-medium text-foreground">{p.value}</dd>
+                <dd className="col-span-2 max-w-[70ch] text-[13px] leading-5 text-muted-foreground">
                   {p.meaning}
                   <span className="text-faint">
                     {" "}

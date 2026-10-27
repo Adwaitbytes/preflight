@@ -1,0 +1,414 @@
+{
+  "coldkey": "5FyBy1yBnm1ZLoLGEskzXWLbsCuC9961fkLG1ZTs9DbcnpMB",
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9377754,
+    "block_hash": "0x5cf83c523bad64402d2382c8ac39a7f8c8755731b06e6560822b714ee4dde93e",
+    "runtime_spec": 486
+  },
+  "hotkeys": 16,
+  "checked": 16,
+  "rows": [
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 26,
+      "subnet_name": "Perturb",
+      "uid": 82,
+      "role": "miner",
+      "verdict": "broken",
+      "headline": "UID 82 on SN26 earns nothing because no validator has scored it, and it is on a subnet where most validators stopped setting weights",
+      "worst": {
+        "id": "PF108",
+        "rule": "no_validator_weight",
+        "severity": "critical",
+        "title": "No validator has scored this UID",
+        "evidence": [
+          {
+            "label": "Validators weighting this UID",
+            "value": "0 of 5",
+            "source": null
+          },
+          {
+            "label": "UID 0 (5DFJZv...kk2V)",
+            "value": "stake 1,406,105 alpha, last set weights 31 blocks (about 6 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 143 (5CDK1b...m7LZ)",
+            "value": "stake 208,727 alpha, last set weights 150 blocks (about 30 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 152 (5FxczA...j2PN)",
+            "value": "stake 167,665 alpha, last set weights 50,781 blocks (about 7.1 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 45 (5CvgGz...pctr)",
+            "value": "stake 5,059 alpha, last set weights 956,975 blocks (about 132.9 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 36 (5DZh8j...sMdd)",
+            "value": "stake 5,016 alpha, last set weights 1,004,792 blocks (about 139.6 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "Read at block",
+            "value": "9,377,754",
+            "source": null
+          }
+        ],
+        "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+        "fix": {
+          "kind": "info",
+          "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+          "note": null
+        },
+        "docs": "https://www.bittensor.com/docs/guides/mining"
+      },
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 54,
+      "subnet_name": "Yanez",
+      "uid": 188,
+      "role": "miner",
+      "verdict": "broken",
+      "headline": "UID 188 on SN54 earns nothing because no validator has scored it",
+      "worst": {
+        "id": "PF108",
+        "rule": "no_validator_weight",
+        "severity": "critical",
+        "title": "No validator has scored this UID",
+        "evidence": [
+          {
+            "label": "Validators weighting this UID",
+            "value": "0 of 9",
+            "source": null
+          },
+          {
+            "label": "UID 59 (5DUB7k...Wgpr)",
+            "value": "stake 3,673,522 alpha, last set weights 121 blocks (about 24 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 198 (5GWzXS...8PVs)",
+            "value": "stake 640,145 alpha, last set weights 9 blocks (about 2 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 61 (5GQqAh...fs54)",
+            "value": "stake 44,862 alpha, last set weights 128 blocks (about 26 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 139 (5FeKsR...9DGg)",
+            "value": "stake 37,752 alpha, last set weights 122 blocks (about 24 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 217 (5Dvgtk...SL54)",
+            "value": "stake 36,397 alpha, last set weights 30 blocks (about 6 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "Read at block",
+            "value": "9,377,754",
+            "source": null
+          }
+        ],
+        "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+        "fix": {
+          "kind": "info",
+          "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+          "note": null
+        },
+        "docs": "https://www.bittensor.com/docs/guides/mining"
+      },
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5Gy8CRm4DV4doZCDXWNgG4jmm3Rdzw3WsBDXTgAh4Rxgrd6V",
+      "netuid": 26,
+      "subnet_name": "Perturb",
+      "uid": 46,
+      "role": "miner",
+      "verdict": "broken",
+      "headline": "UID 46 on SN26 earns nothing because no validator has scored it, and it is on a subnet where most validators stopped setting weights",
+      "worst": {
+        "id": "PF108",
+        "rule": "no_validator_weight",
+        "severity": "critical",
+        "title": "No validator has scored this UID",
+        "evidence": [
+          {
+            "label": "Validators weighting this UID",
+            "value": "0 of 5",
+            "source": null
+          },
+          {
+            "label": "UID 0 (5DFJZv...kk2V)",
+            "value": "stake 1,406,105 alpha, last set weights 31 blocks (about 6 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 143 (5CDK1b...m7LZ)",
+            "value": "stake 208,727 alpha, last set weights 150 blocks (about 30 min) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 152 (5FxczA...j2PN)",
+            "value": "stake 167,665 alpha, last set weights 50,781 blocks (about 7.1 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 45 (5CvgGz...pctr)",
+            "value": "stake 5,059 alpha, last set weights 956,975 blocks (about 132.9 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "UID 36 (5DZh8j...sMdd)",
+            "value": "stake 5,016 alpha, last set weights 1,004,792 blocks (about 139.6 days) ago",
+            "source": "SubtensorModule.LastUpdate"
+          },
+          {
+            "label": "Read at block",
+            "value": "9,377,754",
+            "source": null
+          }
+        ],
+        "explanation": "Incentive only comes from validators putting weight on a UID. None of the permitted validators' latest weights include this one, so it earns nothing until they do",
+        "fix": {
+          "kind": "info",
+          "text": "Check that the axon is reachable and that the miner answers the subnet's queries in the format validators expect",
+          "note": null
+        },
+        "docs": "https://www.bittensor.com/docs/guides/mining"
+      },
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5Ct37WSvDVAd9BWsqTE2gaHwDeyvtoBJvJweP82GYsQb56qw",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5F9q28aWsWNzJv6BkRDmMFLvAJHs1yehAu3E5Mh9fXPQQH1j",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5CiCJmfrtuMu7zrh7fDBAnG6MptjwpjDnu5DCt7EX7qd5LXw",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5Cd53QrJz3YCTYLmYgsCypM9ucWwAi8RinWYt7H1YRzJARMy",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5FF55MHRScHB5x88m9B8cgd6TaL9UFsAtgjHZhTJ5D4GCC3A",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5FLQkLRveS3GMkoGemLxrAtonMR2VBhCk4H9Z4pPr4ycgFeG",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5C9y1Vf7GGM557dTt34Xv4V2b72ZnhtooKBdD9rsNfJEn3Xf",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5EEums6VG21CrxAKPJMi5f7ncAmxmBzMur3dimb39NVsV9pj",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5FebAumPV55gSHQ4vtMMdHKe3sQCCpPHWPwkWTijECJosk4v",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5CtYKXqWHQatftBzqF288CPR884Ww38AeQWBaMJNbGXDPhj1",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5Ff4qvzKpqWWjj9isDNhMKt6SESMQDHj82zvLUWmGXL1Zbgf",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5D86iH1Kg6iMbEXddcBbQc73M7s2QjSfjL53UJFtsnCUuYYR",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5GC7Vsw9XcrB2aZ6Tsq5vN6gURoNe3tp4WueHjPw5Ps4WU29",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5F3xqkoNzwLoww8tSxqPoB5LuFaaW4rH6hVbfzLHsrjwKDq5",
+      "netuid": null,
+      "subnet_name": null,
+      "uid": null,
+      "role": "unregistered",
+      "verdict": "warning",
+      "headline": "Owned by this coldkey but registered on no subnet",
+      "worst": null,
+      "incentive": 0.0,
+      "alpha_per_day": 0.0,
+      "tao_per_day": 0.0
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 64,
+      "subnet_name": "Chutes",
+      "uid": 207,
+      "role": "miner",
+      "verdict": "healthy",
+      "headline": "UID 207 on SN64 looks healthy: registered, reachable as far as the chain shows, and scored",
+      "worst": null,
+      "incentive": 0.15535210193026627,
+      "alpha_per_day": 457.355504901939,
+      "tao_per_day": 30.803591637001574
+    },
+    {
+      "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+      "netuid": 51,
+      "subnet_name": "lium.io",
+      "uid": 50,
+      "role": "miner",
+      "verdict": "healthy",
+      "headline": "UID 50 on SN51 looks healthy: registered, reachable as far as the chain shows, and scored",
+      "worst": null,
+      "incentive": 0.011551079575799192,
+      "alpha_per_day": 34.00521311468144,
+      "tao_per_day": 4.171984115336528
+    }
+  ],
+  "broken": 3,
+  "warning": 14,
+  "healthy": 2,
+  "tao_per_day": 34.9755757523381,
+  "headline": "3 of 19 seats need attention; the worst: UID 82 on SN26 earns nothing because no validator has scored it, and it is on a subnet where most validators stopped setting weights",
+  "elapsed_ms": 1980
+}

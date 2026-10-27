@@ -2,7 +2,7 @@ import { CircleSlash } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LocalView } from "@/components/shared/local-view";
+import { LocalView } from "@/components/shared/local-view-loader";
 import { TxView } from "@/components/tx/tx-view";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -21,15 +21,18 @@ function parseRef(raw: string): string | null {
 export async function generateMetadata({ params }: PageProps<"/tx/[network]/[ref]">): Promise<Metadata> {
   const { network, ref: raw } = await params;
   const ref = parseRef(raw);
+  const alternates = { canonical: `/tx/${network}/${ref ?? raw}` };
   const fallback: Metadata = {
     title: `Transaction ${truncateMiddle(decodeURIComponent(raw), 10, 4)}`,
     description: "Decoded call, events, the error in plain words and the command to run instead",
+    alternates,
   };
   if (!ref || !isNetwork(network) || network === "local") return fallback;
   const result = await getTx(network, ref);
   if (!result.ok) return fallback;
   const summary = summarizeTx(result.data);
   return {
+    alternates,
     title: summary.title,
     description: summary.description,
     openGraph: { title: summary.title, description: summary.description },

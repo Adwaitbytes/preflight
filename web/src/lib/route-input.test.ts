@@ -51,6 +51,17 @@ describe("classifyInput", () => {
     expect(classifyInput("3D generation")).toEqual({ kind: "subnet_name", query: "3D generation" });
   });
 
+  it("rejects short input that cannot be a subnet name instead of searching for it", () => {
+    expect(classifyInput("garbage$$")).toEqual({ kind: "invalid", text: "garbage$$" });
+    expect(classifyInput("!!!")).toEqual({ kind: "invalid", text: "!!!" });
+  });
+
+  it("still searches names in any script with common punctuation", () => {
+    expect(classifyInput("τemplar").kind).toBe("subnet_name");
+    expect(classifyInput("lium.io").kind).toBe("subnet_name");
+    expect(classifyInput("Score & Rank").kind).toBe("subnet_name");
+  });
+
   it("treats long free text as an error to explain", () => {
     expect(classifyInput("my registration keeps getting rejected after I pay the burn on subnet sixty four").kind).toBe("error");
   });
@@ -64,5 +75,6 @@ describe("hrefForInput", () => {
     expect(hrefForInput(classifyInput("chutes"), "finney")).toBe("/subnets?q=chutes&network=finney");
     expect(hrefForInput(classifyInput("InvalidIpAddress"), "finney")).toBe("/explain?text=InvalidIpAddress");
     expect(hrefForInput(classifyInput(""), "finney")).toBeNull();
+    expect(hrefForInput(classifyInput("garbage$$"), "finney")).toBeNull();
   });
 });

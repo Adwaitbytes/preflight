@@ -1,37 +1,33 @@
-import { GeistMono } from "geist/font/mono";
-import { GeistSans } from "geist/font/sans";
 import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
 import { AppStateProvider } from "@/components/site/app-state";
-import { CommandPalette } from "@/components/site/command-palette";
+import { LazyCommandPalette } from "@/components/site/command-palette-loader";
 import { OfflineBanner } from "@/components/site/offline-banner";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { ThemeProvider } from "@/components/site/theme-provider";
+import { BRAND } from "@/lib/brand";
 import { isOffline } from "@/lib/server-api";
+import { siteUrl } from "@/lib/site";
+import { geistMono, geistSans } from "./fonts";
 import "./globals.css";
-
-function siteUrl(): URL {
-  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
-  if (explicit) return new URL(explicit);
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  return new URL(vercel ? `https://${vercel}` : "http://localhost:3000");
-}
 
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title: { default: "Preflight, the Bittensor debugger", template: "%s | Preflight" },
-  openGraph: { siteName: "Preflight", type: "website" },
+  applicationName: "Preflight",
+  openGraph: { siteName: "Preflight", type: "website", locale: "en_US" },
   twitter: { card: "summary_large_image" },
+  appleWebApp: { title: "Preflight", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false, address: false, email: false },
   description:
     "Paste a hotkey, a transaction or a netuid. Preflight tells you why your miner earns zero, and lets you test a transaction before you spend a single rao",
 };
 
+// The site opens dark whatever the OS prefers, so the browser chrome starts dark too; ThemeProvider follows the toggle
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0a0b0d" },
-    { media: "(prefers-color-scheme: light)", color: "#f7f7f8" },
-  ],
+  themeColor: BRAND.night,
+  colorScheme: "dark",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -39,17 +35,18 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   await connection();
   const offline = isOffline();
   return (
-    <html lang="en" suppressHydrationWarning className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="flex min-h-dvh flex-col overflow-x-clip">
         <ThemeProvider>
           <AppStateProvider offline={offline}>
             {offline && <OfflineBanner />}
             <SiteHeader />
-            <main id="main" className="flex min-w-0 flex-1 flex-col">
+            {/* At least a screen tall, so the footer never sits in the first viewport while a page streams in */}
+            <main id="main" className="flex min-h-[calc(100svh-3.5rem)] min-w-0 flex-1 flex-col">
               {children}
             </main>
             <SiteFooter />
-            <CommandPalette />
+            <LazyCommandPalette />
           </AppStateProvider>
         </ThemeProvider>
       </body>

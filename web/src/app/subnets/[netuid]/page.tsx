@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { LocalView } from "@/components/shared/local-view";
+import { LocalView } from "@/components/shared/local-view-loader";
 import { SubnetDetailView } from "@/components/subnets/subnet-detail-view";
 import { Container } from "@/components/ui/container";
 import { ApiErrorState } from "@/components/ui/state";
@@ -13,7 +13,11 @@ function parseNetuid(raw: string): number | null {
 
 export async function generateMetadata({ params }: PageProps<"/subnets/[netuid]">): Promise<Metadata> {
   const { netuid } = await params;
-  return { title: `SN${netuid}` };
+  return {
+    title: `SN${netuid}`,
+    description: `What SN${netuid} does, its live chain numbers, health score and hyperparameters, read at one block`,
+    alternates: { canonical: `/subnets/${netuid}` },
+  };
 }
 
 export default async function SubnetPage({ params, searchParams }: PageProps<"/subnets/[netuid]">) {

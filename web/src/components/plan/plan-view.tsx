@@ -1,7 +1,10 @@
+import { ChevronRight } from "lucide-react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { HyperparamTable } from "@/components/shared/hyperparam-table";
 import { Badge } from "@/components/ui/badge";
 import { formatAmount, formatDuration, formatInt } from "@/lib/format";
+import { normalizeTaoText } from "@/lib/tao";
+import { detailClauses, timelineColumns } from "@/lib/timeline";
 import type { LaunchPlan, TimelineStep } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -34,17 +37,21 @@ function Timeline({ plan }: { plan: LaunchPlan }) {
   const steps = plan.timeline;
   const head = plan.chain.block;
   return (
-    <ol className="relative grid gap-0 md:grid-flow-col md:auto-cols-fr">
+    <ol
+      className="relative grid gap-0 lg:grid-cols-(--timeline-columns)"
+      style={{ ["--timeline-columns" as string]: timelineColumns(steps.map((step) => step.block)) }}
+    >
       {steps.map((step, i) => {
         const next = steps[i + 1];
         const gap = next ? gapLabel(step, next, plan.block_seconds) : null;
         const past = step.block != null && step.block <= head;
+        const fromNow = step.block == null ? "When you choose" : step.block > head ? `in ${formatDuration(step.block - head, plan.block_seconds)}` : "Reached";
         return (
-          <li key={`${step.label}-${i}`} className="relative flex gap-4 pb-7 md:flex-col md:gap-0 md:pr-4 md:pb-0">
+          <li key={`${step.label}-${i}`} className="relative flex gap-4 pb-7 lg:flex-col lg:gap-0 lg:pr-4 lg:pb-0">
             {next && (
               <span
                 aria-hidden
-                className="absolute top-3 bottom-0 left-[11px] w-px bg-line-strong md:top-[11px] md:right-0 md:bottom-auto md:left-6 md:h-px md:w-auto"
+                className="absolute top-3 bottom-0 left-[11px] w-px bg-line-strong lg:top-[11px] lg:right-0 lg:bottom-auto lg:left-6 lg:h-px lg:w-auto"
               />
             )}
             <span
@@ -56,14 +63,20 @@ function Timeline({ plan }: { plan: LaunchPlan }) {
             >
               <span className={cn("size-2 rounded-full", i === 0 ? "bg-accent" : past ? "bg-healthy" : "bg-faint")} />
             </span>
-            <div className="min-w-0 md:mt-4">
+            <div className="min-w-0 lg:mt-4">
               <p className="text-sm font-medium text-foreground">{step.label}</p>
-              <p className="mt-1 font-mono text-[13px] text-accent-ink">{step.block != null ? `#${formatInt(step.block)}` : "when you choose"}</p>
-              {step.block != null && step.block > head && (
-                <p className="mt-0.5 text-xs text-faint">in {formatDuration(step.block - head, plan.block_seconds)}</p>
-              )}
-              <p className="mt-2 text-xs leading-5 text-muted-foreground md:max-w-[24ch]">{step.detail}</p>
-              {gap && <p className="mt-2 font-mono text-[11px] text-faint md:hidden">{gap}</p>}
+              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs leading-5">
+                <dt className="text-faint">Block</dt>
+                <dd className="font-mono text-accent-ink">{step.block != null ? `#${formatInt(step.block)}` : "Your choice"}</dd>
+                <dt className="text-faint">When</dt>
+                <dd className="text-muted-foreground">{fromNow}</dd>
+                {gap && (
+                  <>
+                    <dt className="text-faint lg:hidden">Next</dt>
+                    <dd className="font-mono text-muted-foreground lg:hidden">{gap}</dd>
+                  </>
+                )}
+              </dl>
             </div>
             {gap && (
               <span className="absolute top-[-2px] left-10 hidden -translate-y-full font-mono text-[11px] whitespace-nowrap text-faint md:block lg:left-12">
@@ -74,6 +87,32 @@ function Timeline({ plan }: { plan: LaunchPlan }) {
         );
       })}
     </ol>
+  );
+}
+
+function HowComputed({ steps }: { steps: TimelineStep[] }) {
+  return (
+    <details className="group mt-8 border-t border-line pt-4">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded text-[13px] font-medium text-muted-foreground transition-colors select-none hover:text-foreground [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-3.5 transition-transform duration-200 group-open:rotate-90 motion-reduce:transition-none" aria-hidden />
+        How this is computed
+      </summary>
+      <ol className="mt-5 grid gap-x-10 gap-y-6 md:grid-cols-2">
+        {steps.map((step, i) => (
+          <li key={`${step.label}-${i}`} className="min-w-0">
+            <p className="text-[13px] font-medium text-foreground">{step.label}</p>
+            <ul className="mt-2 flex flex-col gap-1.5 text-xs leading-5 text-pretty text-muted-foreground">
+              {detailClauses(normalizeTaoText(step.detail)).map((clause, j) => (
+                <li key={j} className="flex gap-2.5">
+                  <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-faint" />
+                  <span className="min-w-0">{clause}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ol>
+    </details>
   );
 }
 
@@ -151,6 +190,7 @@ export function PlanView({ plan }: { plan: LaunchPlan }) {
         <div className="mt-8 md:mt-12">
           <Timeline plan={plan} />
         </div>
+        <HowComputed steps={plan.timeline} />
       </section>
 
       <HyperparamTable params={plan.defaults} caption="Hyperparameters a new subnet starts with" />

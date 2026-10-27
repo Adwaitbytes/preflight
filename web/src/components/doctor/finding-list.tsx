@@ -1,11 +1,13 @@
 "use client";
 
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { BookOpen, ChevronDown, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import { Accordion } from "radix-ui";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
 import { SeverityBadge } from "@/components/ui/badge";
 import { formatInt } from "@/lib/format";
+import { guideHref } from "@/lib/guide";
 import { sortFindings } from "@/lib/severity";
 import type { Finding } from "@/lib/types";
 
@@ -51,11 +53,25 @@ function EvidenceTable({ finding, block }: { finding: Finding; block: number }) 
   );
 }
 
-export function FindingList({ findings, block }: { findings: Finding[]; block: number }) {
+/**
+ * `learn` adds a link from each finding to the guide chapter that explains its rule.
+ * `defaultOpen` expands the most severe finding, which a diagnosis wants and the guide sometimes does not
+ */
+export function FindingList({
+  findings,
+  block,
+  learn = true,
+  defaultOpen = true,
+}: {
+  findings: Finding[];
+  block: number;
+  learn?: boolean;
+  defaultOpen?: boolean;
+}) {
   const sorted = sortFindings(findings);
   const first = sorted[0];
   return (
-    <Accordion.Root type="multiple" defaultValue={first ? [first.id] : []} className="flex flex-col gap-3">
+    <Accordion.Root type="multiple" defaultValue={defaultOpen && first ? [first.id] : []} className="flex flex-col gap-3">
       {sorted.map((finding) => (
         <Accordion.Item key={finding.id} value={finding.id} className="panel overflow-hidden">
           <Accordion.Header>
@@ -83,6 +99,16 @@ export function FindingList({ findings, block }: { findings: Finding[]; block: n
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
                 <span className="font-mono sm:hidden">{finding.id}</span>
                 <span className="font-mono">{finding.rule}</span>
+                {learn && (
+                  <Link
+                    href={guideHref(finding.id)}
+                    className="inline-flex items-center gap-1 rounded text-muted-foreground underline decoration-line-strong underline-offset-4 hover:text-foreground"
+                  >
+                    <BookOpen className="size-3" aria-hidden />
+                    Learn
+                    <span className="sr-only"> how {finding.id} works</span>
+                  </Link>
+                )}
                 {finding.docs && (
                   <a
                     href={finding.docs}

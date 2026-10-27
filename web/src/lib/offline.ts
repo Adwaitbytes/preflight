@@ -88,6 +88,7 @@ function ask(query: string): AskAnswer {
     case "subnet_name":
       return { query, intent: "find", route: `/subnets?q=${encodeURIComponent(input.query)}`, params: { q: input.query }, message: "Search subnets" };
     case "empty":
+    case "invalid":
       return { query, intent: "unknown", route: null, params: {}, message: "Ask your own Claude with the MCP server" };
   }
 }

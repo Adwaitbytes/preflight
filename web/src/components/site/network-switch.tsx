@@ -1,15 +1,18 @@
 "use client";
 
-import { Check, ChevronDown } from "lucide-react";
-import { DropdownMenu } from "radix-ui";
+import { ChevronDown } from "lucide-react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
 import { NETWORK_LABEL, NETWORKS, type NetworkId } from "@/lib/networks";
 import { cn } from "@/lib/utils";
 import { useAppState } from "./app-state";
 
-const ROUTE_WITH_NETWORK = /^\/(doctor|tx)\/(finney|test|local)(\/.*)$/;
+const ROUTE_WITH_NETWORK = /^\/(doctor|tx|fleet)\/(finney|test|local)(\/.*)$/;
 
-const DOT: Record<NetworkId, string> = { finney: "bg-healthy", test: "bg-medium", local: "bg-accent" };
+export const NETWORK_DOT: Record<NetworkId, string> = { finney: "bg-healthy", test: "bg-medium", local: "bg-accent" };
+
+export const NETWORK_TRIGGER_CLASS =
+  "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5 text-[13px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)] transition-[background-color,color] hover:bg-surface-2 hover:text-foreground data-[state=open]:bg-surface-2";
 
 /** Rewrites the network segment of the current route, so switching on a result page re-runs it */
 export function useSwitchNetwork(): (next: NetworkId) => void {
@@ -23,49 +26,41 @@ export function useSwitchNetwork(): (next: NetworkId) => void {
   };
 }
 
-export function NetworkSwitch() {
+/** The network a result page is pinned to, else the one the user picked, and the ones they can switch to */
+export function useNetworkChoice(): { current: NetworkId; options: NetworkId[] } {
   const { network, localAvailable } = useAppState();
   const pathname = usePathname();
-  const switchNetwork = useSwitchNetwork();
   const routeNetwork = ROUTE_WITH_NETWORK.exec(pathname)?.[2] as NetworkId | undefined;
   const current = routeNetwork ?? network;
-  const options = NETWORKS.filter((n) => n !== "local" || localAvailable || current === "local");
+  return { current, options: NETWORKS.filter((n) => n !== "local" || localAvailable || current === "local") };
+}
 
+export function NetworkTriggerContent({ network }: { network: NetworkId }) {
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5 text-[13px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)] transition-colors hover:bg-surface-2 hover:text-foreground data-[state=open]:bg-surface-2"
-        aria-label={`Network: ${NETWORK_LABEL[current]}. Change network`}
-      >
-        <span aria-hidden className={cn("size-1.5 rounded-full", DOT[current])} />
-        {NETWORK_LABEL[current]}
-        <ChevronDown className="size-3.5 text-faint" aria-hidden />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          align="end"
-          sideOffset={6}
-          className="z-50 min-w-48 rounded-xl bg-surface p-1 shadow-(--shadow-float) data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
-        >
-          <DropdownMenu.Label className="px-2.5 pt-1.5 pb-1 text-2xs font-medium text-faint uppercase tracking-[0.08em]">Network</DropdownMenu.Label>
-          {options.map((n) => (
-            <DropdownMenu.Item
-              key={n}
-              onSelect={() => switchNetwork(n)}
-              className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none data-highlighted:bg-surface-2"
-            >
-              <span aria-hidden className={cn("size-1.5 rounded-full", DOT[n])} />
-              <span className="flex-1">{NETWORK_LABEL[n]}</span>
-              {n === current && <Check className="size-3.5 text-muted-foreground" aria-hidden />}
-            </DropdownMenu.Item>
-          ))}
-          {localAvailable === false && (
-            <p className="px-2.5 pt-1.5 pb-2 text-xs leading-5 text-faint">
-              Run <code className="font-mono text-muted-foreground">preflight serve</code> to add Local
-            </p>
-          )}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+    <>
+      <span aria-hidden className={cn("size-1.5 rounded-full", NETWORK_DOT[network])} />
+      {NETWORK_LABEL[network]}
+      <ChevronDown className="size-3.5 text-faint" aria-hidden />
+    </>
   );
 }
+
+export function networkTriggerLabel(network: NetworkId): string {
+  return `Network: ${NETWORK_LABEL[network]}. Change network`;
+}
+
+/** Same markup as the menu trigger, painted on the server and until the menu code arrives */
+function NetworkTriggerPlaceholder() {
+  const { current } = useNetworkChoice();
+  return (
+    <button type="button" aria-haspopup="menu" aria-expanded={false} aria-label={networkTriggerLabel(current)} className={NETWORK_TRIGGER_CLASS}>
+      <NetworkTriggerContent network={current} />
+    </button>
+  );
+}
+
+// The Radix menu loads after hydration so it stays out of the first paint
+export const NetworkSwitch = dynamic(() => import("./network-menu").then((m) => m.NetworkMenu), {
+  ssr: false,
+  loading: NetworkTriggerPlaceholder,
+});

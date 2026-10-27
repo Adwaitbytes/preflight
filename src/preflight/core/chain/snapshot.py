@@ -11,6 +11,7 @@ import ipaddress
 from collections.abc import Callable
 from typing import Any
 
+from bittensor import metagraph as sdk_metagraph
 from pydantic import Field
 
 from ..models import AxonInfo, ChainRef, Model, NeuronState
@@ -19,6 +20,21 @@ from .network import Pinned, gather
 
 RAO = 1_000_000_000
 U16 = 65535
+
+
+def _tolerant_axon_endpoint(axon: Any) -> str | None:
+    """The SDK's metagraph builder raises on one malformed axon and fails the whole subnet:
+    testnet SN51 has a neuron advertising ip_type 4 with a value past 2**32 (seen
+    2026-10-28). One bad advertisement must not hide every other neuron, so it reads as
+    unserved here."""
+    try:
+        return _sdk_axon_endpoint(axon)
+    except ValueError:
+        return None
+
+
+_sdk_axon_endpoint = sdk_metagraph._axon_endpoint  # pyright: ignore[reportPrivateUsage]  # patched once, below
+sdk_metagraph._axon_endpoint = _tolerant_axon_endpoint  # pyright: ignore[reportPrivateUsage]
 
 
 class SubnetParams(Model):

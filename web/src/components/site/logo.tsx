@@ -1,21 +1,24 @@
+import { MARK_SMALL_NODE, MARK_SMALL_PATH, MARK_SMALL_STROKE, MARK_VIEWBOX } from "@/lib/brand";
 import { cn } from "@/lib/utils";
 
-/** The mark: a check that lifts off its baseline, read as "cleared for takeoff" */
-export function LogoMark({ className }: { className?: string }) {
+/**
+ * The mark at interface sizes (the small optical cut from lib/brand; the full runway mark is for icons and cards).
+ * Inherits the text colour; the checkpoint takes the accent unless `mono` asks for one colour.
+ */
+export function LogoMark({ className, mono = false }: { className?: string; mono?: boolean }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={cn("size-6", className)}>
-      <rect x="0.5" y="0.5" width="23" height="23" rx="6.5" className="fill-foreground" />
-      <path d="M6.5 12.5l3.2 3.2L17.5 7.5" className="stroke-background" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M6.5 18h11" className="stroke-background/45" strokeWidth="1.6" strokeLinecap="round" />
+    <svg viewBox={MARK_VIEWBOX} fill="none" aria-hidden className={cn("size-6 shrink-0", className)}>
+      <path d={MARK_SMALL_PATH} stroke="currentColor" strokeWidth={MARK_SMALL_STROKE} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={MARK_SMALL_NODE.cx} cy={MARK_SMALL_NODE.cy} r={MARK_SMALL_NODE.r} className={mono ? "fill-current" : "fill-accent"} />
     </svg>
   );
 }
 
-export function Logo() {
+export function Logo({ className }: { className?: string }) {
   return (
-    <span className="inline-flex items-center gap-2.5">
-      <LogoMark />
-      <span className="text-[15px] font-semibold tracking-[-0.02em]">Preflight</span>
+    <span className={cn("inline-flex items-center gap-2", className)}>
+      <LogoMark className="size-6" />
+      <span className="text-[15px] leading-none font-semibold tracking-[-0.025em]">Preflight</span>
     </span>
   );
 }

@@ -1,5 +1,35 @@
 [
   {
+    "date": "2026-10-28T03:01:23+05:30",
+    "sha": "842dca3",
+    "subject": "Docs: fleet and mining economics"
+  },
+  {
+    "date": "2026-10-28T02:59:29+05:30",
+    "sha": "b2b674e",
+    "subject": "Fleet: diagnose every hotkey a coldkey owns with TAO a day; Should I mine here: earnings bands, seat bar, turnover and payback per subnet; CLI, API, MCP and Ask routes"
+  },
+  {
+    "date": "2026-10-28T02:51:58+05:30",
+    "sha": "ced0e17",
+    "subject": "Health for all 128 subnets from one bulk read (matches the detail page), scores endpoint, readable sim effects, deduped explanations, clearer unregistered headline, demo rehearsal script"
+  },
+  {
+    "date": "2026-10-28T02:32:19+05:30",
+    "sha": "591920e",
+    "subject": "Readable API responses in Try it: indented, highlighted, line numbered, no mid-word breaks; preflight local fix"
+  },
+  {
+    "date": "2026-10-28T02:28:24+05:30",
+    "sha": "eba81d1",
+    "subject": "Action: start-localnet input so a second gate step diagnoses the same chain"
+  },
+  {
+    "date": "2026-10-28T02:22:08+05:30",
+    "sha": "ad301e5",
+    "subject": "Speed: fail fast on dead endpoints, stale-while-revalidate cache with startup prefetch, cached health, CDN headers. Miners with permits stay miners. Web: share links with OG images, house opt-in, changelog, history chart. Localnet: on-disk wallets, runnable fixes, PF102 fires"
+  },
+  {
     "date": "2026-10-28T02:09:54+05:30",
     "sha": "3124fd7",
     "subject": "Close pooled clients at exit; re-fork when the upstream discards the fork block; mainnet demo fallback outputs"
@@ -18,11 +48,6 @@
     "date": "2026-10-28T00:35:34+05:30",
     "sha": "e73b297",
     "subject": "preflight new: scaffold a bittensor 11 subnet with signed requests, pure scoring and tests"
-  },
-  {
-    "date": "2026-10-28T00:34:10+05:30",
-    "sha": "68ca1df",
-    "subject": "Drop unneeded noqa in the Vercel function"
   },
   {
     "date": "2026-10-28T00:32:52+05:30",
@@ -48,11 +73,6 @@
     "date": "2026-10-28T00:16:33+05:30",
     "sha": "e5f5170",
     "subject": "Neon store with house counters and shared reports, fork overrides and warm-up with a 20 s budget, CI workflow"
-  },
-  {
-    "date": "2026-10-28T00:07:24+05:30",
-    "sha": "17285a6",
-    "subject": "Ignore Playwright MCP scratch"
   },
   {
     "date": "2026-10-28T00:07:18+05:30",

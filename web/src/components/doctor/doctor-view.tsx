@@ -1,17 +1,24 @@
 "use client";
 
-import { CheckCircle2, ExternalLink } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, FlaskConical } from "lucide-react";
+import Form from "next/form";
+import Link from "next/link";
 import { Tabs } from "radix-ui";
+import { useId } from "react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { RefreshButton } from "@/components/shared/refresh-button";
 import { ShareButton } from "@/components/shared/share-button";
 import { Badge, VerdictBadge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { MonoValue } from "@/components/ui/mono-value";
+import { isOnlyUnregistered, isUnregisteredOnly } from "@/lib/doctor-state";
 import { NETWORK_LABEL, taostatsAccount, type NetworkId } from "@/lib/networks";
 import { countBySeverity } from "@/lib/severity";
+import { simulateRegistrationHref } from "@/lib/sim-prefill";
 import type { Diagnosis, DoctorReport, Verdict } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FindingList } from "./finding-list";
+import { FleetCallout } from "./fleet-callout";
 import { NeuronHistory } from "./neuron-history";
 import { NeuronStats } from "./neuron-stats";
 
@@ -19,6 +26,80 @@ const VERDICT_DOT: Record<Verdict, string> = { healthy: "bg-healthy", warning: "
 
 function subnetLabel(d: Diagnosis): string {
   return d.subnet_name ? `SN${d.netuid} ${d.subnet_name}` : `SN${d.netuid}`;
+}
+
+/** Busy subnets most builders try first; chips skip the one already shown */
+const POPULAR_SUBNETS = [64, 51, 4] as const;
+
+const CHIP =
+  "inline-flex h-8 shrink-0 items-center rounded-lg bg-surface px-3 font-mono text-[13px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)] transition-colors hover:bg-surface-2 hover:text-foreground";
+
+interface RegisterPromptProps {
+  network: NetworkId;
+  hotkey: string;
+  /** The subnet already diagnosed, if any */
+  netuid: number | null;
+  heading: "h2" | "h3";
+}
+
+/** What to do next for a hotkey with no UID: name a subnet, or simulate the registration */
+function RegisterPrompt({ network, hotkey, netuid, heading: Heading }: RegisterPromptProps) {
+  const id = useId();
+  const doctorPath = `/doctor/${network}/${encodeURIComponent(hotkey)}`;
+  const chips = POPULAR_SUBNETS.filter((n) => n !== netuid);
+  return (
+    <section aria-labelledby={`${id}-title`} className="panel flex flex-col gap-5 p-5 sm:p-6">
+      <div>
+        <Heading id={`${id}-title`} className="text-[15px] font-semibold tracking-[-0.01em]">
+          {netuid == null ? "Check a subnet" : "Check another subnet"}
+        </Heading>
+        <p className="mt-1.5 max-w-[62ch] text-sm leading-6 text-pretty text-muted-foreground">
+          Name a subnet to see what registering there costs and whether anything would block it
+        </p>
+      </div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <Form action={doctorPath} className="flex min-w-0 gap-2">
+          <label htmlFor={`${id}-netuid`} className="sr-only">
+            Netuid
+          </label>
+          <input
+            id={`${id}-netuid`}
+            name="netuid"
+            inputMode="numeric"
+            pattern="[0-9]{1,5}"
+            maxLength={5}
+            required
+            autoComplete="off"
+            placeholder="Netuid"
+            className="h-9 w-28 min-w-0 rounded-lg bg-surface-2 px-3 font-mono text-sm text-foreground shadow-[0_0_0_1px_var(--line)] outline-none placeholder:font-sans placeholder:text-faint focus-visible:shadow-[0_0_0_2px_var(--ring)] user-invalid:shadow-[0_0_0_1.5px_var(--critical)]"
+          />
+          <Button type="submit" variant="primary">
+            Check
+          </Button>
+        </Form>
+        {chips.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs text-faint">Popular</span>
+            {chips.map((n) => (
+              <Link key={n} href={`${doctorPath}?netuid=${n}`} className={CHIP}>
+                SN{n}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-3 border-t border-line pt-4 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[13px] leading-5 text-muted-foreground">Try the registration first: the simulator shows the burn, the fee and what would fail</p>
+        <Button asChild variant="secondary" size="sm" className="self-start sm:self-auto">
+          <Link href={simulateRegistrationHref(network, hotkey, netuid)}>
+            <FlaskConical className="size-3.5" aria-hidden />
+            Simulate registration
+            <ArrowRight className="size-3.5" aria-hidden />
+          </Link>
+        </Button>
+      </div>
+    </section>
+  );
 }
 
 interface PanelProps {
@@ -31,11 +112,12 @@ interface PanelProps {
 function DiagnosisPanel({ diagnosis, showHeadline, network, live }: PanelProps) {
   const counts = countBySeverity(diagnosis.findings);
   const issues = counts.critical + counts.high + counts.medium;
+  const unregistered = isUnregisteredOnly(diagnosis);
   return (
     <section aria-label={subnetLabel(diagnosis)} className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h2 className="text-title font-semibold">{subnetLabel(diagnosis)}</h2>
-        <VerdictBadge verdict={diagnosis.verdict} size="sm" />
+        {!unregistered && <VerdictBadge verdict={diagnosis.verdict} size="sm" />}
         <Badge tone="neutral">{diagnosis.role === "unregistered" ? "Not registered" : diagnosis.role === "validator" ? "Validator" : "Miner"}</Badge>
         <span className="ml-auto text-xs text-faint">
           {diagnosis.rules_run} rules run, {issues === 0 ? "no issues" : `${issues} ${issues === 1 ? "issue" : "issues"}`}
@@ -44,7 +126,6 @@ function DiagnosisPanel({ diagnosis, showHeadline, network, live }: PanelProps) 
       </div>
       {showHeadline && <p className="max-w-[72ch] text-[15px] leading-7 text-pretty text-muted-foreground">{diagnosis.headline}</p>}
       <NeuronStats diagnosis={diagnosis} />
-      {live && diagnosis.neuron && <NeuronHistory network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
       {diagnosis.findings.length > 0 ? (
         <FindingList findings={diagnosis.findings} block={diagnosis.chain.block} />
       ) : (
@@ -53,6 +134,8 @@ function DiagnosisPanel({ diagnosis, showHeadline, network, live }: PanelProps) 
           All {diagnosis.rules_run} rules passed on {subnetLabel(diagnosis)}
         </div>
       )}
+      {live && diagnosis.neuron && <NeuronHistory network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
+      {unregistered && <RegisterPrompt network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} heading="h3" />}
     </section>
   );
 }
@@ -63,6 +146,7 @@ export function DoctorView({ report, network, shared = false }: { report: Doctor
   const explorer = taostatsAccount(network, report.hotkey);
   const multiple = report.diagnoses.length > 1;
   const first = report.diagnoses[0];
+  const unregistered = isOnlyUnregistered(report);
 
   return (
     <div className="flex flex-col">
@@ -77,7 +161,13 @@ export function DoctorView({ report, network, shared = false }: { report: Doctor
         </div>
         <div className="flex flex-col gap-5">
           <div className="self-start">
-            <VerdictBadge verdict={report.verdict} />
+            {unregistered ? (
+              <Badge tone="neutral" dot size="md">
+                Not registered
+              </Badge>
+            ) : (
+              <VerdictBadge verdict={report.verdict} />
+            )}
           </div>
           <h1 className={cn("max-w-[30ch] font-semibold text-balance", report.headline.length > 90 ? "text-[clamp(1.5rem,1.15rem+1.2vw,2rem)] leading-tight tracking-[-0.025em]" : "text-headline")}>
             {report.headline}
@@ -103,8 +193,10 @@ export function DoctorView({ report, network, shared = false }: { report: Doctor
         </div>
       </header>
 
-      {report.diagnoses.length === 0 && (
-        <div className="panel px-5 py-8 text-center text-sm text-muted-foreground">This hotkey is not registered on any subnet at this block</div>
+      {report.diagnoses.length === 0 && report.owned_hotkeys ? (
+        <FleetCallout ownedHotkeys={report.owned_hotkeys} address={report.hotkey} network={network} />
+      ) : (
+        report.diagnoses.length === 0 && <RegisterPrompt network={network} hotkey={report.hotkey} netuid={null} heading="h2" />
       )}
 
       {!multiple && first && <DiagnosisPanel diagnosis={first} showHeadline={first.headline !== report.headline} network={network} live={live} />}

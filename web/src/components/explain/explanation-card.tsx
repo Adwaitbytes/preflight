@@ -1,3 +1,4 @@
+import { SourceLink } from "@/components/shared/source-link";
 import { ExternalLink, SearchX } from "lucide-react";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
@@ -34,7 +35,7 @@ export function ExplanationCard({ explanation }: { explanation: ErrorExplanation
       </p>
       {explanation.fix && <FixBlock fix={explanation.fix} />}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
-        {explanation.source && <span className="font-mono">{explanation.source}</span>}
+        {explanation.source && <SourceLink source={explanation.source} className="min-w-0 max-w-full" />}
         {explanation.docs && (
           <a href={explanation.docs} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded text-muted-foreground hover:text-foreground">
             Docs

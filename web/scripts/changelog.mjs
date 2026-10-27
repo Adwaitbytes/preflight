@@ -1,4 +1,5 @@
-// Writes src/data/changelog.json from git log: newest first, merge commits skipped.
+// Writes src/data/changelog.json from git log: newest first, merge and chore commits skipped, so
+// the public changelog lists product changes only.
 // Runs before every build. When git or the history is unavailable (for example a shallow
 // deploy checkout without .git) it keeps the committed file and exits 0.
 
@@ -6,6 +7,7 @@ import { execFileSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { isChoreCommit } from "../src/lib/commit-filter.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const target = join(here, "..", "src", "data", "changelog.json");
@@ -25,7 +27,7 @@ function readLog() {
       const [date, sha, ...subject] = line.split(SEP);
       return { date, sha, subject: subject.join(SEP).trim() };
     })
-    .filter((entry) => entry.date && entry.sha && entry.subject);
+    .filter((entry) => entry.date && entry.sha && entry.subject && !isChoreCommit(entry.subject));
 }
 
 try {

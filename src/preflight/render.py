@@ -251,7 +251,10 @@ def fleet(console: Console, r: FleetReport) -> None:
     console.print()
     console.print(Text(r.headline, style="bold"))
     console.print(Text.assemble(chain_line(r.chain), Text(f"  {r.elapsed_ms:,} ms  {r.coldkey}", style="dim")))
-    summary = f"{r.hotkeys} hotkeys, {len(r.rows)} seats: {r.broken} broken, {r.warning} to watch, {r.healthy} healthy, about {r.tao_per_day:,.2f} TAO a day at today's prices"
+    seats = len(r.rows) - r.unseated
+    summary = f"{r.hotkeys} hotkeys, {seats} seats: {r.broken} broken, {r.warning} to watch, {r.healthy} healthy, about {r.tao_per_day:,.2f} TAO a day at today's prices"
+    if r.unseated:
+        summary += f"; {r.unseated} hotkeys hold no seat"
     if r.checked < r.hotkeys:
         summary += f" (first {r.checked} hotkeys checked)"
     console.print(Text(summary, style="dim"))

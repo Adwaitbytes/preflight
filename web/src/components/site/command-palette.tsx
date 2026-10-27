@@ -3,6 +3,7 @@
 import { Command } from "cmdk";
 import {
   ArrowRight,
+  BookOpen,
   Boxes,
   FileClock,
   FlaskConical,
@@ -19,6 +20,7 @@ import { Dialog, VisuallyHidden } from "radix-ui";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { GUIDE_SECTIONS } from "@/lib/guide";
 import { NETWORK_LABEL, NETWORKS } from "@/lib/networks";
 import { classifyInput, describeInput, hrefForInput } from "@/lib/route-input";
 import { useAppState } from "./app-state";
@@ -26,6 +28,7 @@ import { useSwitchNetwork } from "./network-switch";
 
 const PAGES: { href: string; label: string; icon: LucideIcon; keywords: string[] }[] = [
   { href: "/", label: "Home", icon: Home, keywords: ["doctor", "landing"] },
+  { href: "/guide", label: "Guide", icon: BookOpen, keywords: ["learn", "docs", "tutorial", "how it works", "newbie"] },
   { href: "/sim", label: "Simulate a transaction", icon: FlaskConical, keywords: ["simulator", "dry run", "fork"] },
   { href: "/subnets", label: "Subnet directory", icon: Boxes, keywords: ["subnets", "health", "capabilities"] },
   { href: "/plan", label: "Launch planner", icon: Rocket, keywords: ["lock cost", "register network"] },
@@ -135,8 +138,25 @@ export function CommandPalette() {
                       </Command.Item>
                     ))}
                   </Command.Group>
+                  {query.trim() && (
+                    <Command.Group heading="Guide chapters" className="cmdk-group">
+                      {GUIDE_SECTIONS.map((section) => (
+                        <Command.Item
+                          key={section.id}
+                          value={`Guide ${section.title}`}
+                          keywords={[...section.keywords]}
+                          onSelect={() => run(() => router.push(`/guide#${section.id}`))}
+                          className={ITEM}
+                        >
+                          <BookOpen className="size-4" aria-hidden />
+                          <span className="flex-1 truncate">{section.title}</span>
+                          <span className="font-mono text-xs text-faint">{String(section.number).padStart(2, "0")}</span>
+                        </Command.Item>
+                      ))}
+                    </Command.Group>
+                  )}
                   <Command.Group heading="Network" className="cmdk-group">
-                    {NETWORKS.filter((n) => n !== "local" || localAvailable).map((n) => (
+                    {NETWORKS.filter((n) => n !== "local" || localAvailable === true || n === network).map((n) => (
                       <Command.Item key={n} value={`Switch to ${NETWORK_LABEL[n]}`} onSelect={() => run(() => switchNetwork(n))} className={ITEM}>
                         <span aria-hidden className="grid size-4 place-items-center">
                           <span className="size-1.5 rounded-full bg-current" />

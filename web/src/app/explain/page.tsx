@@ -5,7 +5,11 @@ import { Container, PageHeader } from "@/components/ui/container";
 import { ApiErrorState } from "@/components/ui/state";
 import { getApi } from "@/lib/server-api";
 
-export const metadata: Metadata = { title: "Explain an error" };
+export const metadata: Metadata = {
+  title: "Explain an error",
+  description: "Paste btcli output, an SDK traceback or a runtime error name and get the cause and the fix, with the Subtensor source line the error is raised from",
+  alternates: { canonical: "/explain" },
+};
 
 const MAX_TEXT = 20_000;
 

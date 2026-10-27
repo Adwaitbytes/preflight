@@ -12,7 +12,8 @@ export type InputKind =
   | { kind: "block_index"; block: number; index: number; ref: string }
   | { kind: "netuid"; netuid: number }
   | { kind: "error"; text: string }
-  | { kind: "subnet_name"; query: string };
+  | { kind: "subnet_name"; query: string }
+  | { kind: "invalid"; text: string };
 
 // ss58 is base58 (no 0, O, I, l). Bittensor uses format 42, which renders 47 or 48 characters
 const SS58 = /^[1-9A-HJ-NP-Za-km-z]{46,48}$/;
@@ -31,6 +32,8 @@ const ERROR_MARKERS = [
 ];
 // A bare runtime error name such as TooManyRegistrationsThisBlock: three or more humps, no spaces
 const BARE_ERROR_NAME = /^[A-Z][a-z]+(?:[A-Z][a-z0-9]*){2,}$/;
+// Subnet names and capabilities are words: letters in any script, digits and a little punctuation
+const SUBNET_QUERY = /^[\p{L}\p{N}][\p{L}\p{N} .'&+/_-]*$/u;
 
 export function classifyInput(raw: string): InputKind {
   const text = raw.trim();
@@ -60,13 +63,16 @@ export function classifyInput(raw: string): InputKind {
   const embedded = SS58_ANYWHERE.exec(text);
   if (embedded) return { kind: "hotkey", hotkey: embedded[0] };
 
-  if (text.length <= 48 && !text.includes("\n")) return { kind: "subnet_name", query: text };
+  if (text.length <= 48 && !text.includes("\n")) {
+    return SUBNET_QUERY.test(text) ? { kind: "subnet_name", query: text } : { kind: "invalid", text };
+  }
   return { kind: "error", text };
 }
 
 export function hrefForInput(input: InputKind, network: NetworkId): string | null {
   switch (input.kind) {
     case "empty":
+    case "invalid":
       return null;
     case "hotkey":
       return `/doctor/${network}/${input.hotkey}`;
@@ -86,7 +92,7 @@ export function hrefForInput(input: InputKind, network: NetworkId): string | nul
 export function describeInput(input: InputKind): string {
   switch (input.kind) {
     case "empty":
-      return "Paste a hotkey, extrinsic, error or netuid";
+      return "Routes to the Doctor, the tx debugger, the error explainer or a subnet";
     case "hotkey":
       return "Hotkey: run the Doctor";
     case "extrinsic":
@@ -99,5 +105,7 @@ export function describeInput(input: InputKind): string {
       return "Error text: explain it";
     case "subnet_name":
       return "Search subnets by name or capability";
+    case "invalid":
+      return "Not a hotkey, hash, block and index, netuid, error or subnet name";
   }
 }

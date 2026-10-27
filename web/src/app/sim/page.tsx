@@ -3,7 +3,11 @@ import { Simulator } from "@/components/sim/simulator";
 import { Container, PageHeader } from "@/components/ui/container";
 import { getApi } from "@/lib/server-api";
 
-export const metadata: Metadata = { title: "Simulator" };
+export const metadata: Metadata = {
+  title: "Simulator",
+  description: "Run a Bittensor transaction against real chain state and see whether it would succeed, the fee and the balance changes, before you spend a single rao",
+  alternates: { canonical: "/sim" },
+};
 
 export default async function SimPage() {
   const health = await (await getApi()).health();

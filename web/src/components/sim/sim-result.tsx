@@ -3,8 +3,9 @@ import type { ReactNode } from "react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
+import { SourceLink } from "@/components/shared/source-link";
 import { MonoValue } from "@/components/ui/mono-value";
-import { formatTao } from "@/lib/format";
+import { formatTaoFee, normalizeTaoText } from "@/lib/tao";
 import type { Evidence, SimResult } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -67,9 +68,13 @@ function CheckList({ checks }: { checks: Evidence[] }) {
             <div className="min-w-0 flex-1">
               <p className={cn("text-[13px] font-medium", status === "fail" ? "text-critical" : "text-foreground")}>{check.label}</p>
               <p className="mt-0.5 font-mono text-[12.5px] break-words text-muted-foreground">
-                {SS58.test(detail) ? <MonoValue value={detail} label={check.label} /> : detail}
+                {SS58.test(detail) ? <MonoValue value={detail} label={check.label} /> : normalizeTaoText(detail)}
               </p>
-              {check.source && <p className="mt-1 font-mono text-[11px] text-faint">{check.source}</p>}
+              {check.source && (
+                <p className="mt-1 flex min-w-0 text-[11px] text-faint">
+                  <SourceLink source={check.source} />
+                </p>
+              )}
             </div>
           </li>
         ))}
@@ -91,7 +96,9 @@ export function ModeBanner({ result }: { result: SimResult }) {
       <Icon className={cn("mt-0.5 size-4 shrink-0", fork ? "text-accent-ink" : "text-muted-foreground")} aria-hidden />
       <div className="min-w-0">
         <p className={cn("eyebrow", fork && "text-accent-ink")}>{fork ? "Executed, real runtime" : "Predicted, not executed"}</p>
-        <p className="mt-1 text-[15px] leading-6 font-medium text-foreground">{result.mode_label}</p>
+        <p className="mt-1 text-[15px] leading-6 font-medium text-pretty text-foreground">
+          <RichText text={result.mode_label} />
+        </p>
       </div>
     </div>
   );
@@ -118,7 +125,7 @@ export function SimResultView({ result, actions }: { result: SimResult; actions?
         </div>
         <div className="ml-auto shrink-0 text-right">
           <p className="text-xs text-faint">Fee</p>
-          <p className="font-mono text-sm text-foreground">{result.fee_tao == null ? "n/a" : formatTao(result.fee_tao)}</p>
+          <p className="font-mono text-sm text-foreground">{formatTaoFee(result.fee_tao)}</p>
         </div>
       </div>
 
@@ -126,7 +133,7 @@ export function SimResultView({ result, actions }: { result: SimResult; actions?
         <div className="flex flex-col gap-3">
           <p className="text-[15px] font-medium text-foreground">{result.explanation.title}</p>
           <p className="max-w-[70ch] text-sm leading-6 text-pretty text-muted-foreground">
-            <RichText text={result.explanation.explanation} />
+            <RichText text={normalizeTaoText(result.explanation.explanation)} />
           </p>
           {result.explanation.fix && <FixBlock fix={result.explanation.fix} />}
         </div>
@@ -138,7 +145,7 @@ export function SimResultView({ result, actions }: { result: SimResult; actions?
             {result.effects.map((effect) => (
               <li key={effect} className="flex gap-2.5">
                 <span aria-hidden className="mt-2.5 size-1 shrink-0 rounded-full bg-faint" />
-                {effect}
+                <span className="min-w-0 break-words">{normalizeTaoText(effect)}</span>
               </li>
             ))}
           </ul>

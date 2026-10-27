@@ -53,6 +53,9 @@
   --text-title: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
   --text-title--line-height: 1.2;
   --text-title--letter-spacing: -0.022em;
+  --text-subtitle: 1.1875rem;
+  --text-subtitle--line-height: 1.45;
+  --text-subtitle--letter-spacing: -0.018em;
 
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -69,7 +72,7 @@
   --surface-3: #e8e8eb;
   --foreground: #121316;
   --muted-foreground: #565a63;
-  --faint: #6b7079;
+  --faint: #62666f;
   --line: rgb(18 19 22 / 0.09);
   --line-strong: rgb(18 19 22 / 0.16);
   --ring: #1f6feb;
@@ -79,15 +82,15 @@
   --accent-ink: #1858c4;
   --accent-contrast: #ffffff;
 
-  /* Each ink passes 4.5:1 on --surface and on its own soft tint */
-  --critical: #c42b2b;
-  --critical-soft: rgb(196 43 43 / 0.08);
-  --high: #b04a05;
-  --high-soft: rgb(176 74 5 / 0.09);
+  /* Each ink passes 4.5:1 on its own soft tint over --surface, --background and --surface-2 */
+  --critical: #b42626;
+  --critical-soft: rgb(180 38 38 / 0.08);
+  --high: #a34303;
+  --high-soft: rgb(163 67 3 / 0.09);
   --medium: #7a5400;
   --medium-soft: rgb(176 125 0 / 0.11);
-  --healthy: #157a3c;
-  --healthy-soft: rgb(21 122 60 / 0.09);
+  --healthy: #136f37;
+  --healthy-soft: rgb(19 111 55 / 0.09);
   --info: #4d5563;
   --info-soft: rgb(77 85 99 / 0.08);
 }
@@ -125,6 +128,8 @@
 @layer base {
   * {
     @apply border-line;
+    /* Set ahead of focus so transition-colors never fades the ring in from the text colour */
+    outline-color: var(--ring);
   }
   html {
     @apply font-sans;
@@ -197,7 +202,160 @@
   animation: rise-in 420ms var(--ease-out-quart) both;
 }
 
+/* Landing flight path: the runway fades in, the checkpoint lands, then the climb draws out */
+@keyframes runway-in {
+  from {
+    opacity: 0;
+  }
+}
+.runway-in {
+  animation: runway-in 700ms var(--ease-out-quart) both;
+}
+
+@keyframes path-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+}
+.path-draw {
+  stroke-dasharray: 1;
+  animation: path-draw 1600ms var(--ease-out-expo) 350ms both;
+}
+
+@keyframes node-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+.node-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: node-pop 520ms var(--ease-out-expo) 200ms both;
+}
+
+@keyframes node-pulse {
+  from {
+    opacity: 0.7;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+.node-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: node-pulse 1800ms var(--ease-out-quart) 700ms 2 both;
+}
+
+@keyframes answer-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+}
+.answer-in {
+  animation: answer-in 640ms var(--ease-out-expo) 160ms both;
+}
+
+/* Guide: blocks below the fold fade up once as they arrive (GuideReveal sets the state) */
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(14px);
+}
+[data-reveal="shown"] {
+  transition:
+    opacity 650ms var(--ease-out-quart),
+    transform 650ms var(--ease-out-quart);
+}
+
+/* Guide diagrams: a few seconds of dash drift when a diagram arrives shows which way things flow, then it rests */
+@keyframes flow-dash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+.flow-line {
+  stroke-dasharray: 4 6;
+  animation: flow-dash 1.6s linear 4;
+}
+[data-reveal="pending"] .flow-line {
+  animation-play-state: paused;
+}
+
+/* Guide range input: filled track up to --fill, a raised thumb, the shared focus ring */
+.guide-range {
+  width: 100%;
+  height: 22px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.guide-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) var(--fill, 50%), var(--surface-3) var(--fill, 50%));
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.guide-range::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-3);
+}
+.guide-range::-moz-range-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.guide-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 1px 3px rgb(0 0 0 / 0.25);
+  transition: transform 150ms var(--ease-out-quart);
+}
+.guide-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 1px 3px rgb(0 0 0 / 0.25);
+}
+.guide-range:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+.guide-range:focus-visible {
+  outline: none;
+}
+.guide-range:focus-visible::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--ring);
+}
+.guide-range:focus-visible::-moz-range-thumb {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--ring);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  [data-reveal="pending"] {
+    opacity: 1;
+    transform: none;
+  }
+  .flow-line {
+    animation: none;
+  }
   *,
   *::before,
   *::after {

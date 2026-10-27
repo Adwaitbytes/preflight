@@ -12,6 +12,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         icon={ServerCrash}
         tone="critical"
         title="Something broke while rendering this page"
+        headingLevel={1}
         action={
           <Button variant="primary" onClick={reset}>
             Try again

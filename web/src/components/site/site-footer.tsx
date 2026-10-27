@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { CopyButton } from "@/components/ui/copy-button";
+import { MCP_INSTALL } from "@/lib/install";
 import { LogoMark } from "./logo";
 
-export const MCP_INSTALL = "claude mcp add preflight -- uvx --from git+https://github.com/Adwaitbytes/preflight preflight mcp";
-
 const LINKS = [
+  { href: "/guide", label: "Guide" },
   { href: "/sim", label: "Simulator" },
   { href: "/subnets", label: "Subnet directory" },
   { href: "/plan", label: "Launch planner" },
@@ -23,7 +23,7 @@ export function SiteFooter() {
             <span aria-hidden className="font-mono text-[13px] text-faint select-none">
               $
             </span>
-            <code className="min-w-0 flex-1 overflow-x-auto py-1 font-mono text-[13px] whitespace-nowrap text-foreground [mask-image:linear-gradient(to_right,black_88%,transparent)] [scrollbar-width:none]">
+            <code tabIndex={0} aria-label="MCP install command" className="min-w-0 flex-1 overflow-x-auto py-1 font-mono text-[13px] whitespace-nowrap text-foreground [mask-image:linear-gradient(to_right,black_88%,transparent)] [scrollbar-width:none]">
               {MCP_INSTALL}
             </code>
             <CopyButton value={MCP_INSTALL} label="Copy MCP install command" />

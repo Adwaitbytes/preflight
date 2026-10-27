@@ -80,18 +80,22 @@ def fleet(network: Network, coldkey: str) -> FleetReport:
     ]
     rank = {Verdict.BROKEN: 0, Verdict.WARNING: 1, Verdict.HEALTHY: 2}
     rows.sort(key=lambda r: (rank[r.verdict], -(SEVERITY_RANK[r.worst.severity] if r.worst else -1), -r.tao_per_day))
-    broken = sum(1 for r in rows if r.verdict is Verdict.BROKEN)
-    warning = sum(1 for r in rows if r.verdict is Verdict.WARNING)
-    healthy = sum(1 for r in rows if r.verdict is Verdict.HEALTHY)
+    seats = [r for r in rows if r.netuid is not None]
+    unseated = len(rows) - len(seats)
+    broken = sum(1 for r in seats if r.verdict is Verdict.BROKEN)
+    warning = sum(1 for r in seats if r.verdict is Verdict.WARNING)
+    healthy = sum(1 for r in seats if r.verdict is Verdict.HEALTHY)
     total = sum(r.tao_per_day for r in rows)
     if not owned:
         headline = "This coldkey owns no hotkeys"
+    elif not seats:
+        headline = f"None of this coldkey's {len(owned)} hotkeys holds a seat on any subnet"
     elif broken:
-        headline = f"{broken} of {len(rows)} seats need attention; the worst: {rows[0].headline}"
+        headline = f"{broken} of {len(seats)} seats need attention; the worst: {rows[0].headline}"
     elif warning:
-        headline = f"All {len(rows)} seats are earning or in immunity; {warning} have something to watch"
+        headline = f"All {len(seats)} seats are earning or in immunity; {warning} have something to watch"
     else:
-        headline = f"All {len(rows)} seats look healthy"
+        headline = f"All {len(seats)} seats look healthy"
     return FleetReport(
         coldkey=coldkey,
         chain=pinned.ref,
@@ -101,6 +105,7 @@ def fleet(network: Network, coldkey: str) -> FleetReport:
         broken=broken,
         warning=warning,
         healthy=healthy,
+        unseated=unseated,
         tao_per_day=total,
         headline=headline,
         elapsed_ms=int((time.monotonic() - started) * 1000),

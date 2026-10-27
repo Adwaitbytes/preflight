@@ -37,6 +37,14 @@ describe("createHttpApi", () => {
     expect(result).toMatchObject({ ok: false, error: { kind: "network" } });
   });
 
+  it("reads health scores and rejects a body without them", async () => {
+    const chain = { network: "finney", endpoint: "wss://x", block: 9377656, block_hash: "0x00" };
+    const good = createHttpApi({ baseUrl: "http://api", fetch: fakeFetch(200, { chain, scores: {} }) });
+    expect(await good.scores("finney")).toMatchObject({ ok: true, data: { chain: { block: 9377656 } } });
+    const bad = createHttpApi({ baseUrl: "http://api", fetch: fakeFetch(200, { chain }) });
+    expect((await bad.scores("finney")).ok).toBe(false);
+  });
+
   it("validates the house counters", async () => {
     const good = createHttpApi({ baseUrl: "http://api", fetch: fakeFetch(200, { diagnoses: 3, errors: 1, builders: 2, since: "2026-10-27" }) });
     expect(await good.house()).toMatchObject({ ok: true, data: { diagnoses: 3 } });

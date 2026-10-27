@@ -3,10 +3,12 @@ import { ChainMeta } from "@/components/shared/chain-meta";
 import { FixBlock } from "@/components/shared/fix-block";
 import { RichText } from "@/components/shared/rich-text";
 import { ShareButton } from "@/components/shared/share-button";
+import { SourceLink } from "@/components/shared/source-link";
 import { Badge } from "@/components/ui/badge";
 import { MonoValue } from "@/components/ui/mono-value";
-import { formatBlockIndex, formatInt, formatTao } from "@/lib/format";
+import { formatBlockIndex, formatInt } from "@/lib/format";
 import { NETWORK_LABEL, taostatsExtrinsic, type NetworkId } from "@/lib/networks";
+import { formatTaoFee, normalizeTaoText } from "@/lib/tao";
 import type { TxEvent, TxReport } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { WillItWork } from "./will-it-work";
@@ -19,9 +21,9 @@ function eventTone(event: TxEvent): "fail" | "ok" | "plain" {
   return "plain";
 }
 
-function Meta({ label, children }: { label: string; children: React.ReactNode }) {
+function Meta({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1">
+    <div className={cn("flex min-w-0 flex-col gap-1", className)}>
       <dt className="text-xs text-faint">{label}</dt>
       <dd className="min-w-0 text-sm text-foreground">{children}</dd>
     </div>
@@ -31,6 +33,8 @@ function Meta({ label, children }: { label: string; children: React.ReactNode })
 export function TxView({ report, network, shared = false }: { report: TxReport; network: NetworkId; shared?: boolean }) {
   const explorer = taostatsExtrinsic(network, report.block, report.index);
   const explanation = report.explanation;
+  // Hotkey signed calls such as commit_timelocked_mechanism_weights carry no separate hotkey: the signer is it
+  const checkHotkey = report.hotkey ?? report.signer;
   return (
     <div className="flex flex-col gap-8">
       <header className="rise-in flex flex-col gap-6 pt-10 sm:pt-14">
@@ -44,7 +48,7 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
             {report.call}
           </h1>
           {report.failure && (
-            <p className="text-[15px] text-muted-foreground">
+            <p className="text-[15px] break-words text-muted-foreground">
               Failed with{" "}
               <span className="font-mono text-critical">
                 {report.failure.pallet}.{report.failure.error}
@@ -57,10 +61,10 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
             <span className="font-mono">{formatBlockIndex(report.block, report.index)}</span>
           </Meta>
           <Meta label="Fee">
-            <span className="font-mono">{report.fee_tao == null ? "n/a" : formatTao(report.fee_tao)}</span>
+            <span className="font-mono">{formatTaoFee(report.fee_tao)}</span>
           </Meta>
           <Meta label="Signer">{report.signer ? <MonoValue value={report.signer} label="signer" /> : <span className="text-faint">Unsigned</span>}</Meta>
-          <Meta label="Hash">{report.extrinsic_hash ? <MonoValue value={report.extrinsic_hash} label="extrinsic hash" /> : <span className="text-faint">n/a</span>}</Meta>
+          <Meta label="Hash" className="col-span-2 sm:col-span-1">{report.extrinsic_hash ? <MonoValue value={report.extrinsic_hash} label="extrinsic hash" /> : <span className="text-faint">n/a</span>}</Meta>
         </dl>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <ChainMeta chain={report.chain} />
@@ -90,12 +94,12 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
             </h2>
           </div>
           <p className="max-w-[72ch] text-[15px] leading-7 text-pretty text-muted-foreground">
-            <RichText text={explanation.explanation} />
+            <RichText text={normalizeTaoText(explanation.explanation)} />
           </p>
           {explanation.fix && <FixBlock fix={explanation.fix} />}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-faint">
             {explanation.code && <span className="font-mono">{explanation.code}</span>}
-            {explanation.source && <span className="font-mono">{explanation.source}</span>}
+            {explanation.source && <SourceLink source={explanation.source} className="text-muted-foreground" />}
             {explanation.docs && (
               <a href={explanation.docs} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded text-muted-foreground hover:text-foreground">
                 Docs
@@ -103,15 +107,15 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
               </a>
             )}
           </div>
-          {report.hotkey && !shared && (
+          {checkHotkey && !shared && (
             <div className="border-t border-line pt-5">
-              <WillItWork network={network} hotkey={report.hotkey} netuid={report.netuid ?? null} />
+              <WillItWork network={network} hotkey={checkHotkey} netuid={report.netuid ?? null} />
             </div>
           )}
         </section>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] *:min-w-0">
         <section aria-labelledby="call" className="panel overflow-hidden">
           <h2 id="call" className="border-b border-line px-5 py-3.5 text-sm font-semibold">
             Decoded call
@@ -161,7 +165,7 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
                       <span className="text-faint">{event.pallet}.</span>
                       {event.name}
                     </p>
-                    <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">{event.summary}</p>
+                    <p className="mt-0.5 text-[13px] leading-5 text-muted-foreground">{normalizeTaoText(event.summary)}</p>
                   </div>
                 </li>
               );

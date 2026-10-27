@@ -157,6 +157,7 @@ class FleetReport(Model):
     broken: int
     warning: int
     healthy: int
+    unseated: int = Field(default=0, description="Owned hotkeys that hold no seat on any subnet")
     tao_per_day: float = Field(description="All rows' emission at today's alpha prices")
     headline: str
     elapsed_ms: int

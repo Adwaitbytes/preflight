@@ -10,6 +10,7 @@ export default function NotFound() {
       <StateView
         icon={SearchX}
         title="This page does not exist"
+        headingLevel={1}
         action={
           <Button asChild variant="primary">
             <Link href="/">Back to Preflight</Link>

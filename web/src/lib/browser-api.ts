@@ -1,25 +1,13 @@
-import { createHttpApi, type PreflightApi } from "./api";
+import { createHttpApi, type HttpApi } from "./api";
 import { LOCAL_API_URL, type NetworkId } from "./networks";
 
-export function localApi(): PreflightApi {
+export function localApi(): HttpApi {
   return createHttpApi({ baseUrl: LOCAL_API_URL, timeoutMs: 120_000 });
 }
 
 /** Browser side client. Local chains are only reachable from the user's own machine */
-export function browserApi(network: NetworkId): PreflightApi {
+export function browserApi(network: NetworkId): HttpApi {
   if (network === "local") return localApi();
   const configured = process.env.NEXT_PUBLIC_PREFLIGHT_API_URL?.trim();
   return createHttpApi({ baseUrl: configured || window.location.origin });
-}
-
-/** True only when `preflight serve` answers on this machine. Never throws */
-export async function detectLocalApi(timeoutMs = 1500): Promise<boolean> {
-  try {
-    const response = await fetch(`${LOCAL_API_URL}/v1/health`, { signal: AbortSignal.timeout(timeoutMs), cache: "no-store" });
-    if (!response.ok) return false;
-    const body: unknown = await response.json();
-    return typeof body === "object" && body !== null && "ok" in body && (body as { ok: unknown }).ok === true;
-  } catch {
-    return false;
-  }
 }

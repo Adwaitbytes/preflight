@@ -8,12 +8,13 @@ import { getApi } from "@/lib/server-api";
 export const metadata: Metadata = {
   title: "Builders House",
   description: "How many diagnoses, error explanations and simulations Preflight ran for builders at the Builders House. Counters only",
+  alternates: { canonical: "/house" },
 };
 
 export default async function HousePage() {
   const result = await (await getApi()).house();
   return (
-    <Container className="max-w-5xl">
+    <Container>
       <PageHeader
         eyebrow="Builders House"
         title="Builders helped at the House"
