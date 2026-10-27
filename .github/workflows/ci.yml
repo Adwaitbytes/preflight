@@ -68,4 +68,5 @@ jobs:
         continue-on-error: true
         with:
           fail-on: high
+          start-localnet: "false"
       - run: test "${{ steps.broken.outcome }}" = failure

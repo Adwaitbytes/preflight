@@ -16,6 +16,9 @@ inputs:
   fail-on:
     description: critical, high, medium or info
     default: high
+  start-localnet:
+    description: With network local, boot a fresh localnet subnet first; false reuses the running one
+    default: "true"
 outputs:
   findings:
     description: Number of findings at or above fail-on
@@ -27,7 +30,7 @@ runs:
       with:
         python-version: "3.13"
     - name: Boot a localnet subnet
-      if: inputs.network == 'local'
+      if: inputs.network == 'local' && inputs.start-localnet == 'true'
       shell: bash
       run: uv run --project "${{ github.action_path }}" preflight local up
     - id: doctor
