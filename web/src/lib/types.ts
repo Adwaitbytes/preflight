@@ -127,6 +127,18 @@ export interface HealthFactor {
   explanation: string;
 }
 
+export interface HistoryPoint {
+  block: number;
+  /** None when the hotkey held no UID at that block */
+  uid: number | null;
+  incentive: number;
+  trust: number;
+  /** Alpha per tempo */
+  emission: number;
+  /** Permitted validators with non zero weight on this UID */
+  weighted_by: number;
+}
+
 export interface Hyperparam {
   name: string;
   group: "Registration" | "Weights" | "Consensus" | "Emissions" | "Commit reveal" | "Other";
@@ -154,6 +166,14 @@ export interface LaunchPlan {
   timeline: Array<TimelineStep>;
   defaults: Array<Hyperparam>;
   block_seconds: number;
+}
+
+export interface NeuronHistory {
+  chain: ChainRef;
+  hotkey: string;
+  netuid: number;
+  /** Oldest first, one per tempo */
+  points: Array<HistoryPoint>;
 }
 
 export interface NeuronState {

@@ -21,6 +21,7 @@ TYPES_TS = ROOT / "web" / "src" / "lib" / "types.ts"
 
 EXPORTED: list[type[BaseModel]] = [
     models.DoctorReport,
+    models.NeuronHistory,
     models.TxReport,
     models.SimRequest,
     models.SimResult,

@@ -1,0 +1,71 @@
+"""Telegram Bot API: send alerts and link chats. The token never leaves the environment.
+
+Linking without sign-in: a watch created without a chat id gets a one-time code, and the
+user sends `/start <code>` to the bot. The worker reads those messages with getUpdates and
+binds the chat to the watch.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+from dataclasses import dataclass
+
+import httpx
+
+API = "https://api.telegram.org"
+START = re.compile(r"^/start\s+([A-Za-z0-9]{6,16})\s*$")
+
+
+class TelegramUnavailable(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class StartRequest:
+    chat_id: str
+    code: str
+    update_id: int
+
+
+def token() -> str | None:
+    return os.environ.get("TELEGRAM_BOT_TOKEN") or None
+
+
+def _call(method: str, payload: dict[str, object]) -> object:
+    secret = token()
+    if not secret:
+        raise TelegramUnavailable("TELEGRAM_BOT_TOKEN is not set")
+    try:
+        response = httpx.post(f"{API}/bot{secret}/{method}", json=payload, timeout=15.0)
+        body = response.json()
+    except (httpx.HTTPError, ValueError) as error:
+        # Never echo the URL: it contains the token.
+        raise TelegramUnavailable(f"Telegram {method} failed: {type(error).__name__}") from error
+    if not body.get("ok"):
+        raise TelegramUnavailable(f"Telegram {method} refused: {body.get('description', 'unknown error')}")
+    return body.get("result")
+
+
+def send(chat_id: str, text: str) -> None:
+    _call("sendMessage", {"chat_id": chat_id, "text": text, "disable_web_page_preview": True})
+
+
+def start_requests(offset: int | None = None) -> list[StartRequest]:
+    result = _call("getUpdates", {"offset": offset, "timeout": 0, "allowed_updates": ["message"]})
+    found: list[StartRequest] = []
+    for update in result if isinstance(result, list) else []:
+        message = update.get("message") or {}
+        match = START.match(str(message.get("text") or ""))
+        chat = message.get("chat") or {}
+        if match and chat.get("id") is not None:
+            found.append(StartRequest(chat_id=str(chat["id"]), code=match.group(1), update_id=int(update["update_id"])))
+    return found
+
+
+def bot_username() -> str | None:
+    try:
+        me = _call("getMe", {})
+    except TelegramUnavailable:
+        return None
+    return str(me.get("username")) if isinstance(me, dict) and me.get("username") else None

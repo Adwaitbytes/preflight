@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "HistoryPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "emission": {
+          "description": "Alpha per tempo",
+          "title": "Emission",
+          "type": "number"
+        },
+        "incentive": {
+          "title": "Incentive",
+          "type": "number"
+        },
+        "trust": {
+          "title": "Trust",
+          "type": "number"
+        },
+        "uid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "None when the hotkey held no UID at that block",
+          "title": "Uid"
+        },
+        "weighted_by": {
+          "description": "Permitted validators with non zero weight on this UID",
+          "title": "Weighted By",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "block",
+        "uid",
+        "incentive",
+        "trust",
+        "emission",
+        "weighted_by"
+      ],
+      "title": "HistoryPoint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "hotkey": {
+      "title": "Hotkey",
+      "type": "string"
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    },
+    "points": {
+      "description": "Oldest first, one per tempo",
+      "items": {
+        "$ref": "#/$defs/HistoryPoint"
+      },
+      "title": "Points",
+      "type": "array"
+    }
+  },
+  "required": [
+    "chain",
+    "hotkey",
+    "netuid",
+    "points"
+  ],
+  "title": "NeuronHistory",
+  "type": "object"
+}

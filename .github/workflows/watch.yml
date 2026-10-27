@@ -1,0 +1,28 @@
+name: watch
+# Evaluates every watch in Neon and sends Telegram alerts. Free on a public repository.
+# Needs repository secrets DATABASE_URL and TELEGRAM_BOT_TOKEN.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: watch
+  cancel-in-progress: false
+
+jobs:
+  run:
+    # Scheduled runs on a private repository would bill Actions minutes; stay off until public.
+    if: ${{ !github.event.repository.private }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.13"
+      - run: uv sync --no-dev
+      - run: uv run preflight watch run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}

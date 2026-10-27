@@ -32,6 +32,7 @@ from .core.models import (
     DoctorReport,
     ErrorExplanation,
     LaunchPlan,
+    NeuronHistory,
     ServiceHealth,
     SimRequest,
     SimResult,
@@ -215,6 +216,17 @@ def doctor(
     return result
 
 
+@app.get("/v1/history/{network}/{hotkey}", response_model=NeuronHistory)
+def neuron_history(network: str, hotkey: str, netuid: Annotated[int, Query(ge=0, le=validate.MAX_NETUID)]) -> NeuronHistory:
+    from .core.doctor.history import history
+
+    net = network_for(network)
+    key = validate.ss58(hotkey)
+    result = cache.get_or(f"history:{net.endpoint}:{key}:{netuid}", lambda: history(net, key, netuid))
+    assert isinstance(result, NeuronHistory)
+    return result
+
+
 @app.get("/v1/tx/{network}/{ref}", response_model=TxReport)
 def tx(network: str, ref: str) -> TxReport:
     from .core.tx.debugger import debug, is_tx_ref
@@ -393,3 +405,33 @@ def shared_report(report_id: Annotated[str, Path(min_length=4, max_length=32, pa
     if found is None:
         raise HTTPException(404, "no shared report with that id")
     return _shared(found)
+
+
+class WatchRequest(BaseModel):
+    network: Literal["finney", "test"]
+    hotkey: str
+    netuid: Annotated[int, Field(ge=0, le=validate.MAX_NETUID)]
+
+
+class WatchCreated(BaseModel):
+    id: str
+    link_code: str
+    bot: str | None
+    instructions: str
+
+
+@app.post("/v1/watch", response_model=WatchCreated)
+def watch(body: WatchRequest) -> WatchCreated:
+    """Create a watch and return a one-time code; sending `/start <code>` to the bot links the chat.
+    No sign-in, and the only thing stored is the public hotkey being watched."""
+    from .core.watch import telegram
+
+    key = validate.ss58(body.hotkey)
+    try:
+        created = store.add_watch(body.network, key, body.netuid, None, {})
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, f"watches unavailable: {error}") from error
+    bot = telegram.bot_username()
+    code = str(created["link_code"])
+    target = f"@{bot}" if bot else "the Preflight Alerts bot"
+    return WatchCreated(id=str(created["id"]), link_code=code, bot=bot, instructions=f"Send /start {code} to {target} on Telegram")

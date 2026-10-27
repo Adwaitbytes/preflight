@@ -258,6 +258,94 @@ def find(
     render.cards(console, cards)
 
 
+watch_app = typer.Typer(help="Alerts on Telegram when a neuron breaks (needs DATABASE_URL; TELEGRAM_BOT_TOKEN to deliver)", no_args_is_help=True)
+app.add_typer(watch_app, name="watch")
+
+
+def _store[T](action: Callable[[], T]) -> T:
+    from .core import store
+
+    try:
+        return action()
+    except store.StoreUnavailable as error:
+        err.print(f"[red]{error}[/red]. Set DATABASE_URL, for example with `uv run --env-file web/.env.local preflight watch ...`")
+        raise typer.Exit(2) from error
+
+
+@watch_app.command("add")
+def watch_add(
+    hotkey: Annotated[str, typer.Argument(help="Hotkey ss58 to watch")],
+    netuid: Annotated[int, typer.Option("--netuid")],
+    network: NetworkOpt = "finney",
+    telegram_chat: Annotated[str | None, typer.Option("--telegram", help="Telegram chat id; omit to get a /start code instead")] = None,
+) -> None:
+    """Watch a hotkey on one subnet"""
+    from .core import store
+    from .core.watch import telegram
+
+    key = validate.ss58(hotkey)
+    net = Network.resolve(network)
+    created = _store(lambda: store.add_watch(net.endpoint if net.name == "custom" else net.name, key, int(validate.netuid(netuid) or 0), telegram_chat, {}))
+    console.print(f"Watching {key} on SN{netuid} ({network}) as watch [bold]{created['id']}[/bold]")
+    if created["link_code"]:
+        bot = telegram.bot_username()
+        target = f"@{bot}" if bot else "the Preflight Alerts bot"
+        console.print(f"Link Telegram: send [bold green]/start {created['link_code']}[/bold green] to {target}")
+
+
+@watch_app.command("list")
+def watch_list(network: Annotated[str | None, typer.Option("--network", "-n")] = None) -> None:
+    """List watches and their last known state"""
+    from rich.table import Table
+
+    from .core import store
+
+    rows = _store(lambda: store.watches(network))
+    table = Table(header_style="dim", box=None, padding=(0, 1))
+    for column in ("Id", "Network", "SN", "Hotkey", "Telegram", "Last state"):
+        table.add_column(column)
+    for r in rows:
+        state = r.get("last_state") or {}
+        summary = f"UID {state.get('uid')}, block {state.get('block')}, active {state.get('active')}" if state else "not checked yet"
+        table.add_row(str(r["id"]), str(r["network"]), str(r["netuid"]), str(r["hotkey"]), "linked" if r.get("chat_id") else f"/start {r.get('link_code')}", summary)
+    console.print(table)
+
+
+@watch_app.command("remove")
+def watch_remove(watch_id: Annotated[str, typer.Argument()]) -> None:
+    """Stop a watch"""
+    from .core import store
+
+    removed = _store(lambda: store.remove_watch(watch_id))
+    if not removed:
+        err.print(f"No watch {watch_id}")
+        raise typer.Exit(2)
+    console.print(f"Removed {watch_id}")
+
+
+@watch_app.command("run")
+def watch_run(
+    network: Annotated[str | None, typer.Option("--network", "-n", help="Only watches on this network")] = None,
+    every: Annotated[float, typer.Option("--every", help="Seconds between rounds; 0 runs once")] = 0,
+    dry_run: Annotated[bool, typer.Option("--dry-run", help="Evaluate and print alerts without sending them")] = False,
+) -> None:
+    """Evaluate every watch: link new chats, diagnose, send fresh alerts"""
+    import time
+
+    from .core.watch.worker import run_once
+
+    while True:
+        report = _store(lambda: run_once(network, deliver=not dry_run))
+        console.print(f"Checked {report.checked} watches, linked {report.linked} chats, {len(report.alerts)} new alerts, {report.delivered} delivered")
+        for watch_id, alert in report.alerts:
+            console.print(f"  [yellow]{watch_id}[/yellow] {alert.title}: {alert.detail}")
+        for problem in report.errors:
+            err.print(f"  [red]{problem}[/red]")
+        if every <= 0:
+            return
+        time.sleep(every)
+
+
 local_app = typer.Typer(help="A throwaway localnet with a working subnet, and ways to break it", no_args_is_help=True)
 app.add_typer(local_app, name="local")
 

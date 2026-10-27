@@ -129,6 +129,22 @@ class DoctorReport(Model):
     elapsed_ms: int
 
 
+class HistoryPoint(Model):
+    block: int
+    uid: int | None = Field(description="None when the hotkey held no UID at that block")
+    incentive: float
+    trust: float
+    emission: float = Field(description="Alpha per tempo")
+    weighted_by: int = Field(description="Permitted validators with non zero weight on this UID")
+
+
+class NeuronHistory(Model):
+    chain: ChainRef
+    hotkey: str
+    netuid: int
+    points: list[HistoryPoint] = Field(description="Oldest first, one per tempo")
+
+
 class DecodedArg(Model):
     name: str
     value: str
