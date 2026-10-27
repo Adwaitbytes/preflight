@@ -1,0 +1,69 @@
+{
+  "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9376731,
+    "block_hash": "0x4c89b0d7134efe2faeb670a846eab1690b3b41db1187003a41e801e8fa1c4ba3",
+    "runtime_spec": 486
+  },
+  "diagnoses": [
+    {
+      "hotkey": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+      "netuid": 64,
+      "subnet_name": "Chutes",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376731,
+        "block_hash": "0x4c89b0d7134efe2faeb670a846eab1690b3b41db1187003a41e801e8fa1c4ba3",
+        "runtime_spec": 486
+      },
+      "verdict": "broken",
+      "headline": "This hotkey on SN64 is not registered",
+      "findings": [
+        {
+          "id": "PF101",
+          "rule": "not_registered",
+          "severity": "critical",
+          "title": "Not registered on SN64",
+          "evidence": [
+            {
+              "label": "Hotkey",
+              "value": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+              "source": null
+            },
+            {
+              "label": "UIDs in use",
+              "value": "256 of 256",
+              "source": "SubtensorModule.MaxAllowedUids"
+            },
+            {
+              "label": "Registration cost now",
+              "value": "0.0005 TAO",
+              "source": "SubtensorModule.Burn"
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,731",
+              "source": null
+            }
+          ],
+          "explanation": "This hotkey holds no UID on this subnet, so validators cannot score it and it earns nothing. The subnet is full, so registering replaces the lowest emission neuron that is out of immunity",
+          "fix": {
+            "kind": "command",
+            "text": "btcli subnets register --netuid 64 --hotkey 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY --network finney",
+            "note": "Costs about 0.0005 TAO right now; the price moves with demand"
+          },
+          "docs": "https://www.bittensor.com/docs/errors/chain/HotKeyNotRegisteredInSubNet"
+        }
+      ],
+      "neuron": null,
+      "role": "unregistered",
+      "rules_run": 9
+    }
+  ],
+  "verdict": "broken",
+  "headline": "This hotkey on SN64 is not registered",
+  "elapsed_ms": 4996
+}

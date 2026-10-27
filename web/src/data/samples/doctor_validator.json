@@ -1,0 +1,84 @@
+{
+  "hotkey": "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww",
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9376730,
+    "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+    "runtime_spec": 486
+  },
+  "diagnoses": [
+    {
+      "hotkey": "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww",
+      "netuid": 64,
+      "subnet_name": "Chutes",
+      "chain": {
+        "network": "finney",
+        "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+        "block": 9376730,
+        "block_hash": "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+        "runtime_spec": 486
+      },
+      "verdict": "healthy",
+      "headline": "UID 1 on SN64 is a healthy validator: permit held and weights fresh",
+      "findings": [
+        {
+          "id": "PF203",
+          "rule": "rate_limited",
+          "severity": "info",
+          "title": "A new set_weights would be rejected until block 9,376,812",
+          "evidence": [
+            {
+              "label": "Last set at block",
+              "value": "9,376,712",
+              "source": "SubtensorModule.LastUpdate"
+            },
+            {
+              "label": "Rate limit",
+              "value": "100 blocks (about 20 min)",
+              "source": "SubtensorModule.WeightsSetRateLimit"
+            },
+            {
+              "label": "Allowed again in",
+              "value": "82 blocks (about 16 min)",
+              "source": null
+            },
+            {
+              "label": "Read at block",
+              "value": "9,376,730",
+              "source": null
+            }
+          ],
+          "explanation": "The runtime refuses weights set sooner than WeightsSetRateLimit blocks after the last ones (SettingWeightsTooFast, https://www.bittensor.com/code/pallets/subtensor/src/subnets/weights.rs#L1295). Retrying in a tight loop only burns time",
+          "fix": {
+            "kind": "wait",
+            "text": "Wait until block 9,376,812 before calling set_weights again",
+            "note": null
+          },
+          "docs": "https://www.bittensor.com/docs/errors/chain/SettingWeightsTooFast"
+        }
+      ],
+      "neuron": {
+        "uid": 1,
+        "hotkey": "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww",
+        "coldkey": "5CUZtbCkoPCLGSZNpFYkw8D4CguUGRZRZzR4spV4PXhkUPX2",
+        "active": true,
+        "validator_permit": true,
+        "stake": 1385416.969363297,
+        "incentive": 0.0,
+        "trust": 0.0,
+        "consensus": 0.0,
+        "dividends": 0.3667353322652018,
+        "emission": 54.13168202,
+        "last_update": 9376712,
+        "block_at_registration": 4531513,
+        "axon": null
+      },
+      "role": "validator",
+      "rules_run": 17
+    }
+  ],
+  "verdict": "healthy",
+  "headline": "UID 1 on SN64 is a healthy validator: permit held and weights fresh",
+  "elapsed_ms": 5198
+}

@@ -1,0 +1,6 @@
+bittensor>=11.3,<12
+fastapi>=0.115
+pydantic>=2.11,<3
+httpx>=0.28
+pyyaml>=6
+psycopg[binary]>=3.2

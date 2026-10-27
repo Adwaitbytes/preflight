@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-border: var(--line);
+  --color-ring: var(--ring);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-contrast: var(--accent-contrast);
+
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-high: var(--high);
+  --color-high-soft: var(--high-soft);
+  --color-medium: var(--medium);
+  --color-medium-soft: var(--medium-soft);
+  --color-healthy: var(--healthy);
+  --color-healthy-soft: var(--healthy-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.125rem;
+
+  /* Type scale: 1.2 minor third from 15px body, display sizes fluid and tracked tight */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-display: clamp(2.25rem, 1.55rem + 3.4vw, 4.25rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.042em;
+  --text-headline: clamp(1.5rem, 1.15rem + 1.7vw, 2.375rem);
+  --text-headline--line-height: 1.12;
+  --text-headline--letter-spacing: -0.03em;
+  --text-title: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-title--line-height: 1.2;
+  --text-title--letter-spacing: -0.022em;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --shadow-raise: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px -12px rgb(0 0 0 / 0.25);
+  --shadow-float: 0 0 0 1px var(--line-strong), 0 4px 8px rgb(0 0 0 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.4);
+}
+
+/* Light: paper white, graphite ink, one runway blue accent */
+:root {
+  --background: #f7f7f8;
+  --surface: #ffffff;
+  --surface-2: #f1f1f3;
+  --surface-3: #e8e8eb;
+  --foreground: #121316;
+  --muted-foreground: #565a63;
+  --faint: #6b7079;
+  --line: rgb(18 19 22 / 0.09);
+  --line-strong: rgb(18 19 22 / 0.16);
+  --ring: #1f6feb;
+
+  --accent: #1f6feb;
+  --accent-soft: rgb(31 111 235 / 0.09);
+  --accent-ink: #1858c4;
+  --accent-contrast: #ffffff;
+
+  /* Each ink passes 4.5:1 on --surface and on its own soft tint */
+  --critical: #c42b2b;
+  --critical-soft: rgb(196 43 43 / 0.08);
+  --high: #b04a05;
+  --high-soft: rgb(176 74 5 / 0.09);
+  --medium: #7a5400;
+  --medium-soft: rgb(176 125 0 / 0.11);
+  --healthy: #157a3c;
+  --healthy-soft: rgb(21 122 60 / 0.09);
+  --info: #4d5563;
+  --info-soft: rgb(77 85 99 / 0.08);
+}
+
+/* Dark: cool graphite, lifted surfaces instead of drop shadows */
+.dark {
+  --background: #0a0b0d;
+  --surface: #111215;
+  --surface-2: #17181c;
+  --surface-3: #1f2026;
+  --foreground: #ededf0;
+  --muted-foreground: #a3a7b1;
+  --faint: #868b96;
+  --line: rgb(235 238 245 / 0.075);
+  --line-strong: rgb(235 238 245 / 0.14);
+  --ring: #6aa8ff;
+
+  --accent: #6aa8ff;
+  --accent-soft: rgb(106 168 255 / 0.1);
+  --accent-ink: #9cc5ff;
+  --accent-contrast: #07101f;
+
+  --critical: #ff7b72;
+  --critical-soft: rgb(255 123 114 / 0.1);
+  --high: #ffa657;
+  --high-soft: rgb(255 166 87 / 0.1);
+  --medium: #e8c35a;
+  --medium-soft: rgb(232 195 90 / 0.1);
+  --healthy: #56d68a;
+  --healthy-soft: rgb(86 214 138 / 0.1);
+  --info: #a3a7b1;
+  --info-soft: rgb(163 167 177 / 0.1);
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-[15px] leading-6 text-foreground antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 30%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  code,
+  kbd,
+  pre,
+  .font-mono {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .panel {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-raise);
+  }
+
+  /* Hairline grid behind the landing hero, masked so it fades before the content */
+  .hairline-grid {
+    background-image:
+      linear-gradient(to right, var(--line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 65% 70% at 50% 0%, black 25%, transparent 72%);
+  }
+
+  .eyebrow {
+    @apply font-mono text-2xs font-medium tracking-[0.08em] text-faint uppercase;
+  }
+}
+
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--ring-length);
+  }
+}
+.ring-draw {
+  animation: ring-draw 900ms var(--ease-out-expo) both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.rise-in {
+  animation: rise-in 420ms var(--ease-out-quart) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[cmdk-group-heading] {
+  padding: 10px 12px 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}

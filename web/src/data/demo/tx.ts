@@ -1,0 +1,245 @@
+// Three real finney extrinsics, read from System.Events and the block body on 2026-10-27.
+// The explanation text is what the Tx debugger is specified to produce for them. Offline demo only.
+import type { SimResult, TxReport } from "@/lib/types";
+
+const ENDPOINT = "wss://entrypoint-finney.opentensor.ai:443";
+
+export const DEMO_TX: TxReport[] = [
+  {
+    chain: {
+      network: "finney",
+      endpoint: ENDPOINT,
+      block: 9376703,
+      block_hash: "0x8efc79a0675a436c56b90d618f37ac875a1a4ab0665aa4f47ab3726fa353aebb",
+      runtime_spec: 486,
+    },
+    ref: "9376703-0022",
+    extrinsic_hash: "0x1d7d1e5f5529135a00d793616d63ed5e9c45a4007997678ce0f4d19d460ea649",
+    block: 9376703,
+    index: 22,
+    signer: "5F3tTpzFuQ8yy91hNcB8BaEbgX1oLBPCZE5L6WvRjq6KbXju",
+    pallet: "SubtensorModule",
+    call: "remove_stake",
+    args: [
+      { name: "hotkey", value: "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww", raw: null },
+      { name: "netuid", value: "64 (Chutes)", raw: "64" },
+      { name: "amount_unstaked", value: "0.000000001 alpha", raw: "1" },
+    ],
+    success: false,
+    fee_tao: 0.000629364,
+    events: [
+      { index: 0, pallet: "Balances", name: "Withdraw", summary: "0.000629364 TAO fee withdrawn from the signer" },
+      { index: 1, pallet: "Balances", name: "Deposit", summary: "0 TAO refunded to the signer" },
+      { index: 2, pallet: "TransactionPayment", name: "TransactionFeePaid", summary: "Fee 0.000629364 TAO, tip 0" },
+      { index: 3, pallet: "System", name: "ExtrinsicFailed", summary: "Module error SubtensorModule index 83: InsufficientLiquidity" },
+    ],
+    failure: {
+      pallet: "SubtensorModule",
+      error: "InsufficientLiquidity",
+      code: "insufficient_liquidity",
+      description:
+        "The pool cannot absorb the operation: the swap simulation failed, reserves are smaller than the payout, or the amount exceeds the pool's supported input",
+      docs: "https://www.bittensor.com/docs/errors/chain/InsufficientLiquidity",
+    },
+    explanation: {
+      error: "InsufficientLiquidity",
+      pallet: "SubtensorModule",
+      code: "insufficient_liquidity",
+      title: "The unstake amount was too small to swap",
+      explanation:
+        "You tried to unstake 1 rao (0.000000001 alpha) from SN64. Unstaking swaps alpha back to TAO through the subnet pool, and an amount this small rounds to zero TAO out, so the swap simulation fails and the fee is still charged",
+      fix: {
+        kind: "command",
+        text: "btcli stake remove --netuid 64 --hotkey 5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww --amount 1 --network finney",
+        note: "--amount is in alpha, not rao",
+      },
+      trap: null,
+      source: "pallets/subtensor/src/macros/errors.rs#L192",
+      docs: "https://www.bittensor.com/docs/errors/chain/InsufficientLiquidity",
+      found: true,
+    },
+    hotkey: "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww",
+    netuid: 64,
+  },
+  {
+    chain: {
+      network: "finney",
+      endpoint: ENDPOINT,
+      block: 9376733,
+      block_hash: "0x9e97be11369d9a9b18e0153ab07e85ee757182bc4b87d763d10bffe459b14faf",
+      runtime_spec: 486,
+    },
+    ref: "9376733-0028",
+    extrinsic_hash: "0xec72cb3b448c58cfbdb44325844e166979996d42b8f24704f72ebaa1a08bdcbf",
+    block: 9376733,
+    index: 28,
+    signer: "5FLoWCDovMPeH3Gv4syQSZ8TuKcMv6N27g8diDU8zJSeRv8m",
+    pallet: "SubtensorModule",
+    call: "commit_timelocked_mechanism_weights",
+    args: [
+      { name: "netuid", value: "28", raw: "28" },
+      { name: "mecid", value: "0", raw: "0" },
+      { name: "commit", value: "1,740 byte drand timelocked commit", raw: null },
+      { name: "reveal_round", value: "drand round 33,441,416", raw: "33441416" },
+      { name: "commit_reveal_version", value: "4", raw: "4" },
+    ],
+    success: false,
+    fee_tao: 0,
+    events: [
+      { index: 0, pallet: "TransactionPayment", name: "TransactionFeePaid", summary: "Fee 0 TAO: weight calls from registered hotkeys are free" },
+      { index: 1, pallet: "System", name: "ExtrinsicFailed", summary: "Module error SubtensorModule index 77: TooManyUnrevealedCommits" },
+    ],
+    failure: {
+      pallet: "SubtensorModule",
+      error: "TooManyUnrevealedCommits",
+      code: "limit_exceeded",
+      description:
+        "The hotkey already has 10 unrevealed commits queued on the subnet. Inspect WeightCommits for the hotkey and reveal or let old commits expire before committing again",
+      docs: "https://www.bittensor.com/docs/errors/chain/TooManyUnrevealedCommits",
+    },
+    explanation: {
+      error: "TooManyUnrevealedCommits",
+      pallet: "SubtensorModule",
+      code: "limit_exceeded",
+      title: "Ten commits are already waiting to be revealed",
+      explanation:
+        "This validator committed weights on SN28 again while 10 earlier commits were still unrevealed, the per hotkey cap. Timelocked commits reveal themselves when their drand round arrives, so committing every block fills the queue faster than it drains",
+      fix: {
+        kind: "wait",
+        text: "Commit at most once per tempo on SN28 and wait for queued commits to reveal before sending another",
+        note: "Check the queue with: btcli weights status --netuid 28",
+      },
+      trap: "commit_reveal_timing",
+      source: "pallets/subtensor/src/macros/errors.rs#L180",
+      docs: "https://www.bittensor.com/docs/errors/chain/TooManyUnrevealedCommits",
+      found: true,
+    },
+    hotkey: "5FLoWCDovMPeH3Gv4syQSZ8TuKcMv6N27g8diDU8zJSeRv8m",
+    netuid: 28,
+  },
+  {
+    chain: {
+      network: "finney",
+      endpoint: ENDPOINT,
+      block: 9376574,
+      block_hash: "0x4898e8c5f28d4b6a9e02809d146bd86b8c5387d69a09adb899a12b2f8e5e4fb2",
+      runtime_spec: 486,
+    },
+    ref: "9376574-0003",
+    extrinsic_hash: "0xfcc0ad9a9622e8380fdbc05b16384d802283ff8a1263edc3b441adb56141a02a",
+    block: 9376574,
+    index: 3,
+    signer: "5CsvRJXuR955WojnGMdok1hbhffZyB4N5ocrv82f3p5A2zVp",
+    pallet: "SubtensorModule",
+    call: "set_weights",
+    args: [
+      { name: "netuid", value: "31", raw: "31" },
+      { name: "dests", value: "[0]", raw: null },
+      { name: "weights", value: "[65535], all weight on UID 0", raw: null },
+      { name: "version_key", value: "18446744073709551615 (u64 max)", raw: "18446744073709551615" },
+    ],
+    success: true,
+    fee_tao: 0,
+    events: [
+      { index: 0, pallet: "SubtensorModule", name: "WeightsSet", summary: "UID 9 set weights on SN31" },
+      { index: 1, pallet: "TransactionPayment", name: "TransactionFeePaid", summary: "Fee 0 TAO" },
+      { index: 2, pallet: "System", name: "ExtrinsicSuccess", summary: "Dispatched, class Normal, pays fee No" },
+    ],
+    failure: null,
+    explanation: null,
+    hotkey: "5CsvRJXuR955WojnGMdok1hbhffZyB4N5ocrv82f3p5A2zVp",
+    netuid: 31,
+  },
+];
+
+const SIM_CHAIN = {
+  network: "finney" as const,
+  endpoint: ENDPOINT,
+  block: 9376730,
+  block_hash: "0x9949fe1cbe54e2d84c565f80a94445f92b379e6bf8ac068ec200ad585e284a27",
+  runtime_spec: 486,
+};
+
+// Outcomes measured on day 1, docs/decisions/001-simulator.md
+export const DEMO_SIMS: SimResult[] = [
+  {
+    chain: SIM_CHAIN,
+    action: "burned_register",
+    signer: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+    args: [
+      { name: "netuid", value: "64 (Chutes)", raw: "64" },
+      { name: "hotkey", value: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", raw: null },
+    ],
+    mode: "fork",
+    mode_label: "Executed on a fork of block 9,376,730 with the real runtime",
+    would_succeed: false,
+    failure: { pallet: "System", error: "Payment", code: "insufficient_balance", description: "Transaction validity: Invalid(Payment)", docs: null },
+    explanation: {
+      error: "Payment",
+      pallet: null,
+      code: "insufficient_balance",
+      title: "The coldkey cannot pay the fee",
+      explanation:
+        "The signing coldkey holds 0 TAO, so the transaction is rejected before it runs. Registering on SN64 burns 0.0005 TAO plus the fee, and nothing has moved yet",
+      fix: { kind: "command", text: "btcli wallet balance --wallet.name <name> --network finney", note: "Fund the coldkey with at least 0.001 TAO, then simulate again" },
+      trap: null,
+      source: null,
+      docs: null,
+      found: true,
+    },
+    fee_tao: null,
+    effects: ["Nothing executes: transaction validity fails on the fee payment"],
+    balance_changes: [],
+    checks: [
+      { label: "Coldkey free balance", value: "0 TAO", source: "System.Account" },
+      { label: "Burn on SN64", value: "0.0005 TAO", source: "SubtensorModule.Burn" },
+      { label: "Registration open", value: "yes", source: "SubtensorModule.NetworkRegistrationAllowed" },
+      { label: "Runtime result", value: "0x010001, Err(Invalid(Payment))", source: "BlockBuilder_apply_extrinsic" },
+    ],
+    overrides: [],
+    elapsed_ms: 1600,
+  },
+  {
+    chain: SIM_CHAIN,
+    action: "set_weights",
+    signer: "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq",
+    args: [
+      { name: "netuid", value: "64 (Chutes)", raw: "64" },
+      { name: "dests", value: "[1, 59]", raw: null },
+      { name: "weights", value: "[32768, 32767]", raw: null },
+    ],
+    mode: "predicted",
+    mode_label: "Predicted from live state and runtime rules at block 9,376,730",
+    would_succeed: false,
+    failure: {
+      pallet: "SubtensorModule",
+      error: "NeuronNoValidatorPermit",
+      code: "not_authorized",
+      description: "The hotkey tried to set weights on other neurons without holding a validator permit on that subnet",
+      docs: "https://www.bittensor.com/docs/errors/chain/NeuronNoValidatorPermit",
+    },
+    explanation: {
+      error: "NeuronNoValidatorPermit",
+      pallet: "SubtensorModule",
+      code: "not_authorized",
+      title: "UID 0 has no validator permit on SN64",
+      explanation:
+        "Validator permits on SN64 go to the hotkeys with the most stake. UID 0 has 0.4 alpha of stake weight, far below the lowest permitted validator, so the chain would reject these weights",
+      fix: { kind: "info", text: "Mine on SN64 instead, or stake enough to rank inside the validator set before setting weights", note: null },
+      trap: null,
+      source: "pallets/subtensor/src/subnets/weights.rs#L971",
+      docs: "https://www.bittensor.com/docs/errors/chain/NeuronNoValidatorPermit",
+      found: true,
+    },
+    fee_tao: 0,
+    effects: ["No weights would be stored", "LastUpdate for UID 0 would not change"],
+    balance_changes: [],
+    checks: [
+      { label: "Registered", value: "UID 0", source: "SubtensorModule.Uids" },
+      { label: "Validator permit", value: "no", source: "SubtensorModule.ValidatorPermit" },
+      { label: "Stake weight", value: "0.402 alpha", source: "SubtensorModule.TotalHotkeyAlpha" },
+    ],
+    overrides: [],
+    elapsed_ms: 640,
+  },
+];

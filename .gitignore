@@ -13,3 +13,4 @@ dist/
 .ruff_cache/
 wallets/
 .playwright-mcp/
+.vercel
