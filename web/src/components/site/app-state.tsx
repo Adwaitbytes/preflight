@@ -4,6 +4,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { detectLocalApi } from "@/lib/detect-local";
 import { isNetwork, type NetworkId } from "@/lib/networks";
 
+function shouldProbeLocal(stored: NetworkId | null): boolean {
+  const { hostname, search } = window.location;
+  return hostname === "localhost" || hostname === "127.0.0.1" || stored === "local" || new URLSearchParams(search).has("local");
+}
+
 interface AppState {
   offline: boolean;
   network: NetworkId;
@@ -34,7 +39,10 @@ export function AppStateProvider({ offline, children }: { offline: boolean; chil
   useEffect(() => {
     let cancelled = false;
     const stored = readStoredNetwork();
-    detectLocalApi().then((available) => {
+    // A hosted visitor with no local API would get a failed request in the console on every
+    // page; probe only on a local origin, after choosing Local before, or with ?local=1.
+    const probe = shouldProbeLocal(stored) ? detectLocalApi() : Promise.resolve(false);
+    probe.then((available) => {
       if (cancelled) return;
       setLocalAvailable(available);
       if (stored && (stored !== "local" || available)) setNetworkState(stored);

@@ -95,14 +95,12 @@ function steps(): Step[] {
         <Frame label="Decoded arguments">
           <dl className="flex flex-col divide-y divide-line">
             {TX.args.map((arg) => (
-              <div key={arg.name} className="flex flex-col gap-0.5 py-2 first:pt-0 last:pb-0">
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="shrink-0 font-mono text-[12.5px] text-muted-foreground">{arg.name}</dt>
-                  <dd className="min-w-0 truncate text-right font-mono text-[12.5px] text-foreground" title={arg.value}>
-                    {arg.value}
-                  </dd>
-                </div>
-                <dd className="text-xs leading-5 text-faint">{arg.note}</dd>
+              <div key={arg.name} className="grid grid-cols-[auto_minmax(0,1fr)] items-baseline gap-x-3 gap-y-0.5 py-2 first:pt-0 last:pb-0">
+                <dt className="font-mono text-[12.5px] text-muted-foreground">{arg.name}</dt>
+                <dd className="min-w-0 truncate text-right font-mono text-[12.5px] text-foreground" title={arg.value}>
+                  {arg.value}
+                </dd>
+                <dd className="col-span-2 text-xs leading-5 text-faint">{arg.note}</dd>
               </div>
             ))}
           </dl>

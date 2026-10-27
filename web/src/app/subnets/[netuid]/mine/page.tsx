@@ -9,13 +9,14 @@ import { Container } from "@/components/ui/container";
 import { ApiErrorState } from "@/components/ui/state";
 import { getEconomics } from "@/lib/insights-api";
 import { parseNetwork } from "@/lib/networks";
-import { normalizeTaoText } from "@/lib/tao";
 
 function parseNetuid(raw: string): number | null {
   return /^\d{1,5}$/.test(raw) ? Number(raw) : null;
 }
 
-export async function generateMetadata({ params, searchParams }: PageProps<"/subnets/[netuid]/mine">): Promise<Metadata> {
+// Metadata never waits on the chain: Next streams slow metadata into the body, where crawlers
+// that do not run JavaScript miss it. The live headline is on the page and its OG image.
+export async function generateMetadata({ params }: PageProps<"/subnets/[netuid]/mine">): Promise<Metadata> {
   const { netuid: raw } = await params;
   const title = `Should I mine SN${raw}?`;
   const fallback: Metadata = {
@@ -23,13 +24,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<"/sub
     description: `What miners on SN${raw} earn today, how many earn at all, what it takes to keep a seat and how long the registration takes to pay back`,
     alternates: { canonical: `/subnets/${raw}/mine` },
   };
-  const netuid = parseNetuid(raw);
-  const network = parseNetwork((await searchParams).network);
-  if (netuid == null || network === "local") return fallback;
-  const result = await getEconomics(network, netuid);
-  if (!result.ok) return fallback;
-  const description = normalizeTaoText(result.data.headline);
-  return { ...fallback, description, openGraph: { title, description } };
+  return { ...fallback, openGraph: { title, description: fallback.description ?? undefined } };
 }
 
 export default async function MinePage({ params, searchParams }: PageProps<"/subnets/[netuid]/mine">) {
