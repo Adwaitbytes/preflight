@@ -88,3 +88,18 @@ Why mobile LCP was high everywhere: Lighthouse simulates mobile LCP from every r
 - Doctor and subnet detail stay at 87 on mobile. Their LCP is the diagnosis or subnet header, which only exists after a live chain read, so every script on the page counts against it. The fix is a shell that paints the hotkey or netuid header from the URL before the read, which means restructuring `doctor-view.tsx` and `subnet-detail-view.tsx`; both are being changed by other work right now
 - Doctor SEO is 91 because Next 16 streams `generateMetadata` into the body for browsers. Crawlers that cannot run JavaScript (Twitterbot, Slackbot) get the tags in the head, checked with curl; Googlebot renders the body. Forcing blocking metadata for every visitor would trade real TTFB for a lab score, so it stays
 - The sitemap lists the indexable routes only; `/guide` should be added to `INDEXED_ROUTES` in `web/src/lib/site.ts` once it ships
+
+## Final measurement, production
+
+Re-run on https://preflight-lemon.vercel.app after the logo change, the guide and the fleet and mining pages shipped, Lighthouse 12 (performance / accessibility / best practices / SEO):
+
+| Page | Mobile | Mobile LCP | Desktop | CLS |
+|---|---|---|---|---|
+| `/` | 97 / 100 / 100 / 100 | 2.49 s | 100 / 100 / 100 / 100 | 0 |
+| `/guide` | 93 / 100 / 100 / 100 | 3.09 s | 100 / 100 / 100 / 100 | 0 |
+| `/subnets` | 98 / 100 / 100 / 100 | 2.33 s | 100 / 100 / 100 / 100 | 0 |
+| `/subnets/51/mine` | 97 / 100 / 100 / 100 | 2.59 s | 100 / 100 / 100 / 100 | 0 |
+| `/plan` | 100 / 100 / 100 / 100 | 1.84 s | 100 / 100 / 100 / 100 | 0 |
+| `/sim` | 98 / 100 / 100 / 100 | 2.33 s | 100 / 100 / 100 / 100 | 0 |
+
+What moved the last points: the hosted site no longer probes `127.0.0.1:7979` on every visit (a failed request in the console cost best practices on every page); the guide's definition lists are valid; the mining page's metadata no longer waits on the chain, so it lands in the head; the directory sorts by emission share, so health scores arriving 10 s later no longer reorder the cards (CLS 0.32 to 0)
