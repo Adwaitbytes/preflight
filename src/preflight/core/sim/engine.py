@@ -8,6 +8,7 @@ fees and effects come from the SDK's own `plan()`.
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -168,6 +169,37 @@ def _quote(pinned: Pinned, req: SimRequest) -> tuple[str, float] | None:
     return ("alpha" if req.action == "add_stake" else "TAO", value)
 
 
+_TAO_AMOUNT = re.compile(r"τ\s?([0-9][0-9,]*\.?[0-9]*)")
+_EFFECT_REWRITES: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"^register (\w{48}) on netuid (\d+).*$"), "Registers {short} on SN\\2"),
+    (re.compile(r"^burn (.+) \(destroyed\)$"), "Burns \\1"),
+    (re.compile(r"^lock none.*$"), "Nothing is locked as collateral; the full cost is burned"),
+    (re.compile(r"^submission path: direct plaintext set$"), "Sent as a plain set_weights, not commit reveal"),
+    (re.compile(r"^stake (.+) to (\w{48}) on netuid (\d+) \(fails if price moves >(.+)\)$"), "Stakes \\1 to {short} on SN\\3, refused if the price moves more than \\4"),
+    (re.compile(r"^serve axon (.+) on netuid (\d+)$"), "Publishes the axon address \\1 on SN\\2"),
+    (re.compile(r"^activate subnet (\d+)$"), "Starts emissions on SN\\1"),
+    (re.compile(r"^register a new subnet$"), "Registers a new subnet"),
+]
+
+
+def _tao(match: re.Match[str]) -> str:
+    value = float(match.group(1).replace(",", ""))
+    text = f"{value:,.9f}".rstrip("0").rstrip(".")
+    return f"{text} TAO"
+
+
+def humanize_effect(effect: str) -> str:
+    """The SDK's plan() effects are developer strings ("burn τ0.000500000 (destroyed)");
+    turn the known shapes into sentences and amounts into plain TAO."""
+    text = _TAO_AMOUNT.sub(_tao, effect.strip())
+    for pattern, template in _EFFECT_REWRITES:
+        match = pattern.match(text)
+        if match:
+            short = next((f"{g[:6]}...{g[-4:]}" for g in match.groups() if g and len(g) == 48), "")
+            return match.expand(template.replace("{short}", short))
+    return text[:1].upper() + text[1:]
+
+
 def _args(req: SimRequest) -> list[DecodedArg]:
     out: list[DecodedArg] = []
     for name in ("coldkey", "hotkey", "netuid", "amount", "uids", "weights", "ip", "port", "version_key", "balance_override_tao"):
@@ -289,7 +321,7 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
         failure=failure,
         explanation=explanation,
         fee_tao=fee,
-        effects=list(plan.effects),
+        effects=[humanize_effect(e) for e in plan.effects],
         balance_changes=_changes(req, acct, subnet, g, quote) if ok else [],
         checks=prediction.checks,
         overrides=overrides,

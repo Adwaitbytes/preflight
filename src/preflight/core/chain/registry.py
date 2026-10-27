@@ -113,6 +113,8 @@ ACCOUNT = System.Account
 API_SUBNET_TO_PRUNE = ("SubnetInfoRuntimeApi", "get_subnet_to_prune")
 API_NETWORK_REGISTRATION_COST = ("SubnetRegistrationRuntimeApi", "get_network_registration_cost")
 API_ALL_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_all_dynamic_info")
+# Every subnet's metagraph in one call: 26 s on finney, so only for background directory scoring.
+API_ALL_METAGRAPHS = ("SubnetInfoRuntimeApi", "get_all_metagraphs")
 API_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_dynamic_info")
 API_SUBNETS_INFO = ("SubnetInfoRuntimeApi", "get_subnets_info")  # subnetwork_n, max uids, burn
 API_SIM_SWAP_TAO_FOR_ALPHA = ("SwapRuntimeApi", "sim_swap_tao_for_alpha")

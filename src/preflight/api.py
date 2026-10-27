@@ -31,6 +31,8 @@ from .core.models import (
     AxonInfo,
     DoctorReport,
     ErrorExplanation,
+    Health,
+    HealthScores,
     LaunchPlan,
     NeuronHistory,
     ServiceHealth,
@@ -140,6 +142,19 @@ class _Cache:
             with self.lock:
                 self.refreshing.discard(key)
 
+    def peek(self, key: str) -> BaseModel | None:
+        with self.lock:
+            hit = self.items.get(key)
+        return hit[1] if hit else None
+
+    def warm(self, key: str, make: Callable[[], BaseModel]) -> None:
+        """Compute in the background once; concurrent callers do not start duplicates."""
+        with self.lock:
+            if key in self.refreshing:
+                return
+            self.refreshing.add(key)
+        threading.Thread(target=self._refresh, args=(key, make), daemon=True).start()
+
     def get_or(self, key: str, make: Callable[[], BaseModel], ttl: float = CACHE_SECONDS, stale: float = 0.0) -> BaseModel:
         now = time.monotonic()
         with self.lock:
@@ -243,7 +258,7 @@ def health() -> ServiceHealth:
     return result
 
 
-CDN_SECONDS = {"/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -275,6 +290,7 @@ def prefetch() -> None:
         for key, make in (
             ("subnets:" + net.endpoint + ":[]", lambda: _Cards(cards=subnet_cards(net, set()))),
             ("plan:" + net.endpoint, lambda: launch_plan(net)),
+            ("scores:" + net.endpoint, lambda: _scores(net)),
         ):
             try:
                 cache.get_or(key, make, DIRECTORY_TTL, DIRECTORY_STALE)
@@ -383,6 +399,38 @@ class _Cards(BaseModel):
     cards: list[SubnetCard]
 
 
+SCORES_TTL = 600.0
+
+
+def _scores(net: Network) -> HealthScores:
+    from .core.chain.network import pin
+    from .core.directory.bulk import health_all
+
+    pinned = pin(net)
+    return HealthScores(chain=pinned.ref, scores={str(k): v for k, v in health_all(pinned).items()})
+
+
+@app.get("/v1/scores/{network}", response_model=HealthScores)
+def scores(network: str) -> HealthScores:
+    """Every subnet's health score. About 40 s cold, so the directory loads cards first and
+    fills the rings from this; the CDN and the server cache keep it warm."""
+    net = network_for(network)
+    result = cache.get_or(f"scores:{net.endpoint}", lambda: _scores(net), SCORES_TTL, DIRECTORY_STALE)
+    assert isinstance(result, HealthScores)
+    return result
+
+
+def _cached_scores(net: Network) -> dict[str, Health]:
+    """Scores already computed, without waiting; starts a computation if none is cached."""
+    key = f"scores:{net.endpoint}"
+    hit = cache.peek(key)
+    if hit is None:
+        cache.warm(key, lambda: _scores(net))
+        return {}
+    assert isinstance(hit, HealthScores)
+    return hit.scores
+
+
 @app.get("/v1/subnets/{network}", response_model=list[SubnetCard])
 def subnets(network: str, health: Annotated[str | None, Query(max_length=400, description="Comma separated netuids to score")] = None) -> list[SubnetCard]:
     from .core.directory.live import subnet_cards
@@ -394,7 +442,8 @@ def subnets(network: str, health: Annotated[str | None, Query(max_length=400, de
     key = f"subnets:{net.endpoint}:{sorted(wanted)}"
     result = cache.get_or(key, lambda: _Cards(cards=subnet_cards(net, wanted)), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, _Cards)
-    return result.cards
+    known = _cached_scores(net)
+    return [c if c.health is not None or str(c.netuid) not in known else c.model_copy(update={"health": known[str(c.netuid)]}) for c in result.cards]
 
 
 @app.get("/v1/subnets/{network}/{netuid}", response_model=SubnetDetail)

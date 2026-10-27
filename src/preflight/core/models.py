@@ -309,6 +309,13 @@ class Health(Model):
     findings: list[Finding]
 
 
+class HealthScores(Model):
+    """Every subnet's health, from one bulk read. Keys are netuids as strings."""
+
+    chain: ChainRef
+    scores: dict[str, Health]
+
+
 class SubnetLive(Model):
     netuid: int
     name: str

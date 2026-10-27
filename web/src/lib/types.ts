@@ -127,6 +127,11 @@ export interface HealthFactor {
   explanation: string;
 }
 
+export interface HealthScores {
+  chain: ChainRef;
+  scores: Record<string, Health>;
+}
+
 export interface HistoryPoint {
   block: number;
   /** None when the hotkey held no UID at that block */

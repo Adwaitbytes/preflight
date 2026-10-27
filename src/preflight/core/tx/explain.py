@@ -151,7 +151,9 @@ def explain(name: str, ctx: ExplainContext | None = None, pallet: str | None = N
         title, code = _title(name), entry.code
         base = entry.description
 
-    parts = [p for p in ((specific[0] if specific else None), base, trap.body if trap else None) if p]
+    # The specific sentence restates the catalog text with this case's numbers; showing both
+    # reads as a stutter, so the catalog text is the fallback, still one click away in `docs`.
+    parts = [p for p in ((specific[0] if specific else base), trap.body if trap else None) if p]
     fix = specific[1] if specific else None
     if fix is None and (hint := catalog.remediation(code)):
         fix = Fix(kind="info", text=hint)

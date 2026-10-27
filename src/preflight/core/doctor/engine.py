@@ -103,7 +103,7 @@ def diagnose(
         summary = worst.headline + (f" ({extra} other subnet{'s' if extra > 1 else ''} checked)" if extra else "")
     else:
         verdict = Verdict.BROKEN
-        summary = "This hotkey is not registered on any subnet. Pass a netuid to see the registration cost and recent history"
+        summary = "This hotkey has no UID on any subnet"
     return DoctorReport(
         hotkey=hotkey,
         chain=pinned.ref,

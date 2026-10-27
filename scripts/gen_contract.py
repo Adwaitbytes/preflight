@@ -28,6 +28,7 @@ EXPORTED: list[type[BaseModel]] = [
     models.ErrorExplanation,
     models.LaunchPlan,
     models.SubnetCard,
+    models.HealthScores,
     models.SubnetDetail,
     models.AskAnswer,
     models.ServiceHealth,

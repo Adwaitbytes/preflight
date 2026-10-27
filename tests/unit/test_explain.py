@@ -69,3 +69,18 @@ def test_pool_rejection_without_catalog_entry() -> None:
 def test_unknown_text_is_honest() -> None:
     result = explain_text("the vibes are off")
     assert not result.found
+
+
+def test_specific_explanation_replaces_the_catalog_restatement() -> None:
+    ctx = ExplainContext(call="set_weights", block=1_000, last_update=950, rate_limit=100)
+    result = explain("SettingWeightsTooFast", ctx)
+    assert result.explanation.count("WeightsSetRateLimit") <= 1
+    assert result.docs is not None
+
+
+def test_sim_effects_read_as_sentences() -> None:
+    from preflight.core.sim.engine import humanize_effect
+
+    assert humanize_effect("burn τ0.000500000 (destroyed)") == "Burns 0.0005 TAO"
+    assert humanize_effect("activate subnet 64") == "Starts emissions on SN64"
+    assert humanize_effect("unknown shape") == "Unknown shape"
