@@ -419,6 +419,19 @@
       "title": "Hotkey",
       "type": "string"
     },
+    "owned_hotkeys": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Set when the address is a coldkey: how many hotkeys it owns",
+      "title": "Owned Hotkeys"
+    },
     "verdict": {
       "$ref": "#/$defs/Verdict"
     }

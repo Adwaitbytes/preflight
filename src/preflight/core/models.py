@@ -127,6 +127,76 @@ class DoctorReport(Model):
     verdict: Verdict
     headline: str
     elapsed_ms: int
+    owned_hotkeys: int | None = Field(
+        default=None, description="Set when the address is a coldkey: how many hotkeys it owns"
+    )
+
+
+class FleetRow(Model):
+    hotkey: str
+    netuid: int | None
+    subnet_name: str | None = None
+    uid: int | None = None
+    role: Literal["miner", "validator", "unregistered"]
+    verdict: Verdict
+    headline: str
+    worst: Finding | None = None
+    incentive: float = 0.0
+    alpha_per_day: float = 0.0
+    tao_per_day: float = 0.0
+
+
+class FleetReport(Model):
+    """Every hotkey a coldkey owns, on every subnet it is registered on, worst first."""
+
+    coldkey: str
+    chain: ChainRef
+    hotkeys: int
+    checked: int
+    rows: list[FleetRow]
+    broken: int
+    warning: int
+    healthy: int
+    tao_per_day: float = Field(description="All rows' emission at today's alpha prices")
+    headline: str
+    elapsed_ms: int
+
+
+class EarningsBand(Model):
+    label: str
+    alpha_per_day: float
+    tao_per_day: float
+
+
+class MinerEconomics(Model):
+    """What mining a subnet looks like from the outside, before paying to register."""
+
+    chain: ChainRef
+    netuid: int
+    name: str
+    verdict: Literal["promising", "competitive", "hard", "closed"]
+    headline: str
+    registration_cost_tao: float
+    burn_history: list[tuple[int, float]]
+    seats_used: int
+    seats_max: int
+    miners: int
+    earning_miners: int
+    alpha_price_tao: float
+    bands: list[EarningsBand]
+    immunity_blocks: int
+    immunity_hours: float
+    prune_bar_alpha_per_day: float | None = Field(
+        description="Emission of the neuron the runtime would prune next; earn more than this to keep a seat"
+    )
+    prune_bar_tao_per_day: float | None
+    registrations_per_day: float
+    seat_turnover_hours: float | None = Field(
+        description="When full, hours between prunes at the registration rate the burn steers toward"
+    )
+    payback_days: float | None = Field(description="Registration cost over the median earner's day")
+    notes: list[str]
+    findings: list[Finding]
 
 
 class HistoryPoint(Model):
@@ -364,7 +434,7 @@ class AskAnswer(Model):
 
     query: str
     intent: Literal[
-        "doctor", "tx", "explain_error", "subnet", "plan", "find", "sim", "unknown"
+        "doctor", "tx", "explain_error", "subnet", "plan", "find", "sim", "economics", "fleet", "unknown"
     ]
     route: str | None
     params: dict[str, str]

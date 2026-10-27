@@ -120,6 +120,32 @@ def subnet_health(netuid: int, network: str = "finney") -> dict[str, Any]:
 
 
 @server.tool()
+def diagnose_fleet(coldkey: str, network: str = "finney") -> dict[str, Any]:
+    """Diagnose every hotkey a coldkey owns on every subnet it is registered on, worst first, with
+    each seat's worst finding and its emission in TAO a day at today's prices."""
+    from .core.doctor.fleet import fleet
+
+    try:
+        report = fleet(Network.resolve(network), validate.ss58(coldkey, "coldkey"))
+    except (ChainUnreachable, ValueError) as error:
+        return _failure(error)
+    return _result(report.headline, report)
+
+
+@server.tool()
+def mining_economics(netuid: int, network: str = "finney") -> dict[str, Any]:
+    """Should someone mine this subnet? What earning miners make a day at today's prices, how many
+    earn at all, the emission needed to keep a seat after immunity, seat turnover and payback."""
+    from .core.plan.economics import economics
+
+    try:
+        result = economics(Network.resolve(network), int(validate.netuid(netuid) or 0))
+    except (ChainUnreachable, ValueError, LookupError) as error:
+        return _failure(error)
+    return _result(f"{result.verdict}: {result.headline}", result)
+
+
+@server.tool()
 def launch_plan(network: str = "finney") -> dict[str, Any]:
     """What launching a subnet costs right now, which subnet would be replaced at the cap, the rate limit,
     and the timeline from registration to first emissions in real block numbers."""

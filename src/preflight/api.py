@@ -31,9 +31,11 @@ from .core.models import (
     AxonInfo,
     DoctorReport,
     ErrorExplanation,
+    FleetReport,
     Health,
     HealthScores,
     LaunchPlan,
+    MinerEconomics,
     NeuronHistory,
     ServiceHealth,
     SimRequest,
@@ -258,7 +260,7 @@ def health() -> ServiceHealth:
     return result
 
 
-CDN_SECONDS = {"/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -587,3 +589,28 @@ def watch(body: WatchRequest) -> WatchCreated:
     code = str(created["link_code"])
     target = f"@{bot}" if bot else "the Preflight Alerts bot"
     return WatchCreated(id=str(created["id"]), link_code=code, bot=bot, instructions=f"Send /start {code} to {target} on Telegram")
+
+
+@app.get("/v1/fleet/{network}/{coldkey}", response_model=FleetReport)
+def fleet(network: str, coldkey: str) -> FleetReport:
+    """Every hotkey a coldkey owns, diagnosed on every subnet, worst first."""
+    from .core.doctor.fleet import fleet as run
+
+    net = network_for(network)
+    key = validate.ss58(coldkey, "coldkey")
+    store.count("doctor", net.name)
+    result = cache.get_or(f"fleet:{net.endpoint}:{key}", lambda: run(net, key), CACHE_SECONDS, 120.0)
+    assert isinstance(result, FleetReport)
+    return result
+
+
+@app.get("/v1/economics/{network}/{netuid}", response_model=MinerEconomics)
+def economics(network: str, netuid: int) -> MinerEconomics:
+    """What mining this subnet pays today, the emission needed to keep a seat, and payback."""
+    from .core.plan.economics import economics as run
+
+    net = network_for(network)
+    number = int(validate.netuid(netuid) or 0)
+    result = cache.get_or(f"economics:{net.endpoint}:{number}", lambda: run(net, number), DIRECTORY_TTL, DIRECTORY_STALE)
+    assert isinstance(result, MinerEconomics)
+    return result

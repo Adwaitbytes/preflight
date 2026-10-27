@@ -14,7 +14,9 @@ from .core.models import (
     ErrorExplanation,
     Finding,
     Fix,
+    FleetReport,
     LaunchPlan,
+    MinerEconomics,
     Severity,
     SimResult,
     SubnetCard,
@@ -243,3 +245,51 @@ def cards(console: Console, items: list[SubnetCard]) -> None:
             str(c.health.score) if c.health else "",
         )
     console.print(table)
+
+
+def fleet(console: Console, r: FleetReport) -> None:
+    console.print()
+    console.print(Text(r.headline, style="bold"))
+    console.print(Text.assemble(chain_line(r.chain), Text(f"  {r.elapsed_ms:,} ms  {r.coldkey}", style="dim")))
+    summary = f"{r.hotkeys} hotkeys, {len(r.rows)} seats: {r.broken} broken, {r.warning} to watch, {r.healthy} healthy, about {r.tao_per_day:,.2f} TAO a day at today's prices"
+    if r.checked < r.hotkeys:
+        summary += f" (first {r.checked} hotkeys checked)"
+    console.print(Text(summary, style="dim"))
+    table = Table(header_style="dim", box=None, padding=(0, 1))
+    for column in ("", "SN", "UID", "Hotkey", "Role", "TAO a day", "Worst finding"):
+        table.add_column(column, justify="right" if column in ("SN", "UID", "TAO a day") else "left")
+    for row in r.rows:
+        style = VERDICT_STYLE[row.verdict]
+        worst = f"{row.worst.id} {row.worst.title}" if row.worst else ""
+        table.add_row(
+            Text(f" {row.verdict.value[:1].upper()} ", style=style),
+            str(row.netuid) if row.netuid is not None else "",
+            str(row.uid) if row.uid is not None else "",
+            f"{row.hotkey[:6]}...{row.hotkey[-4:]}",
+            row.role,
+            f"{row.tao_per_day:,.3f}",
+            worst,
+        )
+    console.print(table)
+
+
+def economics(console: Console, e: MinerEconomics) -> None:
+    style = {"promising": "bold black on green", "competitive": "bold black on yellow", "hard": "bold white on red", "closed": "bold white on red"}[e.verdict]
+    console.print()
+    console.print(Text.assemble(Text(f" {e.verdict.upper()} ", style=style), "  ", Text(e.headline, style="bold")))
+    console.print(chain_line(e.chain))
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column(style="dim")
+    table.add_column(justify="right")
+    table.add_column(style="dim")
+    table.add_row("registration", f"{e.registration_cost_tao:,.4f} TAO", "burned, the price moves with demand")
+    table.add_row("seats", f"{e.seats_used} of {e.seats_max}", f"{e.earning_miners} of {e.miners} miners earn")
+    for band in e.bands:
+        table.add_row(band.label, f"{band.tao_per_day:,.4f} TAO a day", f"{band.alpha_per_day:,.3f} alpha at {e.alpha_price_tao:,.5f}")
+    if e.payback_days is not None:
+        table.add_row("payback", f"{e.payback_days:,.1f} days", "registration over the median earner's day")
+    console.print(Panel(table, title="Today", title_align="left", border_style="grey50"))
+    for note in e.notes:
+        console.print(Text(f"  - {note}"))
+    for f in e.findings:
+        console.print(finding_block(f, verbose=False))

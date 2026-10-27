@@ -3,7 +3,7 @@
 
 export interface AskAnswer {
   query: string;
-  intent: "doctor" | "tx" | "explain_error" | "subnet" | "plan" | "find" | "sim" | "unknown";
+  intent: "doctor" | "tx" | "explain_error" | "subnet" | "plan" | "find" | "sim" | "economics" | "fleet" | "unknown";
   route: string | null;
   params: Record<string, string>;
   message: string;
@@ -66,6 +66,14 @@ export interface DoctorReport {
   verdict: Verdict;
   headline: string;
   elapsed_ms: number;
+  /** Set when the address is a coldkey: how many hotkeys it owns */
+  owned_hotkeys?: number | null;
+}
+
+export interface EarningsBand {
+  label: string;
+  alpha_per_day: number;
+  tao_per_day: number;
 }
 
 export interface ErrorExplanation {
@@ -108,6 +116,35 @@ export interface Fix {
   /** The exact command or change, filled with the user's values */
   text: string;
   note?: string | null;
+}
+
+export interface FleetReport {
+  coldkey: string;
+  chain: ChainRef;
+  hotkeys: number;
+  checked: number;
+  rows: Array<FleetRow>;
+  broken: number;
+  warning: number;
+  healthy: number;
+  /** All rows' emission at today's alpha prices */
+  tao_per_day: number;
+  headline: string;
+  elapsed_ms: number;
+}
+
+export interface FleetRow {
+  hotkey: string;
+  netuid: number | null;
+  subnet_name?: string | null;
+  uid?: number | null;
+  role: "miner" | "validator" | "unregistered";
+  verdict: Verdict;
+  headline: string;
+  worst?: Finding | null;
+  incentive?: number;
+  alpha_per_day?: number;
+  tao_per_day?: number;
 }
 
 export interface Health {
@@ -171,6 +208,34 @@ export interface LaunchPlan {
   timeline: Array<TimelineStep>;
   defaults: Array<Hyperparam>;
   block_seconds: number;
+}
+
+export interface MinerEconomics {
+  chain: ChainRef;
+  netuid: number;
+  name: string;
+  verdict: "promising" | "competitive" | "hard" | "closed";
+  headline: string;
+  registration_cost_tao: number;
+  burn_history: Array<[number, number]>;
+  seats_used: number;
+  seats_max: number;
+  miners: number;
+  earning_miners: number;
+  alpha_price_tao: number;
+  bands: Array<EarningsBand>;
+  immunity_blocks: number;
+  immunity_hours: number;
+  /** Emission of the neuron the runtime would prune next; earn more than this to keep a seat */
+  prune_bar_alpha_per_day: number | null;
+  prune_bar_tao_per_day: number | null;
+  registrations_per_day: number;
+  /** When full, hours between prunes at the registration rate the burn steers toward */
+  seat_turnover_hours: number | null;
+  /** Registration cost over the median earner's day */
+  payback_days: number | null;
+  notes: Array<string>;
+  findings: Array<Finding>;
 }
 
 export interface NeuronHistory {

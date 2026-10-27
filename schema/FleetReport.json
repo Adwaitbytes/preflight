@@ -1,0 +1,368 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Storage item or runtime API the value came from",
+          "title": "Source"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "description": "Rule id such as PF101",
+          "title": "Id",
+          "type": "string"
+        },
+        "rule": {
+          "description": "Rule slug such as not_registered",
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "title",
+        "evidence",
+        "explanation"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    },
+    "FleetRow": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha_per_day": {
+          "default": 0.0,
+          "title": "Alpha Per Day",
+          "type": "number"
+        },
+        "headline": {
+          "title": "Headline",
+          "type": "string"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "incentive": {
+          "default": 0.0,
+          "title": "Incentive",
+          "type": "number"
+        },
+        "netuid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Netuid"
+        },
+        "role": {
+          "enum": [
+            "miner",
+            "validator",
+            "unregistered"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "subnet_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Subnet Name"
+        },
+        "tao_per_day": {
+          "default": 0.0,
+          "title": "Tao Per Day",
+          "type": "number"
+        },
+        "uid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uid"
+        },
+        "verdict": {
+          "$ref": "#/$defs/Verdict"
+        },
+        "worst": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Finding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "hotkey",
+        "netuid",
+        "role",
+        "verdict",
+        "headline"
+      ],
+      "title": "FleetRow",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "Verdict": {
+      "enum": [
+        "healthy",
+        "warning",
+        "broken"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Every hotkey a coldkey owns, on every subnet it is registered on, worst first.",
+  "properties": {
+    "broken": {
+      "title": "Broken",
+      "type": "integer"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "checked": {
+      "title": "Checked",
+      "type": "integer"
+    },
+    "coldkey": {
+      "title": "Coldkey",
+      "type": "string"
+    },
+    "elapsed_ms": {
+      "title": "Elapsed Ms",
+      "type": "integer"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "healthy": {
+      "title": "Healthy",
+      "type": "integer"
+    },
+    "hotkeys": {
+      "title": "Hotkeys",
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/FleetRow"
+      },
+      "title": "Rows",
+      "type": "array"
+    },
+    "tao_per_day": {
+      "description": "All rows' emission at today's alpha prices",
+      "title": "Tao Per Day",
+      "type": "number"
+    },
+    "warning": {
+      "title": "Warning",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "coldkey",
+    "chain",
+    "hotkeys",
+    "checked",
+    "rows",
+    "broken",
+    "warning",
+    "healthy",
+    "tao_per_day",
+    "headline",
+    "elapsed_ms"
+  ],
+  "title": "FleetReport",
+  "type": "object"
+}

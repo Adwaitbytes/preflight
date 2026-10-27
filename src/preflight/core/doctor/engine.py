@@ -96,6 +96,7 @@ def diagnose(
         results.values(),
         key=lambda d: (-max((SEVERITY_RANK[f.severity] for f in d.findings), default=-1), d.netuid),
     )
+    owned: list[str] = []
     if diagnoses:
         worst = diagnoses[0]
         verdict = worst.verdict
@@ -104,6 +105,10 @@ def diagnose(
     else:
         verdict = Verdict.BROKEN
         summary = "This hotkey has no UID on any subnet"
+        owned = with_retries(network, lambda: list(pinned.view.neurons.owned_hotkeys(hotkey))) if netuid is None else []
+        if owned:
+            verdict = Verdict.WARNING
+            summary = f"This is a coldkey that owns {len(owned)} hotkey{'s' if len(owned) != 1 else ''}; the fleet view diagnoses all of them"
     return DoctorReport(
         hotkey=hotkey,
         chain=pinned.ref,
@@ -111,4 +116,5 @@ def diagnose(
         verdict=verdict,
         headline=summary,
         elapsed_ms=int((time.monotonic() - started) * 1000),
+        owned_hotkeys=len(owned) if not diagnoses and netuid is None and owned else None,
     )

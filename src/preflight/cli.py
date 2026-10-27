@@ -213,6 +213,46 @@ def mcp() -> None:
 
 
 @app.command()
+def fleet(
+    coldkey: Annotated[str, typer.Argument(help="Coldkey ss58 address")],
+    network: NetworkOpt = "finney",
+    as_json: JsonOpt = False,
+    fail_on: Annotated[FailOn, typer.Option("--fail-on", help="Exit 1 when any seat has a finding at or above this severity")] = FailOn.never,
+) -> None:
+    """Diagnose every hotkey a coldkey owns, on every subnet, worst first"""
+    from .core.doctor.fleet import fleet as fleet_of
+
+    def go():
+        key = validate.ss58(coldkey, "coldkey")
+        with console.status("Reading every seat", spinner="dots") if not as_json else nullcontext():
+            return fleet_of(Network.resolve(network), key)
+
+    report = run(go)
+    emit(report, as_json, lambda: render.fleet(console, report))
+    if fail_on is not FailOn.never:
+        threshold = SEVERITY_RANK[Severity(fail_on.value)]
+        if any(r.worst and SEVERITY_RANK[r.worst.severity] >= threshold for r in report.rows):
+            raise typer.Exit(1)
+
+
+@app.command()
+def mine(
+    netuid: Annotated[int, typer.Argument(help="Subnet to size up")],
+    network: NetworkOpt = "finney",
+    as_json: JsonOpt = False,
+) -> None:
+    """Should I mine here? What miners earn today, what it takes to keep a seat, and payback"""
+    from .core.plan.economics import economics
+
+    def go():
+        with console.status(f"Reading SN{netuid}", spinner="dots") if not as_json else nullcontext():
+            return economics(Network.resolve(network), int(validate.netuid(netuid) or 0))
+
+    result = run(go)
+    emit(result, as_json, lambda: render.economics(console, result))
+
+
+@app.command()
 def plan(network: NetworkOpt = "finney", as_json: JsonOpt = False) -> None:
     """What launching a subnet costs now, which subnet it would replace, and the timeline"""
     from .core.plan.launch import launch_plan

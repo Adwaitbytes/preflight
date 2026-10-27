@@ -1,0 +1,398 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "EarningsBand": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha_per_day": {
+          "title": "Alpha Per Day",
+          "type": "number"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "tao_per_day": {
+          "title": "Tao Per Day",
+          "type": "number"
+        }
+      },
+      "required": [
+        "label",
+        "alpha_per_day",
+        "tao_per_day"
+      ],
+      "title": "EarningsBand",
+      "type": "object"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Storage item or runtime API the value came from",
+          "title": "Source"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "value"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "docs": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Docs"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "explanation": {
+          "title": "Explanation",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Fix"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "description": "Rule id such as PF101",
+          "title": "Id",
+          "type": "string"
+        },
+        "rule": {
+          "description": "Rule slug such as not_registered",
+          "title": "Rule",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "rule",
+        "severity",
+        "title",
+        "evidence",
+        "explanation"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Fix": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "command",
+            "code",
+            "wait",
+            "info"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "text": {
+          "description": "The exact command or change, filled with the user's values",
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "text"
+      ],
+      "title": "Fix",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "What mining a subnet looks like from the outside, before paying to register.",
+  "properties": {
+    "alpha_price_tao": {
+      "title": "Alpha Price Tao",
+      "type": "number"
+    },
+    "bands": {
+      "items": {
+        "$ref": "#/$defs/EarningsBand"
+      },
+      "title": "Bands",
+      "type": "array"
+    },
+    "burn_history": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Burn History",
+      "type": "array"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "earning_miners": {
+      "title": "Earning Miners",
+      "type": "integer"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "immunity_blocks": {
+      "title": "Immunity Blocks",
+      "type": "integer"
+    },
+    "immunity_hours": {
+      "title": "Immunity Hours",
+      "type": "number"
+    },
+    "miners": {
+      "title": "Miners",
+      "type": "integer"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "payback_days": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Registration cost over the median earner's day",
+      "title": "Payback Days"
+    },
+    "prune_bar_alpha_per_day": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Emission of the neuron the runtime would prune next; earn more than this to keep a seat",
+      "title": "Prune Bar Alpha Per Day"
+    },
+    "prune_bar_tao_per_day": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Prune Bar Tao Per Day"
+    },
+    "registration_cost_tao": {
+      "title": "Registration Cost Tao",
+      "type": "number"
+    },
+    "registrations_per_day": {
+      "title": "Registrations Per Day",
+      "type": "number"
+    },
+    "seat_turnover_hours": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "When full, hours between prunes at the registration rate the burn steers toward",
+      "title": "Seat Turnover Hours"
+    },
+    "seats_max": {
+      "title": "Seats Max",
+      "type": "integer"
+    },
+    "seats_used": {
+      "title": "Seats Used",
+      "type": "integer"
+    },
+    "verdict": {
+      "enum": [
+        "promising",
+        "competitive",
+        "hard",
+        "closed"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "chain",
+    "netuid",
+    "name",
+    "verdict",
+    "headline",
+    "registration_cost_tao",
+    "burn_history",
+    "seats_used",
+    "seats_max",
+    "miners",
+    "earning_miners",
+    "alpha_price_tao",
+    "bands",
+    "immunity_blocks",
+    "immunity_hours",
+    "prune_bar_alpha_per_day",
+    "prune_bar_tao_per_day",
+    "registrations_per_day",
+    "seat_turnover_hours",
+    "payback_days",
+    "notes",
+    "findings"
+  ],
+  "title": "MinerEconomics",
+  "type": "object"
+}

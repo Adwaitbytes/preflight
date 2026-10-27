@@ -18,6 +18,7 @@ NETUID = re.compile(r"\b(?:sn|netuid|subnet)\s*#?\s*(\d{1,4})\b", re.I)
 BARE_NUMBER = re.compile(r"^\s*(\d{1,4})\s*$")
 LAUNCH = re.compile(r"\b(launch|create|start|register|open)\b.{0,30}\b(subnet|network)\b|\bsubnet (lock|cost)\b", re.I)
 REGISTER_COST = re.compile(r"\b(how much|cost|price|burn)\b.{0,40}\b(register|registration|uid|seat)\b", re.I)
+ECONOMICS = re.compile(r"\b(should i|worth|profit|earn(ings)?|pay ?back|roi|how much (do|can|would) (miners?|i) (make|earn))\b", re.I)
 SIMULATE = re.compile(r"\b(simulate|dry ?run|would .{0,20} (work|fail|succeed)|try .{0,20} before)\b", re.I)
 FIND = re.compile(r"\b(find|which|search|subnets? (for|that|doing))\b", re.I)
 
@@ -57,6 +58,9 @@ def ask(query: str, network: str = "finney") -> AskAnswer:
 
     if LAUNCH.search(text):
         return answer("plan", "/plan", {"network": network}, "Cost and timeline for launching a subnet")
+
+    if ECONOMICS.search(text) and netuid:
+        return answer("economics", f"/subnets/{netuid}/mine", {"netuid": netuid, "network": network}, f"What mining SN{netuid} pays today, and what it takes to keep a seat")
 
     if REGISTER_COST.search(text) and netuid:
         return answer("subnet", f"/subnets/{netuid}", {"netuid": netuid, "network": network}, f"Registration cost and health for SN{netuid}")

@@ -11,6 +11,8 @@
         "plan",
         "find",
         "sim",
+        "economics",
+        "fleet",
         "unknown"
       ],
       "title": "Intent",
