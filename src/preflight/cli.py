@@ -473,6 +473,25 @@ def local_break(
     console.print(f"Diagnose it:  [bold green]preflight doctor {result.hotkey} --netuid {result.netuid} --network local[/bold green]  (expect {result.expected_rule})")
 
 
+@local_app.command("fix")
+def local_fix(
+    scenario: Annotated[str, typer.Argument(help="The scenario to undo, as passed to `local break`")],
+    as_json: JsonOpt = False,
+) -> None:
+    """Undo a break the way a user would, running the same command the Doctor printed"""
+    from .core.local import fix_scenario
+
+    with console.status(f"Fixing: {scenario}", spinner="dots") as status:
+        result = _local(lambda: fix_scenario(scenario, progress=lambda m: status.update(m)))
+    if as_json:
+        sys.stdout.write(result.model_dump_json(indent=2) + "\n")
+        return
+    console.print(f"[bold green]{'Ran' if result.ran else 'Applied'}:[/bold green] {result.command}")
+    for step in result.steps:
+        console.print(f"  [dim]-[/dim] {step}")
+    console.print(f"Check it:  [bold green]preflight doctor {result.hotkey} --netuid {result.netuid} --network local[/bold green]  ({result.rule} should be gone)")
+
+
 @app.command()
 def version() -> None:
     """Print the Preflight version"""

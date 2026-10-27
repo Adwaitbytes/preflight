@@ -5,11 +5,13 @@ import { Dialog } from "radix-ui";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
+import { JsonView } from "@/components/ui/json-view";
 
 const URL_IN_CURL = /https?:\/\/[^\s"']+/;
 const KEY_VAR = /\$[A-Z][A-Z0-9_]*/g;
 
-type RunState = { status: "idle" } | { status: "running" } | { status: "done"; code: number; body: string } | { status: "failed"; message: string };
+type RunState = { status: "idle" } | { status: "running" } | { status: "done"; code: number; body: string; ms: number } | { status: "failed"; message: string };
+const MAX_BODY = 2_000_000;
 
 /**
  * Shows a subnet's public API example. A key typed here lives only in this component's state:
@@ -27,13 +29,14 @@ export function TryIt({ name, example, needsKey }: { name: string; example: stri
   async function send() {
     if (!url) return;
     setRun({ status: "running" });
+    const started = performance.now();
     try {
       const response = await fetch(url, {
         headers: needsKey && key ? { Authorization: `Bearer ${key}` } : undefined,
         signal: AbortSignal.timeout(15_000),
       });
       const text = await response.text();
-      setRun({ status: "done", code: response.status, body: text.slice(0, 4000) });
+      setRun({ status: "done", code: response.status, body: text.slice(0, MAX_BODY), ms: Math.round(performance.now() - started) });
     } catch {
       setRun({ status: "failed", message: "The request did not complete. The API may block calls from browsers (CORS); run the command in a terminal instead" });
     }
@@ -49,7 +52,7 @@ export function TryIt({ name, example, needsKey }: { name: string; example: stri
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col bg-surface shadow-(--shadow-float) data-[state=open]:animate-in data-[state=open]:slide-in-from-right">
+        <Dialog.Content className="fixed inset-y-0 right-0 z-50 flex w-full max-w-2xl flex-col bg-surface shadow-(--shadow-float) data-[state=open]:animate-in data-[state=open]:slide-in-from-right">
           <div className="flex items-start gap-3 border-b border-line px-5 py-4">
             <div className="min-w-0 flex-1">
               <Dialog.Title className="text-[15px] font-semibold">Try the {name} API</Dialog.Title>
@@ -84,7 +87,7 @@ export function TryIt({ name, example, needsKey }: { name: string; example: stri
                 <span className="text-xs font-medium text-muted-foreground">Request</span>
                 <CopyButton value={command} label="Copy request" size="xs" className="ml-auto -mr-1.5" />
               </div>
-              <pre className="overflow-x-auto px-3.5 py-3 font-mono text-[12.5px] leading-6 whitespace-pre-wrap break-all">{key ? command.replace(key, "•".repeat(8)) : command}</pre>
+              <pre className="overflow-x-auto px-3.5 py-3 font-mono text-[12.5px] leading-6 whitespace-pre">{key ? command.replace(key, "•".repeat(8)) : command}</pre>
             </div>
             {url && isGet && (
               <Button variant="primary" onClick={send} disabled={!canRun || run.status === "running"} className="self-start">
@@ -92,12 +95,7 @@ export function TryIt({ name, example, needsKey }: { name: string; example: stri
               </Button>
             )}
             <div aria-live="polite">
-              {run.status === "done" && (
-                <div className="overflow-hidden rounded-xl shadow-[0_0_0_1px_var(--line-strong)]">
-                  <p className="border-b border-line px-3.5 py-2 font-mono text-xs text-muted-foreground">HTTP {run.code}</p>
-                  <pre className="max-h-80 overflow-auto px-3.5 py-3 font-mono text-[12px] leading-5 whitespace-pre-wrap break-all text-muted-foreground">{run.body || "Empty body"}</pre>
-                </div>
-              )}
+              {run.status === "done" && <JsonView body={run.body} status={run.code} elapsedMs={run.ms} />}
               {run.status === "failed" && <p className="text-[13px] text-muted-foreground">{run.message}</p>}
             </div>
           </div>
