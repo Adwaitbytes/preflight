@@ -1,0 +1,4 @@
+# Read by the miner, the validator and `preflight doctor`. Change network and netuid for testnet.
+network = "local"
+netuid = 2
+miner_port = 8091

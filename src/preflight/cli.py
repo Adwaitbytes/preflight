@@ -258,6 +258,28 @@ def find(
     render.cards(console, cards)
 
 
+@app.command()
+def new(
+    name: Annotated[str, typer.Argument(help="Project directory and package name")],
+    parent: Annotated[str, typer.Option("--in", help="Where to create it")] = ".",
+) -> None:
+    """Scaffold a bittensor 11 subnet (miner, validator, scoring, tests) that runs on localnet"""
+    from pathlib import Path
+
+    from .scaffold import ScaffoldError, create, package_name
+
+    try:
+        files = create(name, Path(parent))
+    except ScaffoldError as error:
+        err.print(f"[red]{error}[/red]")
+        raise typer.Exit(2) from error
+    package = package_name(name)
+    console.print(f"Created {name}/ with {len(files)} files")
+    console.print(f"  cd {name} && uv sync && uv run pytest")
+    console.print("  preflight local up")
+    console.print(f"  uv run python -m {package}.miner    and    uv run python -m {package}.validator")
+
+
 watch_app = typer.Typer(help="Alerts on Telegram when a neuron breaks (needs DATABASE_URL; TELEGRAM_BOT_TOKEN to deliver)", no_args_is_help=True)
 app.add_typer(watch_app, name="watch")
 
