@@ -22,7 +22,10 @@ function parseNetuid(value: string | string[] | undefined): number | null {
 export async function generateMetadata({ params, searchParams }: PageProps<"/doctor/[network]/[hotkey]">): Promise<Metadata> {
   const { network, hotkey: raw } = await params;
   const hotkey = decodeURIComponent(raw);
-  const netuid = parseNetuid((await searchParams).netuid);
+  const query = await searchParams;
+  const netuid = parseNetuid(query.netuid);
+  // Same arguments as the page, so React's cache shares one read between metadata and page.
+  const fresh = query.fresh != null;
   const alternates = { canonical: `/doctor/${network}/${hotkey}${netuid == null ? "" : `?netuid=${netuid}`}` };
   const fallback: Metadata = {
     title: `Doctor ${truncateMiddle(hotkey, 6, 4)}`,
@@ -30,7 +33,7 @@ export async function generateMetadata({ params, searchParams }: PageProps<"/doc
     alternates,
   };
   if (!isNetwork(network) || network === "local" || classifyInput(hotkey).kind !== "hotkey") return fallback;
-  const result = await getDoctor(network, hotkey, netuid);
+  const result = await getDoctor(network, hotkey, netuid, fresh);
   if (!result.ok) return fallback;
   const summary = summarizeDoctor(result.data);
   return {
@@ -46,7 +49,9 @@ export default async function DoctorPage({ params, searchParams }: PageProps<"/d
   const { network, hotkey: rawHotkey } = await params;
   if (!isNetwork(network)) notFound();
   const hotkey = decodeURIComponent(rawHotkey);
-  const netuid = parseNetuid((await searchParams).netuid);
+  const query = await searchParams;
+  const netuid = parseNetuid(query.netuid);
+  const fresh = query.fresh != null;
 
   if (classifyInput(hotkey).kind !== "hotkey") {
     return (
@@ -76,7 +81,7 @@ export default async function DoctorPage({ params, searchParams }: PageProps<"/d
     );
   }
 
-  const result = await getDoctor(network, hotkey, netuid);
+  const result = await getDoctor(network, hotkey, netuid, fresh);
   return (
     <Container>
       {result.ok ? (

@@ -260,6 +260,7 @@ def health() -> ServiceHealth:
     return result
 
 
+NO_CDN_QUERY = ("fresh",)
 CDN_SECONDS = {"/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
@@ -267,7 +268,7 @@ CDN_SECONDS = {"/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/sub
 async def cdn_cache(request: Request, call_next: Callable[[Request], Any]) -> Any:
     """Let Vercel's edge serve repeat reads without waking the function. Errors never cache."""
     response = await call_next(request)
-    if request.method == "GET" and response.status_code == 200:
+    if request.method == "GET" and response.status_code == 200 and not any(q in request.query_params for q in NO_CDN_QUERY):
         for prefix, seconds in CDN_SECONDS.items():
             if request.url.path.startswith(prefix):
                 response.headers["Cache-Control"] = f"public, max-age=0, s-maxage={seconds}, stale-while-revalidate={seconds * 60}"
@@ -322,14 +323,17 @@ def doctor(
     hotkey: str,
     netuid: Annotated[int | None, Query(ge=0, le=validate.MAX_NETUID)] = None,
     probe: bool = False,
+    fresh: Annotated[bool, Query(description="Skip the cache, for Run again after a fix")] = False,
 ) -> DoctorReport:
     from .core.doctor.engine import diagnose
 
     net = network_for(network)
     key = validate.ss58(hotkey)
     store.count("doctor", net.name)
-    if probe:
-        return diagnose(net, key, netuid, probe=True, probe_allowed=_probe_allowed)
+    # A local chain makes a block every 0.25 s and its state is what the user just changed,
+    # so a cached answer there is always wrong: never cache local, and never when asked fresh.
+    if probe or fresh or net.name in ("local", "custom"):
+        return diagnose(net, key, netuid, probe=probe, probe_allowed=_probe_allowed)
     result = cache.get_or(f"doctor:{net.endpoint}:{key}:{netuid}", lambda: diagnose(net, key, netuid), CACHE_SECONDS, 120.0)
     assert isinstance(result, DoctorReport)
     return result

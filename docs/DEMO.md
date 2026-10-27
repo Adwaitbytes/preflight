@@ -36,7 +36,7 @@ Keep three terminal tabs: `cli`, `serve`, `spare`. Font size 20
 | Wi Fi dies | `cd web && PREFLIGHT_OFFLINE=1 pnpm dev`: recorded finney results with an "Offline demo" banner; the localnet part needs no internet |
 | Docker misbehaves | Skip to 2:20; the CLI output for each break is in `docs/demo-output/` |
 | Fork is cold | The simulator answers in predicted mode and says so; show the label, that is the honest answer |
-| Everything fails | The recorded video |
+| Everything fails | The recorded run in `docs/demo-video/`: part 1 is the broken miner on Local, part 2 is Run again after the fix, then mainnet Doctor, the failed tx, the zero TAO simulation, mining economics, directory, planner, fleet, guide and house |
 
 ## Questions to expect
 

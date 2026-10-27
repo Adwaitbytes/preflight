@@ -25,6 +25,8 @@ export async function getApi(): Promise<PreflightApi> {
 }
 
 // One read per request: generateMetadata and the page share the same chain read
-export const getDoctor = cache(async (network: NetworkId, hotkey: string, netuid: number | null) => (await getApi()).doctor(network, hotkey, { netuid }));
+export const getDoctor = cache(async (network: NetworkId, hotkey: string, netuid: number | null, fresh = false) =>
+  (await getApi()).doctor(network, hotkey, { netuid, fresh }),
+);
 export const getTx = cache(async (network: NetworkId, ref: string) => (await getApi()).tx(network, ref));
 export const getReport = cache(async (id: string) => (await getApi()).report(id));

@@ -1,5 +1,25 @@
 [
   {
+    "date": "2026-10-28T03:56:09+05:30",
+    "sha": "89f1e71",
+    "subject": "Record final Lighthouse numbers"
+  },
+  {
+    "date": "2026-10-28T03:52:17+05:30",
+    "sha": "96493c0",
+    "subject": "Directory sorts by emission share so arriving health scores do not move cards"
+  },
+  {
+    "date": "2026-10-28T03:51:07+05:30",
+    "sha": "32c0a73",
+    "subject": "Lighthouse round: no local API probe on hosted pages, valid definition lists in the guide, mine metadata in the head"
+  },
+  {
+    "date": "2026-10-28T03:41:19+05:30",
+    "sha": "4e66b49",
+    "subject": "Guide, brand identity, fleet and mine pages, design critic fixes: health bars, overflow at every width, readable sources, scores-driven directory, timeline scale; tolerant axon parsing for malformed testnet axons; fleet counts seats only"
+  },
+  {
     "date": "2026-10-28T03:01:23+05:30",
     "sha": "842dca3",
     "subject": "Docs: fleet and mining economics"

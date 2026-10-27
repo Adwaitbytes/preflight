@@ -41,6 +41,8 @@ export type { HouseStats, NeuronHistory, SharedReport, ShareKind } from "./schem
 export interface DoctorOptions {
   netuid?: number | null;
   probe?: boolean;
+  /** Skip the API and CDN caches, for Run again after a fix */
+  fresh?: boolean;
 }
 
 export interface PreflightApi {
@@ -180,6 +182,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
       const query = new URLSearchParams();
       if (options.netuid != null) query.set("netuid", String(options.netuid));
       if (options.probe) query.set("probe", "true");
+      if (options.fresh) query.set("fresh", "true");
       const suffix = query.size ? `?${query}` : "";
       return call(`/v1/doctor/${network}/${enc(hotkey)}${suffix}`, objectWith("hotkey", "diagnoses", "verdict", "headline"));
     },
