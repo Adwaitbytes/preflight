@@ -22,6 +22,8 @@ finney at block 9,376,777, runtime 486
 | Module | Answers | Try |
 |---|---|---|
 | Doctor | Why does this hotkey earn what it earns? 27 rules for miners, validators and subnets, each citing the storage item it read | `preflight doctor <hotkey>` |
+| Fleet | Every hotkey a coldkey owns, on every subnet, worst first, with what each seat earns a day. One real coldkey: 16 hotkeys, 19 seats, 3 broken, 12 hotkeys registered nowhere | `preflight fleet <coldkey>` |
+| Should I mine here? | What earning miners make a day at today's prices, how many earn at all, the emission needed to keep a seat after immunity, seat turnover and payback | `preflight mine 51` |
 | Transaction debugger | Why did this extrinsic fail, with its own numbers, read from the block before it ran | `preflight tx 9376733-28` or paste the error text |
 | Simulator | Would this work if I sent it now? Executed with the real runtime on a Chopsticks fork of mainnet, or predicted from the pallet checks ported from subtensor | `preflight sim burned_register --netuid 64 --coldkey <ss58> --hotkey <ss58>` |
 | Launch planner | What a subnet costs right now, which subnet it would dissolve at the cap, and the timeline in real blocks | `preflight plan` |

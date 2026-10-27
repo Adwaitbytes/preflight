@@ -7,6 +7,9 @@ Base URL: https://preflight-lemon.vercel.app. Networks: finney, test. All respon
 ## HTTP API
 
 - [Doctor](https://preflight-lemon.vercel.app/v1/docs): GET /v1/doctor/{network}/{hotkey}?netuid= returns a verdict (healthy, warning, broken), a one sentence headline, and findings PF101 to PF306, each with evidence, explanation and an exact fix command
+- GET /v1/fleet/{network}/{coldkey}: every hotkey a coldkey owns, diagnosed on every subnet, worst first, with TAO a day per seat
+- GET /v1/economics/{network}/{netuid}: should I mine here; earnings bands, earning share, the emission needed to keep a seat, seat turnover, payback
+- GET /v1/scores/{network}: health score for every subnet from one bulk read
 - GET /v1/history/{network}/{hotkey}?netuid=: incentive, trust, emission and validators weighting the UID, one point per tempo
 - GET /v1/tx/{network}/{ref}: decode an extrinsic by 0x hash (last 300 blocks) or block-index like 9376733-28, with the dispatch error explained
 - POST /v1/explain-error {"text": "..."}: explain pasted btcli or SDK error output
@@ -20,7 +23,7 @@ Base URL: https://preflight-lemon.vercel.app. Networks: finney, test. All respon
 
 claude mcp add preflight -- uvx --from git+https://github.com/Adwaitbytes/preflight preflight mcp
 
-Tools: diagnose_neuron, explain_extrinsic, explain_error, simulate, subnet_health, launch_plan, find_subnet. Quote fix commands exactly as returned.
+Tools: diagnose_neuron, diagnose_fleet, mining_economics, explain_extrinsic, explain_error, simulate, subnet_health, launch_plan, find_subnet. Quote fix commands exactly as returned.
 
 ## Rule ids
 
