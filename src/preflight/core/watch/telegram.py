@@ -13,8 +13,12 @@ from dataclasses import dataclass
 
 import httpx
 
-API = "https://api.telegram.org"
 START = re.compile(r"^/start\s+([A-Za-z0-9]{6,16})\s*$")
+
+
+def api_base() -> str:
+    # Overridable so the delivery path can be exercised against a local stand-in in tests.
+    return os.environ.get("TELEGRAM_API_BASE", "https://api.telegram.org")
 
 
 class TelegramUnavailable(RuntimeError):
@@ -37,7 +41,7 @@ def _call(method: str, payload: dict[str, object]) -> object:
     if not secret:
         raise TelegramUnavailable("TELEGRAM_BOT_TOKEN is not set")
     try:
-        response = httpx.post(f"{API}/bot{secret}/{method}", json=payload, timeout=15.0)
+        response = httpx.post(f"{api_base()}/bot{secret}/{method}", json=payload, timeout=15.0)
         body = response.json()
     except (httpx.HTTPError, ValueError) as error:
         # Never echo the URL: it contains the token.
