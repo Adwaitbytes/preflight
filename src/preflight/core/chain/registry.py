@@ -66,12 +66,55 @@ NETWORK_MIN_LOCK_COST = SM.NetworkMinLockCost
 NETWORK_LAST_LOCK_COST = SM.NetworkLastLockCost
 NETWORK_LOCK_REDUCTION_INTERVAL = SM.NetworkLockReductionInterval
 NETWORK_REGISTRATION_START_BLOCK = SM.NetworkRegistrationStartBlock
+# Keyed by the RateLimitKey enum; the NetworkLastRegistered variant is the last network
+# registration block (coinbase/root.rs L310, `get_network_last_lock_block`).
+LAST_RATE_LIMITED_BLOCK = SM.LastRateLimitedBlock
+NETWORK_LAST_REGISTERED_KEY = "NetworkLastRegistered"
+
+# Directory: validator permits per subnet, read for every netuid in one batch
+VALIDATOR_PERMIT = SM.ValidatorPermit
+
+# Per-subnet storage a fresh subnet inherits as its default (launch planner defaults).
+# Read at an unused netuid, these return the runtime's ValueQuery default.
+FRESH_SUBNET_DEFAULTS = {
+    "tempo": SM.Tempo,
+    "kappa": SM.Kappa,
+    "rho": SM.Rho,
+    "activity_cutoff": SM.ActivityCutoff,
+    "activity_cutoff_factor": SM.ActivityCutoffFactorMilli,
+    "weights_rate_limit": SM.WeightsSetRateLimit,
+    "max_weights_limit": SM.MaxWeightsLimit,
+    "weights_version": SM.WeightsVersionKey,
+    "min_burn": SM.MinBurn,
+    "max_burn": SM.MaxBurn,
+    "burn_half_life": SM.BurnHalfLife,
+    "burn_increase_mult": SM.BurnIncreaseMult,
+    "bonds_moving_avg": SM.BondsMovingAverage,
+    "bonds_penalty": SM.BondsPenalty,
+    "max_regs_per_block": SM.MaxRegistrationsPerBlock,
+    "target_regs_per_interval": SM.TargetRegistrationsPerInterval,
+    "serving_rate_limit": SM.ServingRateLimit,
+    "commit_reveal_period": SM.RevealPeriodEpochs,
+    "commit_reveal_weights_enabled": SM.CommitRevealWeightsEnabled,
+    "liquid_alpha_enabled": SM.LiquidAlphaOn,
+    "alpha_sigmoid_steepness": SM.AlphaSigmoidSteepness,
+    "transfers_enabled": SM.TransferToggle,
+    "bonds_reset_enabled": SM.BondsResetOn,
+    "owner_immune_neuron_limit": SM.ImmuneOwnerUidsLimit,
+    "collateral_lock_share": SM.CollateralLockShare,
+    "collateral_drain_ratio": SM.CollateralDrainRatio,
+    "min_childkey_take": SM.MinChildkeyTakePerSubnet,
+    "owner_cut_auto_lock_enabled": SM.OwnerCutAutoLockEnabled,
+}
 
 ACCOUNT = System.Account
 
 # Runtime APIs
 API_SUBNET_TO_PRUNE = ("SubnetInfoRuntimeApi", "get_subnet_to_prune")
 API_NETWORK_REGISTRATION_COST = ("SubnetRegistrationRuntimeApi", "get_network_registration_cost")
+API_ALL_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_all_dynamic_info")
+API_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_dynamic_info")
+API_SUBNETS_INFO = ("SubnetInfoRuntimeApi", "get_subnets_info")  # subnetwork_n, max uids, burn
 API_SIM_SWAP_TAO_FOR_ALPHA = ("SwapRuntimeApi", "sim_swap_tao_for_alpha")
 API_SIM_SWAP_ALPHA_FOR_TAO = ("SwapRuntimeApi", "sim_swap_alpha_for_tao")
 
@@ -84,6 +127,11 @@ SRC_NEURON_TO_PRUNE = f"{SOURCE}/subnets/registration.rs#L513"
 SRC_IMMUNE_OWNER = f"{SOURCE}/subnets/registration.rs#L469"
 SRC_IS_IMMUNE = f"{SOURCE}/utils/misc.rs#L569"
 SRC_VALID_IP = f"{SOURCE}/subnets/serving.rs#L222"
+SRC_LOCK_COST = f"{SOURCE}/coinbase/root.rs#L253"
+SRC_NETWORK_TO_PRUNE = f"{SOURCE}/coinbase/root.rs#L344"
+SRC_REGISTER_NETWORK = f"{SOURCE}/subnets/subnet.rs#L247"
+SRC_INIT_NEW_NETWORK = f"{SOURCE}/subnets/subnet.rs#L541"
+SRC_START_CALL = f"{SOURCE}/subnets/subnet.rs#L630"
 
 ALL_STORAGE = (
     BURN, REGISTRATION_ALLOWED, REGS_THIS_BLOCK, REGS_THIS_INTERVAL, MAX_REGS_PER_BLOCK,
@@ -96,5 +144,6 @@ ALL_STORAGE = (
     MINER_BURNED, RECYCLE_OR_BURN, SUBNET_OWNER, SUBNET_OWNER_HOTKEY, KAPPA, EMISSION,
     SUBNET_LIMIT, TOTAL_NETWORKS, NETWORK_RATE_LIMIT, NETWORK_IMMUNITY_PERIOD,
     NETWORK_MIN_LOCK_COST, NETWORK_LAST_LOCK_COST, NETWORK_LOCK_REDUCTION_INTERVAL,
-    NETWORK_REGISTRATION_START_BLOCK, ACCOUNT,
+    NETWORK_REGISTRATION_START_BLOCK, ACCOUNT, LAST_RATE_LIMITED_BLOCK, VALIDATOR_PERMIT,
+    *FRESH_SUBNET_DEFAULTS.values(),
 )  # fmt: skip

@@ -78,8 +78,9 @@ class Network:
 
 
 def _explorer_base(name: str) -> str | None:
-    # testnet.taostats.io comes from a single source; see docs/decisions/003-explorers.md
-    return {"finney": "https://taostats.io", "test": "https://testnet.taostats.io"}.get(name)
+    # Mainnet URL shapes verified 2026-10-28 (account, extrinsic block-index, subnet chart).
+    # testnet.taostats.io, the one testnet explorer we found cited, does not resolve.
+    return {"finney": "https://taostats.io"}.get(name)
 
 
 def is_transient(message: str) -> bool:

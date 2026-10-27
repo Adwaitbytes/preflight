@@ -185,10 +185,12 @@ def span(blocks: int, block_seconds: float = 12.0) -> str:
     return f"{blocks:,} {unit} (about {human})"
 
 
-def _int(value: Any) -> int:
-    if isinstance(value, Mapping) and "bits" in value:
-        return int(value["bits"])  # pyright: ignore[reportUnknownArgumentType]
-    return int(value)
+def raw_int(value: Any, default: int = 0) -> int:
+    """A raw chain integer; fixed-point values arrive as {'bits': n}."""
+    if value is None:
+        return default
+    bits: Any = value.get("bits", 0) if isinstance(value, Mapping) else value
+    return int(bits)
 
 
 def _pct(fraction: float) -> str:
@@ -201,7 +203,7 @@ def format_value(kind: Kind, raw: Any, block_seconds: float = 12.0) -> str:
         return "not set"
     if kind == "flag":
         return "on" if bool(raw) else "off"
-    number = _int(raw)
+    number = raw_int(raw)
     formatters: dict[Kind, Callable[[int], str]] = {
         "blocks": lambda n: span(n, block_seconds),
         "u16_pct": lambda n: _pct(n / U16),
