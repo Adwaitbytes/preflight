@@ -17,7 +17,7 @@ from urllib.parse import parse_qsl, urlencode
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "_vendor"))
 
-from preflight.api import app as preflight_app  # noqa: E402
+from preflight.api import app as preflight_app
 
 ROUTING_PARAMS = {"__path", "path"}
 
