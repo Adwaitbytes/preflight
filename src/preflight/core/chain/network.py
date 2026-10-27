@@ -163,11 +163,17 @@ class Pinned:
 
 
 def pin(network: Network, block: int | None = None) -> Pinned:
+    """Pin reads to one block. With no block, the head's parent: its hash is a cheap storage
+    read (0.19 s on finney), where decoding the head block for its hash costs 1.35 s."""
+
     def read() -> Pinned:
         client = client_for(network)
-        number = int(block if block is not None else client.block)
-        info = client.block_info(number)
-        block_hash = str(getattr(info, "hash", "") or "")
+        number = int(block) if block is not None else int(client.block) - 1
+        block_hash = str(client.query(("System", "BlockHash"), [number]) or "")
+        if not block_hash or set(block_hash.removeprefix("0x")) == {"0"}:
+            # Older than the runtime's BlockHash window: decode the block itself.
+            info = client.block_info(number)
+            block_hash = str(getattr(info, "hash", "") or "")
         try:
             spec: int | None = int(client.spec_version)
         except Exception:  # informational only
@@ -178,17 +184,23 @@ def pin(network: Network, block: int | None = None) -> Pinned:
 
 
 _READ_THREAD = "preflight-read"
+_NESTED_THREAD = "preflight-nested"
 _executor = ThreadPoolExecutor(max_workers=16, thread_name_prefix=_READ_THREAD)
+_nested = ThreadPoolExecutor(max_workers=32, thread_name_prefix=_NESTED_THREAD)
 
 
 def gather(reads: dict[str, Callable[[], Any]]) -> dict[str, Any]:
     """Run independent reads concurrently. The SDK's sync client hands each call to one
     event loop, so these multiplex over a single websocket instead of queueing.
 
-    A gather inside a pool worker runs inline: otherwise outer tasks could hold every
-    worker while waiting on inner reads that never get one, and deadlock.
+    Fan-outs nest (diagnose per subnet, then reads per subnet), and one shared pool could
+    deadlock with every worker waiting on reads that never get a worker. So a gather from
+    a read worker runs on a second pool, and a gather from that pool runs inline. Nested
+    workers never wait on their own pool, so both levels always drain.
     """
-    if threading.current_thread().name.startswith(_READ_THREAD):
+    current = threading.current_thread().name
+    if current.startswith(_NESTED_THREAD):
         return {key: read() for key, read in reads.items()}
-    futures = {key: _executor.submit(read) for key, read in reads.items()}
+    pool = _nested if current.startswith(_READ_THREAD) else _executor
+    futures = {key: pool.submit(read) for key, read in reads.items()}
     return {key: future.result() for key, future in futures.items()}

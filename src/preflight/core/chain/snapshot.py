@@ -381,22 +381,22 @@ def find_deregistration(
     searches the gap. That finds recent losses on young chains, and stops cleanly where a
     non-archive node has pruned state. None when no seat is found within `window` blocks.
     """
+    # Probe the gallop points (1, 2, 4, ... blocks back) in one concurrent round.
+    steps: list[int] = []
+    step = 1
+    while step <= window and pinned.block - step >= 1:
+        steps.append(step)
+        step *= 2
+    probes = gather(
+        {str(k): _optional(lambda k=k: uid_at(pinned, netuid, hotkey, pinned.block - k)) for k in steps}
+    )
     high = pinned.block
     low: int | None = None
-    step = 1
-    while step <= window:
-        probe = max(1, pinned.block - step)
-        try:
-            held = uid_at(pinned, netuid, hotkey, probe)
-        except Exception:  # pruned state on a non-archive node: nothing older is readable
-            return None
-        if held is not None:
-            low = probe
+    for k in steps:
+        if probes[str(k)] is not None:
+            low = pinned.block - k
             break
-        high = probe
-        if probe == 1:
-            return None
-        step *= 2
+        high = pinned.block - k
     if low is None:
         return None
     # Invariant: registered at `low`, not registered at `high`.
@@ -439,15 +439,16 @@ def read_neuron(
             snapshot = snapshot.model_copy(update={"burn_history": history})
         dereg = find_deregistration(pinned, netuid, hotkey) if search_history else None
         return NeuronSnapshot(subnet=snapshot, hotkey=hotkey, uid=None, deregistration=dereg)
-    previous: dict[int, dict[int, float]] = {}
+    reads: dict[str, Callable[[], Any]] = {"commits": lambda: read_commits(pinned, snapshot, hotkey)}
     if neuron.validator_permit and neuron.uid in snapshot.weights:
-        previous = read_weights_at(pinned, netuid, pinned.block - snapshot.params.tempo)
+        reads["previous"] = lambda: read_weights_at(pinned, netuid, pinned.block - snapshot.params.tempo)
+    got = gather(reads)
     return NeuronSnapshot(
         subnet=snapshot,
         hotkey=hotkey,
         uid=neuron.uid,
-        commits=read_commits(pinned, snapshot, hotkey),
-        previous_weights=previous,
+        commits=got["commits"],
+        previous_weights=got.get("previous") or {},
     )
 
 

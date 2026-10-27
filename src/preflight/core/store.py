@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
 
@@ -40,10 +41,17 @@ def new_id(length: int = 10) -> str:
     return secrets.token_urlsafe(length)[:length].replace("-", "a").replace("_", "b")
 
 
+_counter_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="preflight-count")
+
+
 def count(kind: str, network: str) -> None:
-    """Bump today's counter. Best effort: the house page is not worth failing a request."""
-    if not configured():
-        return
+    """Bump today's counter off the request path. Best effort: a lost count is fine, a
+    request waiting on a database round trip to count itself is not."""
+    if configured():
+        _counter_pool.submit(_count, kind, network)
+
+
+def _count(kind: str, network: str) -> None:
     try:
         with connect() as db:
             db.execute(
