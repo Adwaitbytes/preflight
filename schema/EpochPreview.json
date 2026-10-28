@@ -1,0 +1,283 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "EpochMiner": {
+      "additionalProperties": false,
+      "properties": {
+        "change": {
+          "description": "Relative change, -1..inf; 0 when both are zero",
+          "title": "Change",
+          "type": "number"
+        },
+        "clipped": {
+          "description": "Share of that support consensus removes, 0..1",
+          "title": "Clipped",
+          "type": "number"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "incentive_next": {
+          "description": "Incentive the next epoch pays if nothing else changes, 0..1",
+          "title": "Incentive Next",
+          "type": "number"
+        },
+        "incentive_now": {
+          "description": "Incentive the last epoch paid, 0..1",
+          "title": "Incentive Now",
+          "type": "number"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "support": {
+          "description": "Stake weighted weight before consensus clipping, 0..1",
+          "title": "Support",
+          "type": "number"
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "integer"
+        },
+        "validators": {
+          "description": "Voting validators that weight this UID",
+          "title": "Validators",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uid",
+        "hotkey",
+        "incentive_now",
+        "incentive_next",
+        "change",
+        "support",
+        "clipped",
+        "validators",
+        "reason"
+      ],
+      "title": "EpochMiner",
+      "type": "object"
+    },
+    "EpochValidator": {
+      "additionalProperties": false,
+      "properties": {
+        "blocks_since_update": {
+          "title": "Blocks Since Update",
+          "type": "integer"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        },
+        "stake_share": {
+          "description": "Share of active validator stake, 0..1",
+          "title": "Stake Share",
+          "type": "number"
+        },
+        "status": {
+          "enum": [
+            "voting",
+            "inactive",
+            "no_weights",
+            "below_threshold"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "trust": {
+          "description": "Share of its weight that survives consensus, 0..1",
+          "title": "Trust",
+          "type": "number"
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "integer"
+        },
+        "weighted_uids": {
+          "title": "Weighted Uids",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "uid",
+        "hotkey",
+        "stake_share",
+        "trust",
+        "weighted_uids",
+        "blocks_since_update",
+        "status",
+        "note"
+      ],
+      "title": "EpochValidator",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The next epoch, computed off-chain from live state: Yuma consensus's incentive, per UID.",
+  "properties": {
+    "blocks_until": {
+      "title": "Blocks Until",
+      "type": "integer"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "commit_reveal": {
+      "title": "Commit Reveal",
+      "type": "boolean"
+    },
+    "earners_next": {
+      "title": "Earners Next",
+      "type": "integer"
+    },
+    "earners_now": {
+      "title": "Earners Now",
+      "type": "integer"
+    },
+    "epoch_block": {
+      "description": "The block the next epoch runs in",
+      "title": "Epoch Block",
+      "type": "integer"
+    },
+    "focus": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EpochMiner"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "kappa": {
+      "title": "Kappa",
+      "type": "number"
+    },
+    "miners": {
+      "description": "Earners next epoch and anyone whose incentive moves, largest first",
+      "items": {
+        "$ref": "#/$defs/EpochMiner"
+      },
+      "title": "Miners",
+      "type": "array"
+    },
+    "name": {
+      "title": "Name",
+      "type": "string"
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "sealed_commits": {
+      "description": "Drand-sealed weight commits waiting to be revealed",
+      "title": "Sealed Commits",
+      "type": "integer"
+    },
+    "seconds_until": {
+      "title": "Seconds Until",
+      "type": "integer"
+    },
+    "validators": {
+      "items": {
+        "$ref": "#/$defs/EpochValidator"
+      },
+      "title": "Validators",
+      "type": "array"
+    },
+    "whatif": {
+      "default": [],
+      "description": "The what-if changes applied, in words",
+      "items": {
+        "type": "string"
+      },
+      "title": "Whatif",
+      "type": "array"
+    }
+  },
+  "required": [
+    "chain",
+    "netuid",
+    "name",
+    "epoch_block",
+    "blocks_until",
+    "seconds_until",
+    "kappa",
+    "commit_reveal",
+    "sealed_commits",
+    "headline",
+    "miners",
+    "validators",
+    "earners_now",
+    "earners_next",
+    "notes"
+  ],
+  "title": "EpochPreview",
+  "type": "object"
+}

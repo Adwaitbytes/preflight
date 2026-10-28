@@ -13,6 +13,7 @@ import { ThemeToggle } from "./theme-toggle";
 export const NAV = [
   { href: "/live", label: "Live" },
   { href: "/weather", label: "Weather" },
+  { href: "/epoch", label: "Epoch" },
   { href: "/sim", label: "Simulate" },
   { href: "/subnets", label: "Subnets" },
   { href: "/plan", label: "Launch" },

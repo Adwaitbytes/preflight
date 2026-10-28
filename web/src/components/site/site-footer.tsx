@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/plan", label: "Launch planner" },
   { href: "/explain", label: "Explain an error" },
   { href: "/weather", label: "Network weather" },
+  { href: "/epoch", label: "Epoch Lab" },
   { href: "/bot", label: "Telegram bot" },
   { href: "/changelog", label: "Changelog" },
   { href: "/house", label: "Builders House" },
@@ -31,7 +32,7 @@ export function SiteFooter() {
             <CopyButton value={MCP_INSTALL} label="Copy MCP install command" />
           </div>
           <p className="mt-3 max-w-[60ch] text-[13px] leading-5 text-faint">
-            Twelve tools, from diagnose_neuron and explain_incentive_change to network_weather and simulate. Same JSON as the API
+            Thirteen tools, from diagnose_neuron and preview_epoch to network_weather and simulate. Same JSON as the API
           </p>
         </div>
         <nav aria-label="Footer" className="grid content-start grid-cols-2 gap-x-10 gap-y-2 text-[13px] sm:grid-cols-3 lg:grid-cols-2">

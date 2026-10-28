@@ -21,6 +21,7 @@ import { FindingList } from "./finding-list";
 import { FleetCallout } from "./fleet-callout";
 import { IncentiveChange } from "./incentive-change";
 import { NeuronHistory } from "./neuron-history";
+import { NextEpoch } from "./next-epoch";
 import { NeuronStats } from "./neuron-stats";
 
 const VERDICT_DOT: Record<Verdict, string> = { healthy: "bg-healthy", warning: "bg-medium", broken: "bg-critical" };
@@ -136,6 +137,7 @@ function DiagnosisPanel({ diagnosis, showHeadline, network, live }: PanelProps) 
         </div>
       )}
       {live && diagnosis.neuron && <NeuronHistory network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
+      {live && diagnosis.neuron && diagnosis.role === "miner" && <NextEpoch network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
       {live && diagnosis.neuron && diagnosis.role === "miner" && <IncentiveChange network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
       {unregistered && <RegisterPrompt network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} heading="h3" />}
     </section>

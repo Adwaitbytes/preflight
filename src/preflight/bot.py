@@ -34,6 +34,7 @@ HELP = """<b>Preflight</b> explains Bittensor in plain words. Paste a hotkey, a 
 
 /doctor &lt;hotkey&gt; [netuid]: why it earns what it earns
 /why &lt;hotkey&gt; &lt;netuid&gt;: why its incentive changed
+/epoch &lt;netuid&gt; [hotkey]: what the next epoch pays, before it runs
 /fleet &lt;coldkey&gt;: every seat a coldkey owns
 /tx &lt;block-index or hash&gt;: decode a transaction
 /explain &lt;error&gt;: what an error means, and the fix
@@ -50,6 +51,7 @@ Add <code>test</code> to any command for testnet. Mainnet is read only: nothing 
 COMMANDS = [
     ("doctor", "Why a hotkey earns what it earns"),
     ("why", "Why a hotkey's incentive changed"),
+    ("epoch", "What the next epoch pays, before it runs"),
     ("fleet", "Every seat a coldkey owns"),
     ("tx", "Decode a transaction"),
     ("explain", "What an error means, and the fix"),
@@ -163,6 +165,34 @@ def why(args: str, _chat: str) -> str:
             lines.append(f"• UID {d.uid} ({d.stake_share_after or d.stake_share_before:.1%} of stake) {escape(d.reason)}")
     lines += ["", *(f"<i>{escape(note)}</i>" for note in c.notes[:2])]
     lines += ["", link(f"/doctor/{net.name}/{hotkey}?netuid={netuid}", "Open the full diagnosis")]
+    return join(lines)
+
+
+def epoch(args: str, _chat: str) -> str:
+    from .core.epoch.preview import next_epoch
+
+    words, net = _split(args)
+    usage = "Send /epoch <netuid>, and a hotkey to lead with its UID, like /epoch 19 <hotkey>"
+    if not words:
+        raise Usage(usage)
+    netuid = _netuid(words[0], usage)
+    hotkey = validate.ss58(words[1]) if len(words) > 1 else None
+    p = next_epoch(net, netuid, hotkey=hotkey)
+    focus = p.focus
+    mark = "🔮" if focus is None else "📉" if focus.change < -0.01 else "📈" if focus.change > 0.01 else "⏸"
+    lines = [f"{mark} <b>{escape(p.headline)}</b>"]
+    if focus is not None:
+        lines += ["", f"UID {focus.uid}: incentive {focus.incentive_now:.4f} now → <b>{focus.incentive_next:.4f}</b> next epoch", escape(focus.reason)]
+    top = [m for m in p.miners if m.incentive_next > 0][:5]
+    if top:
+        lines += ["", "<b>Top miners next epoch</b>"]
+        lines += [f"• UID {m.uid}: {m.incentive_next:.1%}" + (f", consensus cuts {m.clipped:.0%}" if m.clipped >= 0.01 else "") for m in top]
+    voting = [v for v in p.validators if v.status == "voting"]
+    idle = [v for v in p.validators if v.status != "voting"]
+    lines += ["", f"{len(voting)} validators vote" + (f"; {len(idle)} with a permit do not" if idle else "")]
+    lines += ["", f"<i>{escape(p.notes[0])}</i>"]
+    query = f"?hotkey={hotkey}" if hotkey else ""
+    lines += ["", link(f"/epoch/{net.name}/{netuid}{query}", "Open Epoch Lab: try what-ifs")]
     return join(lines)
 
 
@@ -404,6 +434,7 @@ HANDLERS: dict[str, Callable[[str, str], str]] = {
     "weather": weather,
     "live": live,
     "plan": plan,
+    "epoch": epoch,
     "find": find,
     "watch": watch,
 }

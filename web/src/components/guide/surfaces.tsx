@@ -16,6 +16,7 @@ const MCP_TOOLS = [
   "diagnose_neuron",
   "diagnose_fleet",
   "explain_incentive_change",
+  "preview_epoch",
   "explain_extrinsic",
   "explain_error",
   "simulate",

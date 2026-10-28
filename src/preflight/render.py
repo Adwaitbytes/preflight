@@ -11,6 +11,8 @@ from .core.models import (
     ChainRef,
     Diagnosis,
     DoctorReport,
+    EpochCheck,
+    EpochPreview,
     ErrorExplanation,
     Finding,
     Fix,
@@ -343,3 +345,40 @@ def weather(console: Console, w: Weather) -> None:
     console.print(Text(f"  Activity: {kinds}", style="dim"))
     if busiest:
         console.print(Text(f"  Busiest subnets: {busiest}", style="dim"))
+
+def epoch(console: Console, p: EpochPreview, check: EpochCheck | None = None, *, limit: int = 15) -> None:
+    focus = p.focus
+    if focus is not None and focus.incentive_next == 0 and focus.incentive_now > 0:
+        badge, style = " DROPS ", "bold white on red"
+    elif focus is not None and focus.change > 0.01:
+        badge, style = " UP ", "bold black on green"
+    elif focus is not None and focus.change < -0.01:
+        badge, style = " DOWN ", "bold white on red"
+    else:
+        badge, style = " NEXT EPOCH ", "bold black on cyan"
+    console.print()
+    console.print(Text.assemble(Text(badge, style=style), "  ", Text(p.headline, style="bold")))
+    console.print(Text.assemble(chain_line(p.chain), Text(f"  epoch at block {p.epoch_block:,}, kappa {p.kappa:.0%}", style="dim")))
+    if p.whatif:
+        console.print(Text(f"  What-if: {'; '.join(p.whatif)}", style="yellow"))
+    if check is not None:
+        console.print(Text(f"  {'✓' if check.matched else '≈'} {check.headline}", style="green" if check.matched else "yellow"))
+    miners = Table(header_style="dim", box=None, padding=(0, 1))
+    for column in ("UID", "Now", "Next", "Change", "Cut by consensus", "Why"):
+        miners.add_column(column, justify="left" if column in ("UID", "Why") else "right")
+    rows = p.miners[:limit]
+    if focus is not None and focus.uid not in {m.uid for m in rows}:
+        rows = [*rows, focus]
+    for m in rows:
+        change = Text(f"{m.change:+.0%}" if m.incentive_now > 0 else ("new" if m.incentive_next > 0 else "-"), style="green" if m.change > 0.01 else "red" if m.change < -0.01 else "dim")
+        uid = Text(f"UID {m.uid}", style="bold" if focus is not None and m.uid == focus.uid else "")
+        miners.add_row(uid, f"{m.incentive_now:.4f}", f"{m.incentive_next:.4f}", change, f"{m.clipped:.0%}" if m.support > 0 else "-", m.reason)
+    console.print(Panel(miners, title=f"Miners, {p.earners_next} earning next epoch", title_align="left", border_style="grey50"))
+    validators = Table(header_style="dim", box=None, padding=(0, 1))
+    for column in ("Validator", "Stake", "Trust", "UIDs", "Status"):
+        validators.add_column(column, justify="left" if column in ("Validator", "Status") else "right")
+    for v in p.validators:
+        validators.add_row(f"UID {v.uid}", f"{v.stake_share:.1%}", f"{v.trust:.0%}" if v.status == "voting" else "-", str(v.weighted_uids), Text(v.note, style="dim" if v.status == "voting" else "yellow"))
+    console.print(Panel(validators, title="Validators", title_align="left", border_style="grey50"))
+    for note in p.notes:
+        console.print(Text(f"  - {note}", style="dim"))

@@ -47,6 +47,7 @@ ACTIVITY_CUTOFF = SM.ActivityCutoff
 TEMPO = SM.Tempo
 LAST_EPOCH_BLOCK = SM.LastEpochBlock
 LAST_MECHANISM_STEP_BLOCK = SM.LastMechansimStepBlock  # the misspelling is the runtime's
+INCENTIVE = SM.Incentive
 FIRST_EMISSION_BLOCK = SM.FirstEmissionBlockNumber
 NETWORK_REGISTERED_AT = SM.NetworkRegisteredAt
 START_CALL_DELAY = SM.StartCallDelay
@@ -116,6 +117,8 @@ API_ALL_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_all_dynamic_info")
 # Every subnet's metagraph in one call: 26 s on finney, so only for background directory scoring.
 API_ALL_METAGRAPHS = ("SubnetInfoRuntimeApi", "get_all_metagraphs")
 API_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_dynamic_info")
+# Last epoch block plus tempo; the epoch itself runs in the block after (measured 2026-10-29)
+API_NEXT_EPOCH_START = ("SubnetInfoRuntimeApi", "get_next_epoch_start_block")
 API_SUBNETS_INFO = ("SubnetInfoRuntimeApi", "get_subnets_info")  # subnetwork_n, max uids, burn
 API_SIM_SWAP_TAO_FOR_ALPHA = ("SwapRuntimeApi", "sim_swap_tao_for_alpha")
 API_SIM_SWAP_ALPHA_FOR_TAO = ("SwapRuntimeApi", "sim_swap_alpha_for_tao")
@@ -143,7 +146,7 @@ ALL_STORAGE = (
     MIN_ALLOWED_WEIGHTS, MAX_WEIGHTS_LIMIT, WEIGHT_COMMITS, TIMELOCKED_WEIGHT_COMMITS,
     COMMIT_REVEAL_ENABLED, REVEAL_PERIOD_EPOCHS, ACTIVITY_CUTOFF, TEMPO, LAST_EPOCH_BLOCK,
     LAST_MECHANISM_STEP_BLOCK, FIRST_EMISSION_BLOCK, NETWORK_REGISTERED_AT, START_CALL_DELAY,
-    MINER_BURNED, RECYCLE_OR_BURN, SUBNET_OWNER, SUBNET_OWNER_HOTKEY, KAPPA, EMISSION,
+    MINER_BURNED, RECYCLE_OR_BURN, SUBNET_OWNER, SUBNET_OWNER_HOTKEY, KAPPA, EMISSION, INCENTIVE,
     SUBNET_LIMIT, TOTAL_NETWORKS, NETWORK_RATE_LIMIT, NETWORK_IMMUNITY_PERIOD,
     NETWORK_MIN_LOCK_COST, NETWORK_LAST_LOCK_COST, NETWORK_LOCK_REDUCTION_INTERVAL,
     NETWORK_REGISTRATION_START_BLOCK, ACCOUNT, LAST_RATE_LIMITED_BLOCK, VALIDATOR_PERMIT,

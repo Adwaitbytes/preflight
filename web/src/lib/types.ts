@@ -108,6 +108,89 @@ export interface EarningsBand {
   tao_per_day: number;
 }
 
+export interface EpochCheck {
+  chain: ChainRef;
+  netuid: number;
+  epoch_block: number;
+  uids: number;
+  /** UIDs within one u16 step (1/65535) of the chain */
+  exact: number;
+  /** Largest difference, in u16 steps */
+  max_error: number;
+  /** Sum of absolute differences, as a share of all incentive */
+  total_error: number;
+  matched: boolean;
+  headline: string;
+}
+
+export interface EpochMiner {
+  uid: number;
+  hotkey: string;
+  /** Incentive the last epoch paid, 0..1 */
+  incentive_now: number;
+  /** Incentive the next epoch pays if nothing else changes, 0..1 */
+  incentive_next: number;
+  /** Relative change, -1..inf; 0 when both are zero */
+  change: number;
+  /** Stake weighted weight before consensus clipping, 0..1 */
+  support: number;
+  /** Share of that support consensus removes, 0..1 */
+  clipped: number;
+  /** Voting validators that weight this UID */
+  validators: number;
+  reason: string;
+}
+
+export interface EpochPreview {
+  chain: ChainRef;
+  netuid: number;
+  name: string;
+  /** The block the next epoch runs in */
+  epoch_block: number;
+  blocks_until: number;
+  seconds_until: number;
+  kappa: number;
+  commit_reveal: boolean;
+  /** Drand-sealed weight commits waiting to be revealed */
+  sealed_commits: number;
+  headline: string;
+  focus?: EpochMiner | null;
+  /** Earners next epoch and anyone whose incentive moves, largest first */
+  miners: Array<EpochMiner>;
+  validators: Array<EpochValidator>;
+  earners_now: number;
+  earners_next: number;
+  /** The what-if changes applied, in words */
+  whatif?: Array<string>;
+  notes: Array<string>;
+}
+
+export interface EpochValidator {
+  uid: number;
+  hotkey: string;
+  /** Share of active validator stake, 0..1 */
+  stake_share: number;
+  /** Share of its weight that survives consensus, 0..1 */
+  trust: number;
+  weighted_uids: number;
+  blocks_since_update: number;
+  status: "voting" | "inactive" | "no_weights" | "below_threshold";
+  note: string;
+}
+
+export interface EpochWhatIf {
+  /** Consensus majority, 0..1 */
+  kappa?: number | null;
+  /** Blocks a validator may go without setting weights */
+  activity_cutoff?: number | null;
+  /** Minimum stake weight to vote, in alpha */
+  stake_threshold?: number | null;
+  /** Validator UIDs to treat as offline */
+  drop_validators?: Array<number>;
+  /** Validator UID to a replacement weight row, UID to weight (any scale) */
+  weights?: Record<string, Record<string, number>>;
+}
+
 export interface ErrorExplanation {
   error: string;
   pallet?: string | null;

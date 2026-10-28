@@ -1,0 +1,72 @@
+{
+  "additionalProperties": false,
+  "description": "Changes to try on top of live state before computing the next epoch. Nothing is\nwritten to the chain; the epoch is recomputed off-chain with these applied.",
+  "properties": {
+    "activity_cutoff": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Blocks a validator may go without setting weights",
+      "title": "Activity Cutoff"
+    },
+    "drop_validators": {
+      "default": [],
+      "description": "Validator UIDs to treat as offline",
+      "items": {
+        "type": "integer"
+      },
+      "title": "Drop Validators",
+      "type": "array"
+    },
+    "kappa": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Consensus majority, 0..1",
+      "title": "Kappa"
+    },
+    "stake_threshold": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Minimum stake weight to vote, in alpha",
+      "title": "Stake Threshold"
+    },
+    "weights": {
+      "additionalProperties": {
+        "additionalProperties": {
+          "type": "number"
+        },
+        "type": "object"
+      },
+      "default": {},
+      "description": "Validator UID to a replacement weight row, UID to weight (any scale)",
+      "title": "Weights",
+      "type": "object"
+    }
+  },
+  "title": "EpochWhatIf",
+  "type": "object"
+}

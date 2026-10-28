@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { DoctorReport, IncentiveChange, LiveFeed, SimResult, TxReport, Weather } from "./types";
+import type { DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, TxReport, Weather } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -267,3 +267,60 @@ export const weatherSchema = z.object({
   busiest_subnets: z.array(subnetCount),
   failing_subnets: z.array(subnetCount),
 }) satisfies z.ZodType<Weather>;
+
+const epochMiner = z.object({
+  uid: z.number().int(),
+  hotkey: z.string(),
+  incentive_now: z.number(),
+  incentive_next: z.number(),
+  change: z.number(),
+  support: z.number(),
+  clipped: z.number(),
+  validators: z.number().int(),
+  reason: z.string(),
+});
+
+/** GET or POST /v1/epoch/{network}/{netuid}: the next epoch, computed off-chain */
+export const epochPreviewSchema = z.object({
+  chain: chainRef,
+  netuid: z.number().int(),
+  name: z.string(),
+  epoch_block: z.number().int(),
+  blocks_until: z.number().int(),
+  seconds_until: z.number().int(),
+  kappa: z.number(),
+  commit_reveal: z.boolean(),
+  sealed_commits: z.number().int(),
+  headline: z.string(),
+  focus: epochMiner.nullish(),
+  miners: z.array(epochMiner),
+  validators: z.array(
+    z.object({
+      uid: z.number().int(),
+      hotkey: z.string(),
+      stake_share: z.number(),
+      trust: z.number(),
+      weighted_uids: z.number().int(),
+      blocks_since_update: z.number().int(),
+      status: z.enum(["voting", "inactive", "no_weights", "below_threshold"]),
+      note: z.string(),
+    }),
+  ),
+  earners_now: z.number().int(),
+  earners_next: z.number().int(),
+  whatif: z.array(z.string()),
+  notes: z.array(z.string()),
+}) satisfies z.ZodType<EpochPreview>;
+
+/** GET /v1/epoch/{network}/{netuid}/check: the last epoch recomputed against the chain */
+export const epochCheckSchema = z.object({
+  chain: chainRef,
+  netuid: z.number().int(),
+  epoch_block: z.number().int(),
+  uids: z.number().int(),
+  exact: z.number().int(),
+  max_error: z.number().int(),
+  total_error: z.number(),
+  matched: z.boolean(),
+  headline: z.string(),
+}) satisfies z.ZodType<EpochCheck>;

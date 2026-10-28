@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The last epoch, recomputed from the state one block before it ran and compared with\nthe incentive the chain stored.",
+  "properties": {
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "epoch_block": {
+      "title": "Epoch Block",
+      "type": "integer"
+    },
+    "exact": {
+      "description": "UIDs within one u16 step (1/65535) of the chain",
+      "title": "Exact",
+      "type": "integer"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "matched": {
+      "title": "Matched",
+      "type": "boolean"
+    },
+    "max_error": {
+      "description": "Largest difference, in u16 steps",
+      "title": "Max Error",
+      "type": "integer"
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    },
+    "total_error": {
+      "description": "Sum of absolute differences, as a share of all incentive",
+      "title": "Total Error",
+      "type": "number"
+    },
+    "uids": {
+      "title": "Uids",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "chain",
+    "netuid",
+    "epoch_block",
+    "uids",
+    "exact",
+    "max_error",
+    "total_error",
+    "matched",
+    "headline"
+  ],
+  "title": "EpochCheck",
+  "type": "object"
+}

@@ -22,6 +22,8 @@ server = MCPServer(
     instructions=(
         "Preflight reads live Bittensor chain state and explains it. Use diagnose_neuron when someone asks why a "
         "miner or validator earns zero or is failing; explain_incentive_change when its earnings moved; "
+        "preview_epoch for what the next epoch will pay and why, or to test a validator's new weights or a "
+        "kappa change against real consensus before anything is set; "
         "network_weather for what is failing on chain right now; explain_extrinsic for a failed transaction hash or "
         "block-index; explain_error for pasted error text; simulate before telling anyone to submit a "
         "transaction; subnet_health, launch_plan and find_subnet for subnet questions. Quote the fix commands "
@@ -181,6 +183,39 @@ def explain_incentive_change(hotkey: str, netuid: int, network: str = "finney", 
     except (ChainUnreachable, ValueError, LookupError) as error:
         return _failure(error)
     return _result(result.headline, result)
+
+
+@server.tool()
+def preview_epoch(
+    netuid: int,
+    network: str = "finney",
+    hotkey: str | None = None,
+    kappa: float | None = None,
+    drop_validators: list[int] | None = None,
+    weights: dict[int, dict[int, float]] | None = None,
+    verify: bool = False,
+) -> dict[str, Any]:
+    """The next epoch before it runs: every miner's incentive and why, computed off-chain with Yuma
+    consensus's own math on live state. Pass `hotkey` to lead with that UID. What-ifs: `kappa`,
+    `drop_validators` (UIDs to treat as offline) and `weights` ({validator_uid: {uid: weight}}) to test a
+    validator's new scoring against real consensus; each validator's `trust` is the share of its weight
+    consensus keeps. `verify` also recomputes the last epoch and reports how exactly it matched the chain."""
+    from .core.epoch.preview import check_last_epoch, next_epoch
+    from .core.models import EpochWhatIf
+
+    try:
+        net = Network.resolve(network)
+        number = int(validate.netuid(netuid) or 0)
+        whatif = EpochWhatIf(kappa=kappa, drop_validators=drop_validators or [], weights=weights or {}) if (kappa is not None or drop_validators or weights) else None
+        result = next_epoch(net, number, hotkey=validate.ss58(hotkey) if hotkey else None, whatif=whatif)
+        checked = check_last_epoch(net, number) if verify else None
+    except (ChainUnreachable, ValueError, LookupError) as error:
+        return _failure(error)
+    payload = _result(result.headline, result)
+    if checked is not None:
+        payload["check"] = checked.model_dump(mode="json")
+        payload["summary"] += f". {checked.headline}"
+    return payload
 
 
 @server.tool()

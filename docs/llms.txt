@@ -11,6 +11,9 @@ Base URL: https://preflight-lemon.vercel.app. Networks: finney, test. All respon
 - GET /v1/economics/{network}/{netuid}: should I mine here; earnings bands, earning share, the emission needed to keep a seat, seat turnover, payback
 - GET /v1/scores/{network}: health score for every subnet from one bulk read
 - GET /v1/change/{network}/{hotkey}?netuid=&epochs=: why a UID's incentive moved over the last 1 to 48 epochs; the validators whose stake weighted support changed most, and what each did (stopped or started weighting, cut or raised weight, went stale, lost stake)
+- GET /v1/epoch/{network}/{netuid}?hotkey=: the next epoch before it runs; each miner's incentive now and next, the share consensus cuts and why, each validator's stake share, trust and status, computed off-chain with Yuma consensus's incentive math on live state
+- POST /v1/epoch/{network}/{netuid}?hotkey= with {"kappa", "drop_validators", "weights": {validator_uid: {uid: weight}}, "activity_cutoff", "stake_threshold"}: the same epoch with those changes applied; nothing is written to the chain
+- GET /v1/epoch/{network}/{netuid}/check: the last epoch recomputed from the block before it and compared with the Incentive the chain stored, per UID
 - GET /v1/weather/{network}?window=60: what is failing on chain right now; failed extrinsics over the last 10 to 120 blocks grouped by error, with subnets, meaning, fix and an example ref for /v1/tx
 - GET /v1/live/{network}?after=&limit=: every extrinsic in recent blocks as a plain sentence; poll with `after`
 - GET /v1/history/{network}/{hotkey}?netuid=: incentive, trust, emission and validators weighting the UID, one point per tempo
@@ -26,15 +29,15 @@ Base URL: https://preflight-lemon.vercel.app. Networks: finney, test. All respon
 
 claude mcp add preflight -- uvx --from git+https://github.com/Adwaitbytes/preflight preflight mcp
 
-Tools: diagnose_neuron, diagnose_fleet, explain_incentive_change, mining_economics, network_weather, recent_activity, explain_extrinsic, explain_error, simulate, subnet_health, launch_plan, find_subnet. Quote fix commands exactly as returned.
+Tools: diagnose_neuron, diagnose_fleet, explain_incentive_change, preview_epoch, mining_economics, network_weather, recent_activity, explain_extrinsic, explain_error, simulate, subnet_health, launch_plan, find_subnet. Quote fix commands exactly as returned.
 
 ## CLI
 
-`preflight why <hotkey> --netuid N [--epochs E]` (why the incentive changed), `preflight weather [--window N]` (what is failing now), `preflight live`, `preflight doctor`, `preflight tx`, `preflight sim`, `preflight fleet`, `preflight mine`
+`preflight why <hotkey> --netuid N [--epochs E]` (why the incentive changed), `preflight epoch <netuid> [--hotkey H] [--kappa K] [--drop UID] [--weights rows.json] [--verify] [--validator UID --min-trust T]` (the next epoch before it runs; exits 1 under --min-trust), `preflight weather [--window N]` (what is failing now), `preflight live`, `preflight doctor`, `preflight tx`, `preflight sim`, `preflight fleet`, `preflight mine`
 
 ## Telegram
 
-https://t.me/PreflightAlertsbot: /doctor, /why, /fleet, /tx, /explain, /mine, /subnet, /weather, /live, /plan, /find, /watch, /help. Pasting a hotkey, a block-index or an error name also works. Add `test` for testnet
+https://t.me/PreflightAlertsbot: /doctor, /why, /epoch, /fleet, /tx, /explain, /mine, /subnet, /weather, /live, /plan, /find, /watch, /help. Pasting a hotkey, a block-index or an error name also works. Add `test` for testnet
 
 ## Rule ids
 

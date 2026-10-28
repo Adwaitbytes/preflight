@@ -13,6 +13,7 @@ export interface BotCommand {
 export const BOT_COMMANDS: readonly BotCommand[] = [
   { command: "/doctor", args: "<hotkey> [netuid]", does: "Why a hotkey earns what it earns, with the fix", example: "/doctor 5EKtvz… 64" },
   { command: "/why", args: "<hotkey> <netuid> [epochs]", does: "Which validators moved its incentive", example: "/why 5FcJiV… 19 3" },
+  { command: "/epoch", args: "<netuid> [hotkey]", does: "What the next epoch pays, before it runs", example: "/epoch 19 5FcJiV…" },
   { command: "/fleet", args: "<coldkey>", does: "Every seat a coldkey owns, worst first", example: "/fleet 5DFVgQ…" },
   { command: "/tx", args: "<block-index or hash>", does: "Decode a transaction and explain a failure", example: "/tx 9376733-28" },
   { command: "/explain", args: "<error>", does: "What an error means, and the fix", example: "/explain SameNetuid" },

@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-10-28T13:43:54+05:30",
+    "sha": "fef87b1",
+    "subject": "Design review fixes: the weather hero leads with the failure rate, unsettled reads amber, the strip shows the rate and a tap cue; What changed matches the history header, uses toggle buttons and dims unmoved validators; the poster prints on one A4 sheet; the bot hides its QR on phones"
+  },
+  {
     "date": "2026-10-28T13:41:28+05:30",
     "sha": "b32013e",
     "subject": "What changed: the epoch picker spans the width on phones with its hint under each label, and the change badge sits above the headline"

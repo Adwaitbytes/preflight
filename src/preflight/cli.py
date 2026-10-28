@@ -3,10 +3,12 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from collections.abc import Callable
 from contextlib import nullcontext
 from enum import StrEnum
+from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -272,6 +274,55 @@ def why(
 
     result = run(go)
     emit(result, as_json, lambda: render.change(console, result))
+
+
+@app.command()
+def epoch(
+    netuid: Annotated[int, typer.Argument(help="Subnet to preview")],
+    network: NetworkOpt = "finney",
+    hotkey: Annotated[str | None, typer.Option("--hotkey", help="Put this hotkey's UID first")] = None,
+    kappa: Annotated[float | None, typer.Option("--kappa", help="What if kappa were this, 0..1")] = None,
+    drop: Annotated[list[int] | None, typer.Option("--drop", help="What if this validator UID went offline; repeat for more")] = None,
+    weights: Annotated[Path | None, typer.Option("--weights", help='JSON of new weight rows, {"validator_uid": {"uid": weight}}')] = None,
+    verify: Annotated[bool, typer.Option("--verify", help="Also recompute the last epoch and compare with the chain")] = False,
+    validator: Annotated[int | None, typer.Option("--validator", help="With --min-trust: the validator UID to gate on")] = None,
+    min_trust: Annotated[float | None, typer.Option("--min-trust", help="Exit 1 if --validator keeps less than this share of its weight, 0..1")] = None,
+    as_json: JsonOpt = False,
+) -> None:
+    """The next epoch before it runs: each miner's incentive and why, from live state.
+
+    Test a validator's new scoring against real mainnet consensus before it sets weights:
+    `preflight epoch 64 --weights new.json --validator 12 --min-trust 0.9` exits 1 if
+    consensus would cut more than 10% of UID 12's weight."""
+    from .core.epoch.preview import check_last_epoch, next_epoch
+    from .core.models import EpochWhatIf
+
+    def go():
+        number = int(validate.netuid(netuid) or 0)
+        key = validate.ss58(hotkey) if hotkey else None
+        rows = {int(v): {int(u): float(w) for u, w in row.items()} for v, row in json.loads(weights.read_text()).items()} if weights else {}
+        whatif = EpochWhatIf(kappa=kappa, drop_validators=drop or [], weights=rows) if (kappa is not None or drop or rows) else None
+        net = Network.resolve(network)
+        with console.status(f"Computing SN{number}'s next epoch", spinner="dots") if not as_json else nullcontext():
+            preview = next_epoch(net, number, hotkey=key, whatif=whatif)
+            checked = check_last_epoch(net, number) if verify else None
+        return preview, checked
+
+    preview, checked = run(go)
+    if as_json:
+        payload = {"preview": preview.model_dump(mode="json"), "check": checked.model_dump(mode="json") if checked else None}
+        sys.stdout.write(json.dumps(payload, indent=2) + "\n")
+    else:
+        render.epoch(console, preview, checked)
+    if min_trust is not None:
+        if validator is None:
+            err.print("[red]--min-trust needs --validator[/red]")
+            raise typer.Exit(2)
+        gated = next((v for v in preview.validators if v.uid == validator), None)
+        trust = gated.trust if gated is not None and gated.status == "voting" else 0.0
+        if trust < min_trust:
+            err.print(f"[red]UID {validator} keeps {trust:.1%} of its weight, under --min-trust {min_trust:.1%}[/red]")
+            raise typer.Exit(1)
 
 
 @app.command()

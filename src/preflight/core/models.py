@@ -295,6 +295,90 @@ class IncentiveChange(Model):
     notes: list[str]
 
 
+class EpochWhatIf(Model):
+    """Changes to try on top of live state before computing the next epoch. Nothing is
+    written to the chain; the epoch is recomputed off-chain with these applied."""
+
+    kappa: float | None = Field(default=None, ge=0, le=1, description="Consensus majority, 0..1")
+    activity_cutoff: int | None = Field(
+        default=None, ge=1, description="Blocks a validator may go without setting weights"
+    )
+    stake_threshold: float | None = Field(
+        default=None, ge=0, description="Minimum stake weight to vote, in alpha"
+    )
+    drop_validators: list[int] = Field(default=[], description="Validator UIDs to treat as offline")
+    weights: dict[int, dict[int, float]] = Field(
+        default={},
+        description="Validator UID to a replacement weight row, UID to weight (any scale)",
+    )
+
+
+class EpochMiner(Model):
+    uid: int
+    hotkey: str
+    incentive_now: float = Field(description="Incentive the last epoch paid, 0..1")
+    incentive_next: float = Field(
+        description="Incentive the next epoch pays if nothing else changes, 0..1"
+    )
+    change: float = Field(description="Relative change, -1..inf; 0 when both are zero")
+    support: float = Field(description="Stake weighted weight before consensus clipping, 0..1")
+    clipped: float = Field(description="Share of that support consensus removes, 0..1")
+    validators: int = Field(description="Voting validators that weight this UID")
+    reason: str
+
+
+class EpochValidator(Model):
+    uid: int
+    hotkey: str
+    stake_share: float = Field(description="Share of active validator stake, 0..1")
+    trust: float = Field(description="Share of its weight that survives consensus, 0..1")
+    weighted_uids: int
+    blocks_since_update: int
+    status: Literal["voting", "inactive", "no_weights", "below_threshold"]
+    note: str
+
+
+class EpochPreview(Model):
+    """The next epoch, computed off-chain from live state: Yuma consensus's incentive, per UID."""
+
+    chain: ChainRef
+    netuid: int
+    name: str
+    epoch_block: int = Field(description="The block the next epoch runs in")
+    blocks_until: int
+    seconds_until: int
+    kappa: float
+    commit_reveal: bool
+    sealed_commits: int = Field(description="Drand-sealed weight commits waiting to be revealed")
+    headline: str
+    focus: EpochMiner | None = None
+    miners: list[EpochMiner] = Field(
+        description="Earners next epoch and anyone whose incentive moves, largest first"
+    )
+    validators: list[EpochValidator]
+    earners_now: int
+    earners_next: int
+    whatif: list[str] = Field(default=[], description="The what-if changes applied, in words")
+    notes: list[str]
+
+
+class EpochCheck(Model):
+    """The last epoch, recomputed from the state one block before it ran and compared with
+    the incentive the chain stored."""
+
+    chain: ChainRef
+    netuid: int
+    epoch_block: int
+    uids: int
+    exact: int = Field(description="UIDs within one u16 step (1/65535) of the chain")
+    max_error: int = Field(description="Largest difference, in u16 steps")
+    total_error: float = Field(
+        description="Sum of absolute differences, as a share of all incentive"
+    )
+    matched: bool
+    headline: str
+
+
 class ErrorTrend(Model):
     error: str
     count: int

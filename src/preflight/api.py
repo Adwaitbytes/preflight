@@ -31,6 +31,9 @@ from .core.models import (
     AskAnswer,
     AxonInfo,
     DoctorReport,
+    EpochCheck,
+    EpochPreview,
+    EpochWhatIf,
     ErrorExplanation,
     FleetReport,
     Health,
@@ -655,6 +658,53 @@ def network_weather(network: str, window: Annotated[int, Query(ge=10, le=120, de
     net = network_for(network)
     result = cache.get_or(f"weather:{net.endpoint}:{window}", lambda: weather(net, window), CACHE_SECONDS, 60.0)
     assert isinstance(result, Weather)
+    return result
+
+
+def _epoch(network: str, netuid: int, hotkey: str | None, whatif: EpochWhatIf | None) -> EpochPreview:
+    from .core.epoch.preview import EpochState, epoch_state, preview
+
+    net = network_for(network)
+    key = validate.ss58(hotkey) if hotkey else None
+    store.count("epoch", net.name)
+    if net.name in ("local", "custom"):
+        state = epoch_state(net, netuid)
+    else:
+        cached = cache.get_or(f"epoch:{net.endpoint}:{netuid}", lambda: epoch_state(net, netuid), CACHE_SECONDS * 5, 120.0)
+        assert isinstance(cached, EpochState)
+        state = cached
+    return preview(state.subnet, state.epoch_block, hotkey=key, whatif=whatif)
+
+
+@app.get("/v1/epoch/{network}/{netuid}", response_model=EpochPreview)
+def epoch_preview(
+    network: str,
+    netuid: Annotated[int, Path(ge=0, le=validate.MAX_NETUID)],
+    hotkey: Annotated[str | None, Query(description="Put this hotkey's UID first")] = None,
+) -> EpochPreview:
+    """The next epoch before it runs: Yuma consensus's incentive per UID, computed off-chain from live state."""
+    return _epoch(network, netuid, hotkey, None)
+
+
+@app.post("/v1/epoch/{network}/{netuid}", response_model=EpochPreview)
+def epoch_whatif(
+    network: str,
+    netuid: Annotated[int, Path(ge=0, le=validate.MAX_NETUID)],
+    body: EpochWhatIf,
+    hotkey: Annotated[str | None, Query(description="Put this hotkey's UID first")] = None,
+) -> EpochPreview:
+    """The next epoch with changes applied: a different kappa, validators offline, or new weight rows."""
+    return _epoch(network, netuid, hotkey, body)
+
+
+@app.get("/v1/epoch/{network}/{netuid}/check", response_model=EpochCheck)
+def epoch_check(network: str, netuid: Annotated[int, Path(ge=0, le=validate.MAX_NETUID)]) -> EpochCheck:
+    """The last epoch recomputed from the state before it, against what the chain stored."""
+    from .core.epoch.preview import check_last_epoch
+
+    net = network_for(network)
+    result = cache.get_or(f"epoch-check:{net.endpoint}:{netuid}", lambda: check_last_epoch(net, netuid), DIRECTORY_TTL * 5, DIRECTORY_STALE)
+    assert isinstance(result, EpochCheck)
     return result
 
 

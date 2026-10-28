@@ -1,0 +1,42 @@
+# 007 Epoch Lab: the next epoch, computed off-chain and checked against the chain
+
+Date: 2026-10-29
+
+## Why not a fork
+
+A Chopsticks fork runs the real runtime, but building a block on a fork that lazy-loads from the
+public finney endpoint stalled: `dev_newBlock` ran for over 8 minutes at 1.6% CPU waiting on
+storage pages the endpoint load-sheds (measured 2026-10-29, fork at block 9,384,834). An epoch
+needs a block. Forks fed from a full state snapshot report 30 to 90 s per block and about 90 s
+per triggered epoch. Neither fits a web page or a chat reply.
+
+## What instead
+
+`src/preflight/core/epoch/yuma.py` ports `epoch_dense_mechanism` from
+`pallets/subtensor/src/epoch/run_epoch.rs` up to the incentive vector, and `weighted_median`
+from `epoch/math.rs`: activity cutoff, the weights-min-stake filter, permits, active stake,
+self-weight and outdated-weight masks, row normalization, the stake-weighted median at kappa,
+clipping, ranks. Floats stand in for I32F32. It reads one subnet snapshot, the same one the
+Doctor reads, so a preview costs one snapshot read (1 to 3.4 s) and every what-if after it is
+free. The API caches the snapshot for 60 s and shares it across previews and what-ifs.
+
+## Measured against the chain
+
+State at block E-1, epoch at E (`LastMechansimStepBlock`), compared with `Incentive` at E:
+
+| Subnet | UIDs within one u16 step | Note |
+|---|---|---|
+| SN1, SN3, SN8, SN9, SN19, SN56, SN64 | 256 of 256 | |
+| SN4 | 254 of 256, largest gap 2 steps | |
+| SN51 | 245 of 256, 0.25% of incentive in total | commit-reveal: a validator's sealed weights opened in the epoch block, after the state read |
+
+SN19 and SN64 are recorded in `tests/fixtures/epochs/finney/` and must match exactly in CI;
+SN51 is recorded to keep the gap explained. Every preview page also calls
+`/v1/epoch/{network}/{netuid}/check`, which repeats the comparison for the subnet's latest epoch.
+
+## Limits, stated where they apply
+
+- Incentive only. Dividends depend on bonds (Yuma3, liquid alpha) and are not computed yet
+- Commit-reveal subnets: sealed commits are encrypted until revealed, so validators count with
+  the weights they last revealed; the preview says how many commits are waiting
+- `get_next_epoch_start_block` returns last epoch plus tempo; the epoch runs in the block after

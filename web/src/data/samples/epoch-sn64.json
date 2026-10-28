@@ -1,0 +1,418 @@
+{
+ "preview": {
+  "chain": {
+   "network": "finney",
+   "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+   "block": 9385153,
+   "block_hash": "0x5588420efe50684378c56570639170ccbb1414a78785ff7c0d7c73b74d7f1d95",
+   "runtime_spec": 486
+  },
+  "netuid": 64,
+  "name": "Chutes",
+  "epoch_block": 9385244,
+  "blocks_until": 91,
+  "seconds_until": 1092,
+  "kappa": 0.49999237048905165,
+  "commit_reveal": false,
+  "sealed_commits": 0,
+  "headline": "SN64's next epoch (block 9,385,244, in about 18 min) pays 18 UIDs; the top miner, UID 194, takes 16.5%, if validators keep their current weights",
+  "focus": null,
+  "miners": [
+   {
+    "uid": 194,
+    "hotkey": "5FEm1meweWcvYcsWUZi6gto8i1F3GtVGQqzqAtMkvgntBovj",
+    "incentive_now": 0.16643015182726786,
+    "incentive_next": 0.1647110820089696,
+    "change": -0.010329076789417435,
+    "support": 0.1648989637902583,
+    "clipped": 0.003055084876980696,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 207,
+    "hotkey": "5CSa1rZAzh8Nf9nT9wMBghE6DPzTFoEdWZaRXD6mdVBkVJhw",
+    "incentive_now": 0.15841916533150224,
+    "incentive_next": 0.15947704990890185,
+    "change": 0.006677756287794587,
+    "support": 0.15934625111706263,
+    "clipped": 0.001098622857571785,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 177,
+    "hotkey": "5CMUxZ9EQpRsxtuFE3f8vcUoXheZMWnHex4WQ2dJCzxwMHaM",
+    "incentive_now": 0.1347829404135195,
+    "incentive_next": 0.13526156939769035,
+    "change": 0.0035511095299035,
+    "support": 0.1351446152538557,
+    "clipped": 0.0010541547228161141,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 254,
+    "hotkey": "5CXtLcdfx14eBZbZvpqXjPPrknw2rgwwGBnHZcZJr34wJdfu",
+    "incentive_now": 0.07695124742504006,
+    "incentive_next": 0.07706458726773063,
+    "change": 0.0014728785625077873,
+    "support": 0.07699610577047085,
+    "clipped": 0.0010301856594497893,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 21,
+    "hotkey": "5EUtk2S5cVnvayVEP9oya56sJwVENaWvD3FyrmDETdu4ri6a",
+    "incentive_now": 0.07365529869535363,
+    "incentive_next": 0.07398115544525523,
+    "change": 0.004424077502548428,
+    "support": 0.07392132034580856,
+    "clipped": 0.0011100043014109495,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 8,
+    "hotkey": "5CUQK1orC4gBwCwV36AtSvHX4ZDJzqF2ibeWmw69usiG277u",
+    "incentive_now": 0.07386892500190738,
+    "incentive_next": 0.07358671213809116,
+    "change": -0.0038204544577971028,
+    "support": 0.0736177808410782,
+    "clipped": 0.002339112687137379,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 145,
+    "hotkey": "5FEqkBXYvYxWA4yvGBMPuAcXA8Egj44KbtQkyzFRRMe3zir5",
+    "incentive_now": 0.06083772030212863,
+    "incentive_next": 0.06097188982786673,
+    "change": 0.0022053674113985656,
+    "support": 0.060917424750979804,
+    "clipped": 0.0010255292600614974,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 14,
+    "hotkey": "5CSng9xqwnpdDjMvYM6sSdUkGX599cj5Xo3sqKNpUatgRXkr",
+    "incentive_now": 0.05703822384985122,
+    "incentive_next": 0.05698686407312201,
+    "change": -0.0009004448817413597,
+    "support": 0.056968139304744814,
+    "clipped": 0.0015898368886719805,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 52,
+    "hotkey": "5DSNQRRFBsmpw9Ez36rj3816XdTq9b7rsdq27KhmbKKcUtJj",
+    "incentive_now": 0.05537499046311131,
+    "incentive_next": 0.055166466907524005,
+    "change": -0.0037656630519190396,
+    "support": 0.055190428625133896,
+    "clipped": 0.002351226617904878,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 82,
+    "hotkey": "5G6wUYjqDJJXUkc5NWT2piydQSBJFuVak9mtCPMUqwByDGzc",
+    "incentive_now": 0.03405813687342641,
+    "incentive_next": 0.035472620769941385,
+    "change": 0.04153145257979788,
+    "support": 0.03546177248513898,
+    "clipped": 0.0016125667371875707,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 86,
+    "hotkey": "5EbiNautKicKhkGsy3ohkboFieVAp9KChgbG59jRKCdF9r4d",
+    "incentive_now": 0.025406271457999542,
+    "incentive_next": 0.02509917008424451,
+    "change": -0.012087620738159733,
+    "support": 0.02516537566279018,
+    "clipped": 0.004543669490471025,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 229,
+    "hotkey": "5GdixMQYuZKmt48sCLtnSZKtFGneTri47KtY8ayjMkdhTTES",
+    "incentive_now": 0.02136263065537499,
+    "incentive_next": 0.021025690707469857,
+    "change": -0.015772399632830694,
+    "support": 0.021082975494235424,
+    "clipped": 0.004629794898484918,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 228,
+    "hotkey": "5FAE5ByHSsV6VKFB8yy2YjG4K3rfUEd17XmktFh4DgG8qufX",
+    "incentive_now": 0.014526588845654994,
+    "incentive_next": 0.014372167140802647,
+    "change": -0.010630279860817795,
+    "support": 0.014407195010656071,
+    "clipped": 0.0043445081648290085,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 29,
+    "hotkey": "5HGZ5W1CaCn8JWbmdX1JA7TMxV139yVmiDCk2uQGgqmFKdSX",
+    "incentive_now": 0.01326009002822919,
+    "incentive_next": 0.013156992846339855,
+    "change": -0.007774998636498937,
+    "support": 0.013164415609562118,
+    "clipped": 0.002480664092823104,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 76,
+    "hotkey": "5HMkY5zffj6VQ3G1KddoRXmKmDrKcfAwpSCqPKq8fHipcc4p",
+    "incentive_now": 0.012771801327534905,
+    "incentive_next": 0.012808318373109468,
+    "change": 0.0028591930486606782,
+    "support": 0.012797519940791842,
+    "clipped": 0.0010757222199899719,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 162,
+    "hotkey": "5GKcFiZKYq7tuYEpyqLVVh2u5MJpHs3jnNYtfffNeDwb3ELi",
+    "incentive_now": 0.010406652933546959,
+    "incentive_next": 0.010275931209387206,
+    "change": -0.012561360986524096,
+    "support": 0.010296378817279581,
+    "clipped": 0.003899989013592675,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 125,
+    "hotkey": "5ECA8dQkwJMd4jKTSZHXS19SRZ8N1wQyiXFbr7o2Dy3Rjmzy",
+    "incentive_now": 0.00912489509422446,
+    "incentive_next": 0.008943274111916597,
+    "change": -0.019903898119641907,
+    "support": 0.008987926174432004,
+    "clipped": 0.006876371856993302,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   },
+   {
+    "uid": 235,
+    "hotkey": "5D7yo4i5Rqc3xGVFTJB17AotAvUm5kJgfRcjBHG2FDfrkGqZ",
+    "incentive_now": 0.0015564202334630351,
+    "incentive_next": 0.001638457781636847,
+    "change": 0.052709124701674194,
+    "support": 0.001635411005720971,
+    "clipped": 5.846478797844057e-05,
+    "validators": 14,
+    "reason": "14 validators weight it and agree"
+   }
+  ],
+  "validators": [
+   {
+    "uid": 1,
+    "hotkey": "5DU1dvXbvjVRs5omKrbZzLNB6ZL9uNnzQrS1H8MFcSdFS7ww",
+    "stake_share": 0.3658094306596898,
+    "trust": 0.9999997401653052,
+    "weighted_uids": 18,
+    "blocks_since_update": 133,
+    "status": "voting",
+    "note": "all of its weight survives consensus"
+   },
+   {
+    "uid": 252,
+    "hotkey": "5E2LP6EnZ54m3wS8s1yPvD5c3xo71kQroBw7aUVK32TKeZ5u",
+    "stake_share": 0.2398119987272966,
+    "trust": 0.9959723445034644,
+    "weighted_uids": 18,
+    "blocks_since_update": 372,
+    "status": "voting",
+    "note": "0.403% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 59,
+    "hotkey": "5CS3g6nVJM6ouns8n9buN9CzFf2C1YDHVcVGRcxoirKs2xbV",
+    "stake_share": 0.2030051332427287,
+    "trust": 0.99992298313119,
+    "weighted_uids": 18,
+    "blocks_since_update": 127,
+    "status": "voting",
+    "note": "0.0077% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 46,
+    "hotkey": "5CAAxTpdKUAkQ28aYAPABGXxSGpAkQ6u8jQPwmg5mMaKpQ1C",
+    "stake_share": 0.08854646495742823,
+    "trust": 0.9997221524495264,
+    "weighted_uids": 18,
+    "blocks_since_update": 111,
+    "status": "voting",
+    "note": "0.0278% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 61,
+    "hotkey": "5GRbxcRk3x7DqTsyi9ucGVsF43hrSLM7CXmiSWjr7UeKCdXc",
+    "stake_share": 0.054643070927181,
+    "trust": 0.9852200869237863,
+    "weighted_uids": 18,
+    "blocks_since_update": 128,
+    "status": "voting",
+    "note": "1.48% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 71,
+    "hotkey": "5HTn5NcpCMabvHysyESrNirifM4GQqQJSnBT64kM7qCBas64",
+    "stake_share": 0.013540768736710859,
+    "trust": 0.9999162621197432,
+    "weighted_uids": 18,
+    "blocks_since_update": 127,
+    "status": "voting",
+    "note": "0.00837% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 225,
+    "hotkey": "5GP7c3fFazW9GXK8Up3qgu2DJBk8inu4aK9TZy3RuoSWVCMi",
+    "stake_share": 0.012074611166881424,
+    "trust": 0.9959815953916361,
+    "weighted_uids": 18,
+    "blocks_since_update": 363,
+    "status": "voting",
+    "note": "0.402% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 147,
+    "hotkey": "5DCM61YYX8kJoFaCytd8Cq9zncz2fvUQ3Xkht8ZfuMiWSL64",
+    "stake_share": 0.00585912028231931,
+    "trust": 0.9998475227426121,
+    "weighted_uids": 18,
+    "blocks_since_update": 123,
+    "status": "voting",
+    "note": "0.0152% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 234,
+    "hotkey": "5G9hfkx9wGB1CLMT9WXkpHSAiYzjZb5o1Boyq4KAdDhjwrc5",
+    "stake_share": 0.00488997487355449,
+    "trust": 0.9959723445034644,
+    "weighted_uids": 18,
+    "blocks_since_update": 363,
+    "status": "voting",
+    "note": "0.403% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 6,
+    "hotkey": "5FLoWCDovMPeH3Gv4syQSZ8TuKcMv6N27g8diDU8zJSeRv8m",
+    "stake_share": 0.004763195971226579,
+    "trust": 0.9959723445034644,
+    "weighted_uids": 18,
+    "blocks_since_update": 366,
+    "status": "voting",
+    "note": "0.403% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 84,
+    "hotkey": "5DUEMEBMP64qHfR8YKRBtNS338uegXdAqq4sDZN95Mi64MUV",
+    "stake_share": 0.0034507674124785778,
+    "trust": 0.9999488620172673,
+    "weighted_uids": 18,
+    "blocks_since_update": 130,
+    "status": "voting",
+    "note": "0.00511% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 205,
+    "hotkey": "5FxupdBah7dBxJrpBD8iCWXpsriHac53uRifrsa4YX8w6468",
+    "stake_share": 0.0017781707083307841,
+    "trust": 0.9960077273072856,
+    "weighted_uids": 18,
+    "blocks_since_update": 370,
+    "status": "voting",
+    "note": "0.399% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 220,
+    "hotkey": "5GbxGHN38nvhzNyLd5eSinCniQjshEvpuhQVjantdgTfiEhN",
+    "stake_share": 0.0012228782016303205,
+    "trust": 0.9959723445034644,
+    "weighted_uids": 18,
+    "blocks_since_update": 223,
+    "status": "voting",
+    "note": "0.403% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 158,
+    "hotkey": "5DqctMkKx7dQqYojkjvJhCxY8tqkEfWtJCJu3bd3K39VUiQB",
+    "stake_share": 0.0006044141325432765,
+    "trust": 0.9959723445034644,
+    "weighted_uids": 18,
+    "blocks_since_update": 372,
+    "status": "voting",
+    "note": "0.403% of its weight sits above consensus and is cut"
+   },
+   {
+    "uid": 145,
+    "hotkey": "5FEqkBXYvYxWA4yvGBMPuAcXA8Egj44KbtQkyzFRRMe3zir5",
+    "stake_share": 0.0,
+    "trust": 0.0,
+    "weighted_uids": 0,
+    "blocks_since_update": 4578542,
+    "status": "inactive",
+    "note": "last set weights 4,578,542 blocks before the epoch, past the 5,000 block cutoff, so its stake does not vote"
+   },
+   {
+    "uid": 194,
+    "hotkey": "5FEm1meweWcvYcsWUZi6gto8i1F3GtVGQqzqAtMkvgntBovj",
+    "stake_share": 0.0,
+    "trust": 0.0,
+    "weighted_uids": 0,
+    "blocks_since_update": 845332,
+    "status": "inactive",
+    "note": "last set weights 845,332 blocks before the epoch, past the 5,000 block cutoff, so its stake does not vote"
+   },
+   {
+    "uid": 254,
+    "hotkey": "5CXtLcdfx14eBZbZvpqXjPPrknw2rgwwGBnHZcZJr34wJdfu",
+    "stake_share": 0.0,
+    "trust": 0.0,
+    "weighted_uids": 0,
+    "blocks_since_update": 4479536,
+    "status": "inactive",
+    "note": "last set weights 4,479,536 blocks before the epoch, past the 5,000 block cutoff, so its stake does not vote"
+   }
+  ],
+  "earners_now": 18,
+  "earners_next": 18,
+  "whatif": [],
+  "notes": [
+   "Computed off-chain with Yuma consensus's own incentive math on live state at block 9,385,153; the chain pays this at block 9,385,244 unless validators set new weights first",
+   "Consensus cuts 0.192% of all stake weighted weight this epoch: a weight survives only up to what validators holding kappa, 50.0% of stake, agree on",
+   "Dividends are not part of this preview: they depend on bonds, which this computes only for incentive"
+  ]
+ },
+ "check": {
+  "chain": {
+   "network": "finney",
+   "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+   "block": 9384882,
+   "block_hash": "0x87766350b8c855c2eabbc4041af439f6e6b7e695dec2382f120d849f5274db7e",
+   "runtime_spec": 486
+  },
+  "netuid": 64,
+  "epoch_block": 9384883,
+  "uids": 256,
+  "exact": 256,
+  "max_error": 1,
+  "total_error": 0.00019836728465705348,
+  "matched": true,
+  "headline": "Matched the chain: all 256 UIDs at SN64's last epoch (block 9,384,883) to the last step the chain stores"
+ }
+}

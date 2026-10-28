@@ -5,6 +5,8 @@
 
 import type { z } from "zod";
 import {
+  epochCheckSchema,
+  epochPreviewSchema,
   houseStatsSchema,
   incentiveChangeSchema,
   liveFeedSchema,
@@ -20,6 +22,9 @@ import type { NetworkId } from "./networks";
 import type {
   AskAnswer,
   DoctorReport,
+  EpochCheck,
+  EpochPreview,
+  EpochWhatIf,
   ErrorExplanation,
   HealthScores,
   IncentiveChange,
@@ -82,6 +87,10 @@ export interface LiveApi {
   weather(network: NetworkId, window?: number, signal?: AbortSignal): Promise<ApiResult<Weather>>;
   /** Why a UID's incentive moved over the last `epochs` epochs */
   change(network: NetworkId, hotkey: string, netuid: number, epochs: number, signal?: AbortSignal): Promise<ApiResult<IncentiveChange>>;
+  /** The next epoch before it runs; with `whatif`, recomputed with those changes applied */
+  epoch(network: NetworkId, netuid: number, options?: { hotkey?: string; whatif?: EpochWhatIf; signal?: AbortSignal }): Promise<ApiResult<EpochPreview>>;
+  /** The last epoch recomputed from the state before it, against what the chain stored */
+  epochCheck(network: NetworkId, netuid: number, signal?: AbortSignal): Promise<ApiResult<EpochCheck>>;
 }
 
 export type HttpApi = PreflightApi & ScoresApi & LiveApi;
@@ -235,6 +244,14 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     weather: (network, window = 60, signal) => parsed(`/v1/weather/${network}?window=${Math.trunc(window)}`, weatherSchema, { signal }),
     change: (network, hotkey, netuid, epochs, signal) =>
       parsed(`/v1/change/${network}/${enc(hotkey)}?netuid=${Math.trunc(netuid)}&epochs=${Math.trunc(epochs)}`, incentiveChangeSchema, { signal }),
+    epoch(network, netuid, { hotkey, whatif, signal } = {}) {
+      const suffix = hotkey ? `?hotkey=${enc(hotkey)}` : "";
+      const path = `/v1/epoch/${network}/${Math.trunc(netuid)}${suffix}`;
+      return whatif
+        ? parsed(path, epochPreviewSchema, { method: "POST", body: JSON.stringify(whatif), signal })
+        : parsed(path, epochPreviewSchema, { signal });
+    },
+    epochCheck: (network, netuid, signal) => parsed(`/v1/epoch/${network}/${Math.trunc(netuid)}/check`, epochCheckSchema, { signal }),
   };
 }
 
