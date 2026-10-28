@@ -91,7 +91,12 @@ def describe(call: dict[str, Any], signer: Any) -> tuple[ActivityKind, str, int 
         if function in {"move_stake", "swap_stake", "transfer_stake"}:
             origin = a.get("origin_netuid")
             target = a.get("destination_netuid")
-            route = f" from SN{origin} to SN{target}" if origin is not None and target is not None else ""
+            if origin is not None and origin == target:
+                route = f" between hotkeys on SN{origin}"
+            elif origin is not None and target is not None:
+                route = f" from SN{origin} to SN{target}"
+            else:
+                route = ""
             return "stake", f"{who} moved stake{route}", netuid if netuid is not None else target if isinstance(target, int) else None, None
         if function.startswith("serve_axon"):
             return "serve", f"{who} published its axon on {sn}", netuid, None

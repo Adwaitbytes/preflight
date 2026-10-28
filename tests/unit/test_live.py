@@ -29,3 +29,9 @@ def test_wrappers_unwrap_to_the_inner_call() -> None:
 def test_shielded_and_unknown_calls_are_honest() -> None:
     assert describe(call("MevShield", "submit_encrypted", ciphertext="0x00"), SIGNER)[0] == "shielded"
     assert describe(call("Foo", "bar"), SIGNER)[1] == "5HbScN...FZdT called Foo.bar"
+
+
+def test_moving_stake_within_a_subnet_says_between_hotkeys() -> None:
+    sentence = describe(call("SubtensorModule", "move_stake", origin_netuid=58, destination_netuid=58), SIGNER)[1]
+    assert sentence.endswith("moved stake between hotkeys on SN58")
+    assert describe(call("SubtensorModule", "move_stake", origin_netuid=3, destination_netuid=9), SIGNER)[1].endswith("from SN3 to SN9")

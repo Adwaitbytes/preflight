@@ -146,6 +146,29 @@ def mining_economics(netuid: int, network: str = "finney") -> dict[str, Any]:
 
 
 @server.tool()
+def recent_activity(network: str = "finney", blocks: int = 8, netuid: int | None = None, address: str | None = None) -> dict[str, Any]:
+    """What just happened on chain: every extrinsic in the last few blocks (up to 12) as a plain
+    sentence, with failures and their error names. Filter by subnet or by an address."""
+    from .core.live.feed import feed
+
+    try:
+        result = feed(Network.resolve(network), None, max(1, min(blocks, 12)))
+    except (ChainUnreachable, ValueError) as error:
+        return _failure(error)
+    activities = [
+        a
+        for b in result.blocks
+        for a in b.activities
+        if (netuid is None or a.netuid == netuid) and (not address or address == a.signer or address[:6] in a.summary)
+    ]
+    failed = sum(1 for a in activities if not a.success)
+    return {
+        "summary": f"{len(activities)} activities in blocks {result.blocks[0].number} to {result.head}, {failed} failed",
+        "result": [a.model_dump(mode="json") for a in activities],
+    }
+
+
+@server.tool()
 def launch_plan(network: str = "finney") -> dict[str, Any]:
     """What launching a subnet costs right now, which subnet would be replaced at the cap, the rate limit,
     and the timeline from registration to first emissions in real block numbers."""

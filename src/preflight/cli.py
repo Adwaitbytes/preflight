@@ -253,6 +253,50 @@ def mine(
 
 
 @app.command()
+def live(
+    network: NetworkOpt = "finney",
+    netuid: Annotated[int | None, typer.Option("--netuid", help="Only this subnet")] = None,
+    address: Annotated[str | None, typer.Option("--address", help="Only activity signed by or naming this ss58")] = None,
+    kind: Annotated[str | None, typer.Option("--kind", help="weights, register, stake, unstake, serve, transfer, commitment, shielded, evm, subnet, other")] = None,
+    failures: Annotated[bool, typer.Option("--failures", help="Only failed extrinsics")] = False,
+    every: Annotated[float, typer.Option("--every", help="Seconds between polls")] = 6.0,
+) -> None:
+    """Watch the chain live: every extrinsic as a plain sentence, as blocks land. Ctrl+C stops"""
+    import time
+
+    from .core.live.feed import feed
+    from .core.models import Activity
+
+    net = Network.resolve(network)
+    styles = {"weights": "cyan", "register": "green", "stake": "blue", "unstake": "magenta", "serve": "yellow", "transfer": "bright_white", "subnet": "bold yellow"}
+
+    def keep(a: Activity) -> bool:
+        if netuid is not None and a.netuid != netuid:
+            return False
+        if address and address not in (a.signer or "") and address[:6] not in a.summary:
+            return False
+        if kind and a.kind != kind:
+            return False
+        return not failures or not a.success
+
+    last: int | None = None
+    try:
+        while True:
+            result = run(lambda after=last: feed(net, after, 4 if after is None else 12))
+            for block in result.blocks:
+                shown = [a for a in block.activities if keep(a)]
+                console.print(f"[dim]block {block.number:,}  {len(block.activities)} extrinsics, {block.failed} failed, {block.system_calls} housekeeping[/dim]")
+                for a in shown:
+                    mark = "[green]ok [/green]" if a.success else "[red]err[/red]"
+                    error = f"  [red]{a.error}[/red]  [dim]preflight tx {a.ref} --network {network}[/dim]" if a.error else ""
+                    console.print(f"  {mark} [{styles.get(a.kind, 'white')}]{a.kind:<10}[/] {a.summary}{error}")
+                last = block.number
+            time.sleep(every)
+    except KeyboardInterrupt:
+        console.print("[dim]stopped[/dim]")
+
+
+@app.command()
 def plan(network: NetworkOpt = "finney", as_json: JsonOpt = False) -> None:
     """What launching a subnet costs now, which subnet it would replace, and the timeline"""
     from .core.plan.launch import launch_plan
