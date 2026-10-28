@@ -11,6 +11,7 @@ import { NetworkSwitch } from "./network-switch";
 import { ThemeToggle } from "./theme-toggle";
 
 export const NAV = [
+  { href: "/live", label: "Live" },
   { href: "/sim", label: "Simulate" },
   { href: "/subnets", label: "Subnets" },
   { href: "/plan", label: "Launch" },
@@ -19,6 +20,20 @@ export const NAV = [
 
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** Live carries a small beating dot, so the stream reads as running from anywhere on the site */
+function NavLabel({ href, label }: { href: string; label: string }) {
+  if (href !== "/live") return label;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span aria-hidden className="relative inline-flex size-1.5">
+        <span className="live-ping absolute inset-0 rounded-full bg-healthy" />
+        <span className="relative size-1.5 rounded-full bg-healthy" />
+      </span>
+      {label}
+    </span>
+  );
 }
 
 export function SiteHeader() {
@@ -49,7 +64,7 @@ export function SiteHeader() {
                   active ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {item.label}
+                <NavLabel href={item.href} label={item.label} />
               </Link>
             );
           })}
@@ -84,7 +99,7 @@ export function SiteHeader() {
                   active ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {item.label}
+                <NavLabel href={item.href} label={item.label} />
               </Link>
             );
           })}

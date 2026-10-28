@@ -5,6 +5,7 @@ import { Blocks, Network, ShieldCheck } from "lucide-react";
 import { AnswerCard } from "@/components/landing/answer-card";
 import { Comparison } from "@/components/landing/comparison";
 import { FlightPath } from "@/components/landing/flight-path";
+import { LiveEntry } from "@/components/landing/live-entry";
 import { DirectoryPreview, DoctorPreview, SimPreview, TxPreview } from "@/components/landing/modules";
 import { Omnibox, type Example } from "@/components/landing/omnibox";
 import { Container } from "@/components/ui/container";
@@ -66,6 +67,8 @@ export default function Home() {
           {answer && <AnswerCard report={answer} />}
         </Container>
       </section>
+
+      <LiveEntry />
 
       <section aria-labelledby="modules" className="border-t border-line bg-surface/40 py-20 sm:py-24">
         <Container>

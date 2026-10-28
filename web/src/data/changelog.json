@@ -1,5 +1,55 @@
 [
   {
+    "date": "2026-10-28T11:47:32+05:30",
+    "sha": "cb93f78",
+    "subject": "preflight live in the terminal and recent_activity for MCP"
+  },
+  {
+    "date": "2026-10-28T11:44:32+05:30",
+    "sha": "85d72d9",
+    "subject": "Live feed: every extrinsic as a plain sentence, per-block cache, polling endpoint"
+  },
+  {
+    "date": "2026-10-28T11:42:54+05:30",
+    "sha": "0d025eb",
+    "subject": "Testnet run by proof of work registration with zero TAO: miner and validator registered, PF103, PF108, PF106 and SettingWeightsTooFast confirmed on real testnet; simulator records SDK plan refusals"
+  },
+  {
+    "date": "2026-10-28T11:38:50+05:30",
+    "sha": "8d92bd9",
+    "subject": "Testnet run ready: wallets created, one command that simulates before every write"
+  },
+  {
+    "date": "2026-10-28T11:37:42+05:30",
+    "sha": "6c7d062",
+    "subject": "Alerts verified live through the real Telegram bot"
+  },
+  {
+    "date": "2026-10-28T11:26:51+05:30",
+    "sha": "45cd64e",
+    "subject": "CI: run the GitHub Action by its public name"
+  },
+  {
+    "date": "2026-10-28T04:19:00+05:30",
+    "sha": "ffed3b6",
+    "subject": "Testnet verification and differences"
+  },
+  {
+    "date": "2026-10-28T04:18:15+05:30",
+    "sha": "5c748b4",
+    "subject": "Root network (SN0) is not diagnosed as a subnet; verified every read-only feature on testnet"
+  },
+  {
+    "date": "2026-10-28T04:04:58+05:30",
+    "sha": "a143ed6",
+    "subject": "Telegram delivery tested end to end against a local Bot API: /start links the chat, the alert with its fix is sent once"
+  },
+  {
+    "date": "2026-10-28T04:03:26+05:30",
+    "sha": "787b7b6",
+    "subject": "Run again reads the chain fresh (cached answers hid the fix on localnet); recorded demo run"
+  },
+  {
     "date": "2026-10-28T03:56:09+05:30",
     "sha": "89f1e71",
     "subject": "Record final Lighthouse numbers"

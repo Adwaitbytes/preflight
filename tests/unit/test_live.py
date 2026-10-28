@@ -35,3 +35,7 @@ def test_moving_stake_within_a_subnet_says_between_hotkeys() -> None:
     sentence = describe(call("SubtensorModule", "move_stake", origin_netuid=58, destination_netuid=58), SIGNER)[1]
     assert sentence.endswith("moved stake between hotkeys on SN58")
     assert describe(call("SubtensorModule", "move_stake", origin_netuid=3, destination_netuid=9), SIGNER)[1].endswith("from SN3 to SN9")
+
+
+def test_one_uid_is_singular() -> None:
+    assert describe(call("SubtensorModule", "set_weights", netuid=1, dests=[4]), SIGNER)[1].endswith("for 1 UID")

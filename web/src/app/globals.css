@@ -348,6 +348,53 @@
     0 0 0 4px var(--ring);
 }
 
+/* Live explorer: a calm heartbeat, new rows settle in from above, the block number rolls forward */
+@keyframes live-ping {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(2.8);
+  }
+}
+.live-ping {
+  animation: live-ping 2400ms var(--ease-out-quart) infinite;
+}
+
+@keyframes live-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.live-row-in {
+  animation: live-row-in 220ms var(--ease-out-quart) both;
+}
+
+@keyframes live-tick {
+  from {
+    opacity: 0;
+    transform: translateY(0.45em);
+    filter: blur(2px);
+  }
+}
+.live-tick {
+  animation: live-tick 320ms var(--ease-out-expo) both;
+}
+
+@keyframes live-bar-in {
+  from {
+    transform: scaleY(0);
+  }
+}
+.live-bar-in {
+  transform-origin: bottom;
+  animation: live-bar-in 420ms var(--ease-out-expo) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal="pending"] {
     opacity: 1;

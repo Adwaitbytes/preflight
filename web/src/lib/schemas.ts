@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { DoctorReport, SimResult, TxReport } from "./types";
+import type { DoctorReport, LiveFeed, SimResult, TxReport } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -169,3 +169,35 @@ export type HouseStats = z.infer<typeof houseStatsSchema>;
 
 export const changelogSchema = z.array(z.object({ date: z.string(), sha: z.string(), subject: z.string() }));
 export type ChangelogEntry = z.infer<typeof changelogSchema>[number];
+
+const activity = z.object({
+  block: z.number().int(),
+  index: z.number().int(),
+  ref: z.string(),
+  hash: z.string().nullable(),
+  kind: z.enum(["weights", "register", "stake", "unstake", "serve", "transfer", "commitment", "shielded", "evm", "subnet", "other"]),
+  pallet: z.string(),
+  call: z.string(),
+  signer: z.string().nullable(),
+  netuid: z.number().int().nullable(),
+  summary: z.string(),
+  success: z.boolean(),
+  error: z.string().nullish(),
+  amount: z.string().nullish(),
+});
+
+/** GET /v1/live/{network}: polled every few seconds, so a malformed block is rejected here rather than in the stream */
+export const liveFeedSchema = z.object({
+  chain: chainRef,
+  head: z.number().int(),
+  blocks: z.array(
+    z.object({
+      number: z.number().int(),
+      hash: z.string(),
+      timestamp: z.string().nullable(),
+      activities: z.array(activity),
+      system_calls: z.number().int(),
+      failed: z.number().int(),
+    }),
+  ),
+}) satisfies z.ZodType<LiveFeed>;

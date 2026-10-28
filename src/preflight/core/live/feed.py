@@ -74,7 +74,7 @@ def describe(call: dict[str, Any], signer: Any) -> tuple[ActivityKind, str, int 
     if module == "SubtensorModule":
         if "weights" in function:
             uids = a.get("dests") or a.get("uids")
-            count = f" for {len(uids)} UIDs" if isinstance(uids, list) else ""
+            count = f" for {len(uids)} UID{'' if len(uids) == 1 else 's'}" if isinstance(uids, list) else ""
             verb = "committed encrypted weights" if "commit" in function else "revealed weights" if "reveal" in function else "set weights"
             return "weights", f"Validator {who} {verb} on {sn}{count}", netuid, None
         if "register" in function and function != "register_network":

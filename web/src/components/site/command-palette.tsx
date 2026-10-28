@@ -9,6 +9,7 @@ import {
   FlaskConical,
   Home,
   Moon,
+  Radio,
   Rocket,
   ScrollText,
   Stethoscope,
@@ -28,6 +29,7 @@ import { useSwitchNetwork } from "./network-switch";
 
 const PAGES: { href: string; label: string; icon: LucideIcon; keywords: string[] }[] = [
   { href: "/", label: "Home", icon: Home, keywords: ["doctor", "landing"] },
+  { href: "/live", label: "Live explorer", icon: Radio, keywords: ["live", "stream", "blocks", "activity", "feed", "watch", "explorer", "realtime"] },
   { href: "/guide", label: "Guide", icon: BookOpen, keywords: ["learn", "docs", "tutorial", "how it works", "newbie"] },
   { href: "/sim", label: "Simulate a transaction", icon: FlaskConical, keywords: ["simulator", "dry run", "fork"] },
   { href: "/subnets", label: "Subnet directory", icon: Boxes, keywords: ["subnets", "health", "capabilities"] },

@@ -6,6 +6,7 @@
 import type { z } from "zod";
 import {
   houseStatsSchema,
+  liveFeedSchema,
   neuronHistorySchema,
   sharedReportSchema,
   type HouseStats,
@@ -20,6 +21,7 @@ import type {
   ErrorExplanation,
   HealthScores,
   LaunchPlan,
+  LiveFeed,
   ServiceHealth,
   SimRequest,
   SimResult,
@@ -68,7 +70,13 @@ export interface ScoresApi {
   scores(network: NetworkId): Promise<ApiResult<HealthScores>>;
 }
 
-export type HttpApi = PreflightApi & ScoresApi;
+/** Polled from the browser by the live explorer; offline mode replays a recording on the client instead */
+export interface LiveApi {
+  /** Without `after`, the latest `limit` blocks; with it, only blocks newer than `after`. Oldest first */
+  live(network: NetworkId, after: number | null, limit: number, signal?: AbortSignal): Promise<ApiResult<LiveFeed>>;
+}
+
+export type HttpApi = PreflightApi & ScoresApi & LiveApi;
 
 export function hasScores(api: PreflightApi): api is HttpApi {
   return "scores" in api && typeof api.scores === "function";
@@ -77,6 +85,8 @@ export function hasScores(api: PreflightApi): api is HttpApi {
 const DEFAULT_TIMEOUT_MS = 45_000;
 // Scoring every subnet takes about 40 s on a cold cache
 const SCORES_TIMEOUT_MS = 90_000;
+// A live poll repeats every few seconds, so a slow one is abandoned rather than waited on
+const LIVE_TIMEOUT_MS = 20_000;
 
 export function errorForStatus(status: number, detail: string | null, retryAfter: string | null): ApiError {
   const message = detail ?? `The API answered ${status}`;
@@ -131,21 +141,27 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
 
   async function call<T>(path: string, guard: Guard, init?: RequestInit, limitMs = timeoutMs): Promise<ApiResult<T>> {
     let response: Response;
+    const timeout = AbortSignal.timeout(limitMs);
     try {
       response = await fetchImpl(`${root}${path}`, {
         ...init,
         headers: { accept: "application/json", ...(init?.body ? { "content-type": "application/json" } : {}) },
-        signal: AbortSignal.timeout(limitMs),
+        signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
         cache: "no-store",
       });
     } catch (cause) {
       const timedOut = cause instanceof DOMException && cause.name === "TimeoutError";
+      const cancelled = init?.signal?.aborted === true;
       return {
         ok: false,
         error: {
           kind: "network",
           status: null,
-          message: timedOut ? `The Preflight API did not answer within ${Math.round(limitMs / 1000)} s` : "Could not reach the Preflight API",
+          message: cancelled
+            ? "The request was cancelled"
+            : timedOut
+              ? `The Preflight API did not answer within ${Math.round(limitMs / 1000)} s`
+              : "Could not reach the Preflight API",
         },
       };
     }
@@ -166,8 +182,8 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     return { ok: true, data: body as T };
   }
 
-  async function parsed<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<ApiResult<T>> {
-    const result = await call<unknown>(path, () => true, init);
+  async function parsed<T>(path: string, schema: z.ZodType<T>, init?: RequestInit, limitMs = timeoutMs): Promise<ApiResult<T>> {
+    const result = await call<unknown>(path, () => true, init, limitMs);
     if (!result.ok) return result;
     const checked = schema.safeParse(result.data);
     return checked.success
@@ -203,6 +219,11 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     share: (kind, payload) => parsed("/v1/reports", sharedReportSchema, { method: "POST", body: JSON.stringify({ kind, payload }) }),
     report: (id) => parsed(`/v1/reports/${enc(id)}`, sharedReportSchema),
     history: (network, hotkey, netuid) => parsed(`/v1/history/${network}/${enc(hotkey)}?netuid=${netuid}`, neuronHistorySchema),
+    live(network, after, limit, signal) {
+      const query = new URLSearchParams({ limit: String(Math.min(12, Math.max(1, Math.trunc(limit)))) });
+      if (after != null) query.set("after", String(after));
+      return parsed(`/v1/live/${network}?${query}`, liveFeedSchema, { signal }, Math.min(timeoutMs, LIVE_TIMEOUT_MS));
+    },
   };
 }
 

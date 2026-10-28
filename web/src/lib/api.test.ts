@@ -51,4 +51,27 @@ describe("createHttpApi", () => {
     const bad = createHttpApi({ baseUrl: "http://api", fetch: fakeFetch(200, { diagnoses: -1 }) });
     expect((await bad.house()).ok).toBe(false);
   });
+  it("asks for blocks after the last one held and validates the feed", async () => {
+    const chain = { network: "finney", endpoint: "wss://x", block: 9380391, block_hash: "0x00" };
+    const urls: string[] = [];
+    const recordingFetch: typeof fetch = async (input) => {
+      urls.push(String(input));
+      return new Response(JSON.stringify({ chain, head: 9380391, blocks: [] }), { status: 200 });
+    };
+    const api = createHttpApi({ baseUrl: "http://api/", fetch: recordingFetch });
+    expect(await api.live("finney", 9380390, 40)).toMatchObject({ ok: true, data: { head: 9380391, blocks: [] } });
+    expect(await api.live("test", null, 6)).toMatchObject({ ok: true });
+    expect(urls).toEqual(["http://api/v1/live/finney?limit=12&after=9380390", "http://api/v1/live/test?limit=6"]);
+    const bad = createHttpApi({ baseUrl: "http://api", fetch: fakeFetch(200, { chain, head: 1, blocks: [{ number: "x" }] }) });
+    expect((await bad.live("finney", null, 12)).ok).toBe(false);
+  });
+
+  it("reports a cancelled live poll without throwing", async () => {
+    const controller = new AbortController();
+    const hanging: typeof fetch = (_input, init) =>
+      new Promise((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError"))));
+    const pending = createHttpApi({ baseUrl: "http://api", fetch: hanging }).live("finney", null, 12, controller.signal);
+    controller.abort();
+    expect(await pending).toEqual({ ok: false, error: { kind: "network", status: null, message: "The request was cancelled" } });
+  });
 });

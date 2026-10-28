@@ -262,7 +262,7 @@ def health() -> ServiceHealth:
 
 
 NO_CDN_QUERY = ("fresh",)
-CDN_SECONDS = {"/v1/live": 6, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/live": 3, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -272,7 +272,9 @@ async def cdn_cache(request: Request, call_next: Callable[[Request], Any]) -> An
     if request.method == "GET" and response.status_code == 200 and not any(q in request.query_params for q in NO_CDN_QUERY):
         for prefix, seconds in CDN_SECONDS.items():
             if request.url.path.startswith(prefix):
-                response.headers["Cache-Control"] = f"public, max-age=0, s-maxage={seconds}, stale-while-revalidate={seconds * 60}"
+                # The live feed is only useful fresh: a stale window would replay old blocks.
+                stale = seconds if prefix == "/v1/live" else seconds * 60
+                response.headers["Cache-Control"] = f"public, max-age=0, s-maxage={seconds}, stale-while-revalidate={stale}"
                 break
     return response
 
