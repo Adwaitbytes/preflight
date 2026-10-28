@@ -39,3 +39,7 @@ def test_moving_stake_within_a_subnet_says_between_hotkeys() -> None:
 
 def test_one_uid_is_singular() -> None:
     assert describe(call("SubtensorModule", "set_weights", netuid=1, dests=[4]), SIGNER)[1].endswith("for 1 UID")
+
+
+def test_limit_variants_of_stake_moves_are_recognised() -> None:
+    assert describe(call("SubtensorModule", "swap_stake_limit", origin_netuid=3, destination_netuid=9), SIGNER)[0] == "stake"

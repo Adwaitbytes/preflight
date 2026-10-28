@@ -88,7 +88,7 @@ def describe(call: dict[str, Any], signer: Any) -> tuple[ActivityKind, str, int 
             amount = _tao(a.get("amount_unstaked"), "alpha")
             what = "all stake" if "all" in function or "full" in function else amount or "stake"
             return "unstake", f"{who} unstaked {what} from {short(a.get('hotkey'))} on {sn}", netuid, amount
-        if function in {"move_stake", "swap_stake", "transfer_stake"}:
+        if function.startswith(("move_stake", "swap_stake", "transfer_stake")):
             origin = a.get("origin_netuid")
             target = a.get("destination_netuid")
             if origin is not None and origin == target:
