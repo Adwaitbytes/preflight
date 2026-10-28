@@ -50,6 +50,7 @@ Testnet SN597 (labo-test) allows proof of work registration at difficulty 1,000,
 
 Found on the way: the Doctor reads the head's parent block, so a diagnosis in the same 12 s as a write can still show the state before it; a second read a block later is correct. The localnet kit waits two blocks after its own writes for the same reason
 
-## Still to do with test TAO (BUILD.md section 12)
+## Closed by the owner, 2026-10-28
 
-Stake the validator so it can hold a permit and set weights, re-run the break scenarios that need no sudo (unserved axon, LAN axon, stale validator, rate limited validator, low stake), and switch the hosted default to testnet with localnet kept as the stage fallback
+- **Hosted default network stays Finney.** Section 12 says to switch the hosted default to testnet after the testnet run. The owner chose to keep Finney: the Day 5 demo and judges' own hotkeys are mainnet, and a mainnet hotkey pasted on a testnet default would read "not registered". Testnet and Local stay one click away in the network switch
+- **Testnet staking is out of scope until test TAO exists.** The validator permit, stale weights and stake threshold scenarios (PF201, PF202, PF204) are proven on localnet by the integration suite (29 of 29 on a fresh chain, in CI on every push). If test TAO arrives, `scripts/testnet_run.sh` runs the remaining steps; the validator coldkey is `5DFVgQQbtgqjxuYzxbcSQPLktKUgnPHFRBdkvPD34kK87cws`
