@@ -30,7 +30,11 @@ finney at block 9,376,777, runtime 486
 | Subnet health and directory | A 0 to 100 health score with its factors, every hyperparameter explained, and 35 curated subnets with sourced summaries and public APIs | `preflight subnet 64`, `preflight find inference` |
 | Local dev kit | A localnet subnet with funded, registered, scored neurons in about 70 s, and eight ways to break it | `preflight local up`, `preflight local break loopback-axon` |
 | Scaffolder | A bittensor 11 subnet with signed requests, pure scoring and tests | `preflight new my-subnet` |
+| Why did my incentive change? | Compares a UID now against N epochs ago and names the validators whose stake weighted support moved it, and what each did: stopped weighting, cut weight, went stale or lost stake | `preflight why <hotkey> --netuid 19 --epochs 3` |
+| Network weather | What is failing on chain right now: failed extrinsics over the last hour of blocks grouped by error, with the subnets each hits, what it means, the fix and one to open | `preflight weather` |
+| Live explorer | Every extrinsic in every block as a plain sentence, as blocks land | `preflight live --failures` |
 | Watch | Telegram alerts when a neuron is deregistered, stops being scored, loses its permit or its incentive halves | `preflight watch add <hotkey> --netuid 64` |
+| Telegram bot | Every tool as a chat command in [@PreflightAlertsbot](https://t.me/PreflightAlertsbot): `/doctor`, `/why`, `/fleet`, `/tx`, `/explain`, `/mine`, `/subnet`, `/weather`, `/live`, `/plan`, `/find`, `/watch`; or paste a hotkey, a block-index or an error | `preflight bot ask "/weather"` |
 | MCP server | The same tools for your own Claude, at no cost | see below |
 
 One engine, many surfaces: every module is a Python function, a CLI command, an HTTP endpoint (`/v1/...`, OpenAPI at `/v1/docs`), an MCP tool and a web view, all speaking the models in `src/preflight/core/models.py`
@@ -62,7 +66,7 @@ Use it in CI: the action boots a localnet subnet and fails the job on findings a
 - **Rules mirror the runtime.** Pruning order, immunity, owner immunity, the set_weights check sequence and axon address validation are ported from subtensor and cite the file and line (`src/preflight/core/chain/registry.py`)
 - **The simulator executes, it does not guess,** when a fork is running. The SDK's own `plan()` dry run returned `ok` for a zero balance registration, a miner setting weights and a stranger calling `start_call`; all three fail on chain, and Preflight's fork reports the exact error. See `docs/decisions/001-simulator.md`
 - **Errors come from the official catalog** (406 chain errors, vendored with a date stamp) plus hand-written traps it does not cover: the MEV shield on registration, loopback axons, reserves too low, burn moving between attempts
-- **Tested on real data.** 90 unit tests including real finney snapshots replayed offline, and a localnet suite that breaks a fresh chain eight ways and asserts the Doctor names each rule
+- **Tested on real data.** 121 unit tests including real finney snapshots replayed offline, and a localnet suite that breaks a fresh chain eight ways and asserts the Doctor names each rule
 
 ## Measured
 
