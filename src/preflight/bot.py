@@ -339,9 +339,13 @@ def watch(args: str, chat_id: str) -> str:
     hotkey = validate.ss58(words[0])
     netuid = _netuid(words[1], usage)
     try:
-        store.add_watch(net.name, hotkey, netuid, chat_id, {})
-    except store.StoreUnavailable as error:
-        return f"Watches are unavailable right now: {escape(str(error))}"
+        outcome = store.add_chat_watch(net.name, hotkey, netuid, chat_id)
+    except store.StoreUnavailable:
+        return "Watches are unavailable right now. Try again in a few minutes"
+    if outcome == "exists":
+        return f"Already watching {escape(short(hotkey))} on SN{netuid} for this chat"
+    if outcome == "full":
+        return f"This chat already watches {store.MAX_WATCHES_PER_CHAT} neurons, the most one chat can"
     return join(
         [
             f"👀 <b>Watching {escape(short(hotkey))} on SN{netuid}</b>",
@@ -359,8 +363,8 @@ def start(args: str, chat_id: str) -> str:
         return "That link code does not look right. Copy it again from the Watch button on Preflight"
     try:
         linked = store.link_chat(code, chat_id)
-    except store.StoreUnavailable as error:
-        return f"Linking is unavailable right now: {escape(str(error))}"
+    except store.StoreUnavailable:
+        return "Linking is unavailable right now. Try again in a few minutes"
     if not linked:
         return "That code was already used or never existed. Make a new one with the Watch button on any Doctor report"
     return "👀 <b>Linked.</b> Preflight is watching your neuron and will message you here when something breaks, with the fix"
@@ -436,7 +440,12 @@ def handle_update(update: dict[str, object], allow: Callable[[str], bool]) -> bo
         telegram.send(chat_id, "Slow down a little: try again in a minute")
         return False
     telegram.typing(chat_id)
-    answer = reply(text, chat_id)
+    try:
+        answer = reply(text, chat_id)
+    except Exception:
+        # Anything unexpected still gets an answer and a 200, or Telegram resends the update for hours
+        log.exception("bot reply failed")
+        answer = "Something went wrong answering that. Try again in a minute"
     try:
         telegram.send(chat_id, answer, html=True)
     except telegram.TelegramUnavailable as error:

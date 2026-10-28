@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { DoctorReport, LiveFeed, SimResult, TxReport } from "./types";
+import type { DoctorReport, IncentiveChange, LiveFeed, SimResult, TxReport, Weather } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -201,3 +201,69 @@ export const liveFeedSchema = z.object({
     }),
   ),
 }) satisfies z.ZodType<LiveFeed>;
+
+const neuronPoint = z.object({
+  block: z.number().int(),
+  uid: z.number().int().nullable(),
+  incentive: z.number(),
+  emission: z.number(),
+  trust: z.number(),
+  rank_by_emission: z.number().int().nullable(),
+  miners: z.number().int(),
+});
+
+/** GET /v1/change/{network}/{hotkey}: read by the browser after the Doctor renders, so a malformed answer stops here */
+export const incentiveChangeSchema = z.object({
+  chain: chainRef,
+  hotkey: z.string(),
+  netuid: z.number().int(),
+  from_block: z.number().int(),
+  to_block: z.number().int(),
+  before: neuronPoint,
+  after: neuronPoint,
+  change: z.number(),
+  headline: z.string(),
+  drivers: z.array(
+    z.object({
+      uid: z.number().int(),
+      hotkey: z.string(),
+      stake_share_before: z.number(),
+      stake_share_after: z.number(),
+      weight_before: z.number(),
+      weight_after: z.number(),
+      support_before: z.number(),
+      support_after: z.number(),
+      blocks_since_update: z.number().int(),
+      reason: z.string(),
+    }),
+  ),
+  notes: z.array(z.string()),
+}) satisfies z.ZodType<IncentiveChange>;
+
+const subnetCount = z.tuple([z.number().int(), z.number().int()]);
+
+/** GET /v1/weather/{network}: polled every minute from the browser */
+export const weatherSchema = z.object({
+  chain: chainRef,
+  from_block: z.number().int(),
+  to_block: z.number().int(),
+  blocks: z.number().int(),
+  extrinsics: z.number().int(),
+  failed: z.number().int(),
+  failure_rate: z.number(),
+  headline: z.string(),
+  top_errors: z.array(
+    z.object({
+      error: z.string(),
+      count: z.number().int(),
+      subnets: z.array(z.number().int()),
+      example_ref: z.string(),
+      title: z.string(),
+      meaning: z.string(),
+      fix: z.string().nullish(),
+    }),
+  ),
+  by_kind: z.record(z.string(), z.number().int()),
+  busiest_subnets: z.array(subnetCount),
+  failing_subnets: z.array(subnetCount),
+}) satisfies z.ZodType<Weather>;

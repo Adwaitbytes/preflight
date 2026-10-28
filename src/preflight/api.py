@@ -17,7 +17,7 @@ from collections import OrderedDict, deque
 from collections.abc import Callable
 from typing import Annotated, Any, Literal
 
-from fastapi import Body, FastAPI, Header, HTTPException, Path, Query, Request
+from fastapi import FastAPI, HTTPException, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -679,20 +679,27 @@ def incentive_change(
 
 
 @app.post(TELEGRAM_WEBHOOK, include_in_schema=False)
-def telegram_webhook(
-    update: Annotated[dict[str, Any], Body()],
-    secret: Annotated[str, Header(alias="X-Telegram-Bot-Api-Secret-Token")] = "",
-) -> dict[str, bool]:
+async def telegram_webhook(request: Request) -> dict[str, bool]:
     """Telegram posts every message to the bot here. Only Telegram knows the secret, set with
-    `preflight bot webhook`; anything else gets a 404 as if the route did not exist."""
+    `preflight bot webhook`; anything else gets a 404 as if the route did not exist, before the
+    body is even read."""
+    from starlette.concurrency import run_in_threadpool
+
     from . import bot
     from .core.watch.telegram import TelegramUnavailable
 
     expected = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
-    if not expected or not hmac.compare_digest(secret.encode(), expected.encode()):
+    given = request.headers.get("x-telegram-bot-api-secret-token", "")
+    if not expected or not hmac.compare_digest(given.encode(), expected.encode()):
         raise HTTPException(404, "Not Found")
     try:
-        answered = bot.handle_update(update, chat_limiter.allow)
+        update = await request.json()
+    except ValueError:
+        return {"ok": False}
+    if not isinstance(update, dict):
+        return {"ok": False}
+    try:
+        answered = await run_in_threadpool(bot.handle_update, update, chat_limiter.allow)
     except TelegramUnavailable as error:
         # A 200 stops Telegram retrying an answer it could not deliver; the failure is logged.
         bot.log.warning("Telegram reply failed: %s", error)

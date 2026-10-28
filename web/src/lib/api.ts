@@ -6,9 +6,11 @@
 import type { z } from "zod";
 import {
   houseStatsSchema,
+  incentiveChangeSchema,
   liveFeedSchema,
   neuronHistorySchema,
   sharedReportSchema,
+  weatherSchema,
   type HouseStats,
   type NeuronHistory,
   type SharedReport,
@@ -20,6 +22,7 @@ import type {
   DoctorReport,
   ErrorExplanation,
   HealthScores,
+  IncentiveChange,
   LaunchPlan,
   LiveFeed,
   ServiceHealth,
@@ -28,6 +31,7 @@ import type {
   SubnetCard,
   SubnetDetail,
   TxReport,
+  Weather,
 } from "./types";
 
 import type { ApiError } from "./api-errors";
@@ -74,6 +78,10 @@ export interface ScoresApi {
 export interface LiveApi {
   /** Without `after`, the latest `limit` blocks; with it, only blocks newer than `after`. Oldest first */
   live(network: NetworkId, after: number | null, limit: number, signal?: AbortSignal): Promise<ApiResult<LiveFeed>>;
+  /** Failures over the last `window` blocks, grouped by error */
+  weather(network: NetworkId, window?: number, signal?: AbortSignal): Promise<ApiResult<Weather>>;
+  /** Why a UID's incentive moved over the last `epochs` epochs */
+  change(network: NetworkId, hotkey: string, netuid: number, epochs: number, signal?: AbortSignal): Promise<ApiResult<IncentiveChange>>;
 }
 
 export type HttpApi = PreflightApi & ScoresApi & LiveApi;
@@ -224,6 +232,9 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
       if (after != null) query.set("after", String(after));
       return parsed(`/v1/live/${network}?${query}`, liveFeedSchema, { signal }, Math.min(timeoutMs, LIVE_TIMEOUT_MS));
     },
+    weather: (network, window = 60, signal) => parsed(`/v1/weather/${network}?window=${Math.trunc(window)}`, weatherSchema, { signal }),
+    change: (network, hotkey, netuid, epochs, signal) =>
+      parsed(`/v1/change/${network}/${enc(hotkey)}?netuid=${Math.trunc(netuid)}&epochs=${Math.trunc(epochs)}`, incentiveChangeSchema, { signal }),
   };
 }
 

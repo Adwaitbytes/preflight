@@ -19,6 +19,7 @@ import type { Diagnosis, DoctorReport, Verdict } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { FindingList } from "./finding-list";
 import { FleetCallout } from "./fleet-callout";
+import { IncentiveChange } from "./incentive-change";
 import { NeuronHistory } from "./neuron-history";
 import { NeuronStats } from "./neuron-stats";
 
@@ -135,6 +136,7 @@ function DiagnosisPanel({ diagnosis, showHeadline, network, live }: PanelProps) 
         </div>
       )}
       {live && diagnosis.neuron && <NeuronHistory network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
+      {live && diagnosis.neuron && diagnosis.role === "miner" && <IncentiveChange network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} />}
       {unregistered && <RegisterPrompt network={network} hotkey={diagnosis.hotkey} netuid={diagnosis.netuid} heading="h3" />}
     </section>
   );

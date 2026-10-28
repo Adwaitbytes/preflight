@@ -46,6 +46,7 @@ def db(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     monkeypatch.setattr(worker.store, "link_chat", link_chat)
     monkeypatch.setattr(worker.store, "save_state", save_state)
     monkeypatch.setattr(worker.store, "record_alert", record_alert)
+    monkeypatch.setattr(worker.store, "prune_unlinked", lambda: 0)
     monkeypatch.setattr(worker, "diagnose", diagnose)
     return {"watch": watch, "alerts": alerts}
 
@@ -78,3 +79,14 @@ def test_with_a_webhook_set_the_worker_leaves_linking_to_the_api(telegram_api: t
     telegram_api.updates = [{"update_id": 11, "message": {"text": "/start AbC12345", "chat": {"id": 5}}}]
     report = worker.run_once()
     assert report.linked == 0 and report.errors == [] and db["watch"]["chat_id"] is None
+
+
+def test_unlinked_watches_cost_no_chain_reads(telegram_api: type[FakeBot], db: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[object] = []
+
+    def diagnose(*args: object, **_: object) -> None:
+        calls.append(args)
+
+    monkeypatch.setattr(worker, "diagnose", diagnose)
+    report = worker.run_once()
+    assert report.checked == 0 and calls == [] and db["watch"]["chat_id"] is None

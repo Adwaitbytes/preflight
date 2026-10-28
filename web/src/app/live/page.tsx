@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { LiveExplorer } from "@/components/live/live-explorer";
 import { Container, PageHeader } from "@/components/ui/container";
+import { WeatherStrip } from "@/components/weather/weather-strip";
 import { isOffline } from "@/lib/server-api";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function LivePage() {
         title="The chain, as it happens"
         description="Every signed transaction decoded into a plain sentence the moment its block lands. Open any row in the debugger, follow one wallet, or watch a single subnet"
       />
+      <WeatherStrip />
       <LiveExplorer offline={isOffline()} />
     </Container>
   );

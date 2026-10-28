@@ -1,5 +1,30 @@
 [
   {
+    "date": "2026-10-28T12:51:35+05:30",
+    "sha": "fb49241",
+    "subject": "Docs: incentive change, network weather, live explorer and the Telegram bot in the README; the webhook's design and verification in 006"
+  },
+  {
+    "date": "2026-10-28T12:44:54+05:30",
+    "sha": "1592656",
+    "subject": "Why did my incentive change, network weather, and a Telegram bot with every tool as a command"
+  },
+  {
+    "date": "2026-10-28T12:30:19+05:30",
+    "sha": "c9e6dfe",
+    "subject": "Testnet decisions closed by the owner: Finney stays the hosted default, testnet staking out of scope until TAO exists"
+  },
+  {
+    "date": "2026-10-28T12:18:40+05:30",
+    "sha": "2c23a2d",
+    "subject": "Live feed recognises limit variants of stake moves"
+  },
+  {
+    "date": "2026-10-28T12:15:41+05:30",
+    "sha": "d002f67",
+    "subject": "Live explorer: every Bittensor extrinsic streamed as a sentence, with filters, pause, stats and failure links; fresh-only CDN for the feed"
+  },
+  {
     "date": "2026-10-28T11:47:32+05:30",
     "sha": "cb93f78",
     "subject": "preflight live in the terminal and recent_activity for MCP"

@@ -55,7 +55,11 @@ def run_once(network: str | None = None, *, deliver: bool = True) -> RunReport:
     report = RunReport()
     if deliver and telegram.token():
         link_chats(report)
+    store.prune_unlinked()
     for watch in store.watches(network):
+        if not watch.get("chat_id"):
+            # Nobody can be told about an unlinked watch, so it is not worth a chain read
+            continue
         report.checked += 1
         try:
             result = diagnose(Network.resolve(str(watch["network"])), str(watch["hotkey"]), int(watch["netuid"]))

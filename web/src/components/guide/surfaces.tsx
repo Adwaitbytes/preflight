@@ -12,7 +12,20 @@ import { Code, Prose, Snippet } from "./primitives";
 
 const HOTKEY = "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq";
 
-const MCP_TOOLS = ["diagnose_neuron", "explain_extrinsic", "explain_error", "simulate", "subnet_health", "launch_plan", "find_subnet"];
+const MCP_TOOLS = [
+  "diagnose_neuron",
+  "diagnose_fleet",
+  "explain_incentive_change",
+  "explain_extrinsic",
+  "explain_error",
+  "simulate",
+  "network_weather",
+  "recent_activity",
+  "mining_economics",
+  "subnet_health",
+  "launch_plan",
+  "find_subnet",
+];
 
 const ACTION_YAML = `- uses: Adwaitbytes/preflight@main
   with:
@@ -144,7 +157,7 @@ const SURFACES: Surface[] = [
             <p className="mt-2 text-[14px] leading-6 text-foreground">Why does 5EKtvz...Qmhq earn nothing on SN64, and what do I run to fix it?</p>
           </div>
           <div className="rounded-xl bg-surface px-4 py-3.5 shadow-[0_0_0_1px_var(--line)]">
-            <p className="eyebrow">Seven tools</p>
+            <p className="eyebrow">{MCP_TOOLS.length} tools</p>
             <ul className="mt-3 flex flex-wrap gap-1.5">
               {MCP_TOOLS.map((tool) => (
                 <li key={tool} className="rounded-md bg-surface-2 px-2 py-1 font-mono text-[12px] text-foreground shadow-[0_0_0_1px_var(--line)]">
@@ -183,12 +196,16 @@ const SURFACES: Surface[] = [
   },
   {
     id: "alerts",
-    label: "Alerts",
+    label: "Telegram",
     icon: Bell,
-    lead: "Watch a hotkey and get a Telegram message when it is deregistered, stops being scored, loses its permit or its incentive halves. One problem sends one alert until it changes",
+    lead: "Ask @PreflightAlertsbot anything the site answers, from your phone: /doctor, /why, /tx, /weather and nine more, or just paste a hotkey or an error. /watch a hotkey and the same chat gets a message when it is deregistered, stops being scored, loses its permit or its incentive halves",
     body: (
       <div className="flex flex-col gap-3">
-        <Snippet title="Watch a hotkey" code={`preflight watch add ${HOTKEY} --netuid 64`} />
+        <Link href="/bot" className="flex items-center justify-between rounded-xl bg-surface px-4 py-3 shadow-[0_0_0_1px_var(--line)] transition-colors hover:bg-surface-2">
+          <span className="text-[14px] font-medium text-foreground">Every bot command, with a QR code</span>
+          <span className="text-xs text-accent-ink">Open /bot</span>
+        </Link>
+        <Snippet title="Or watch a hotkey from the terminal" code={`preflight watch add ${HOTKEY} --netuid 64`} />
         <ol className="flex flex-col gap-2.5 rounded-xl bg-surface px-4 py-3.5 text-[13.5px] leading-5 text-muted-foreground shadow-[0_0_0_1px_var(--line)]">
           {["The command prints a link code", "Send /start with that code to the Preflight Alerts bot in Telegram", "Alerts arrive in that chat; preflight watch list shows what is watched"].map(
             (step, i) => (

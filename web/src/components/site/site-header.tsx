@@ -12,6 +12,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 export const NAV = [
   { href: "/live", label: "Live" },
+  { href: "/weather", label: "Weather" },
   { href: "/sim", label: "Simulate" },
   { href: "/subnets", label: "Subnets" },
   { href: "/plan", label: "Launch" },
@@ -40,7 +41,7 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { setPaletteOpen } = useAppState();
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/80 backdrop-blur-xl backdrop-saturate-150">
+    <header className="sticky top-0 z-40 print:hidden border-b border-line bg-background/80 backdrop-blur-xl backdrop-saturate-150">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2 focus:text-sm"

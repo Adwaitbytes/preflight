@@ -1,0 +1,111 @@
+{
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9380679,
+    "block_hash": "0xecde91f74a04418c0ce65a422416ecf4763a5ef7f6cfa0a4b52e00d87dd4f702",
+    "runtime_spec": 486
+  },
+  "hotkey": "5FcJiV9Vc2Y5GemgWoXhksvQVXQ99csas9En9nYbSx38sS93",
+  "netuid": 19,
+  "from_block": 9366277,
+  "to_block": 9380679,
+  "before": {
+    "block": 9366277,
+    "uid": 85,
+    "incentive": 0.0009155413138017853,
+    "emission": 2.719976384,
+    "trust": 0.0,
+    "rank_by_emission": 24,
+    "miners": 243
+  },
+  "after": {
+    "block": 9380679,
+    "uid": 85,
+    "incentive": 0.0013275349050125887,
+    "emission": 3.921984786,
+    "trust": 0.0,
+    "rank_by_emission": 22,
+    "miners": 243
+  },
+  "change": 0.45000000000000007,
+  "headline": "UID 85 on SN19 incentive rose 45% (0.000916 to 0.00133) between blocks 9,366,277 and 9,380,679; the biggest cause: all 9 validators that weight it (98.4% of validator stake) raised their weight on it; the largest, UID 103, raised its weight on this UID from 0.0992% to 0.182%",
+  "drivers": [
+    {
+      "uid": 103,
+      "hotkey": "5CK49hDJcseEk1V7iB1dmmztdw4igafhxLsVN82VtUVAQRfC",
+      "stake_share_before": 0.48123431716926823,
+      "stake_share_after": 0.4811107829152572,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 0.0004774133295004146,
+      "support_after": 0.0008774160000253558,
+      "blocks_since_update": 2909,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    },
+    {
+      "uid": 61,
+      "hotkey": "5E2LP6EnZ54m3wS8s1yPvD5c3xo71kQroBw7aUVK32TKeZ5u",
+      "stake_share_before": 0.20785358236606533,
+      "stake_share_after": 0.20829448614840199,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 0.00020620323045471474,
+      "support_after": 0.00037987283044508115,
+      "blocks_since_update": 238,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    },
+    {
+      "uid": 241,
+      "hotkey": "5HVsPRz6ituYFaY6WkdMNK9pWr6yJW2LYcJU6LqLBBt1PtNf",
+      "stake_share_before": 0.0973766375888975,
+      "stake_share_after": 0.09679563152036273,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 9.660346967840799e-05,
+      "support_after": 0.00017652906325212105,
+      "blocks_since_update": 1333,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    },
+    {
+      "uid": 202,
+      "hotkey": "5GC9Tcq3GH7KS6ZTf9mTepoezMWQLa5DR5ofnDXPTKoHcGaP",
+      "stake_share_before": 0.08906997940742263,
+      "stake_share_after": 0.08938435305402284,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 8.836276614178783e-05,
+      "support_after": 0.0001630128949642126,
+      "blocks_since_update": 2910,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    },
+    {
+      "uid": 67,
+      "hotkey": "5Dz3MTka6fqZoVBn4WAMC5rJsxAe5w13vUbeRzN4TtxKyVPR",
+      "stake_share_before": 0.06430458552064248,
+      "stake_share_after": 0.06434939224738961,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 6.379400882326474e-05,
+      "support_after": 0.00011735589463957681,
+      "blocks_since_update": 62,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    },
+    {
+      "uid": 124,
+      "hotkey": "5HQLnZYKgqyV6L9QnVpaPkbjxGvPsxSBPAiTQG1D6pmWSL19",
+      "stake_share_before": 0.01435711816597326,
+      "stake_share_after": 0.014323810639571104,
+      "weight_before": 0.0009920600266179486,
+      "weight_after": 0.0018237296505987971,
+      "support_before": 1.4243123029892466e-05,
+      "support_after": 2.612275817294834e-05,
+      "blocks_since_update": 674,
+      "reason": "raised its weight on this UID from 0.0992% to 0.182%"
+    }
+  ],
+  "notes": [
+    "Stake weighted support for this UID is 0.179% now against 0.0976% before (each validator's stake share times its weight share); consensus keeps a weight only where validators holding at least kappa, 50.0% of stake, agree",
+    "By emission this UID ranked 24 of 243 miners before and 22 of 243 now"
+  ]
+}

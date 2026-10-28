@@ -7,6 +7,7 @@ breaks a diagnosis. Queries are parameterized, always.
 
 from __future__ import annotations
 
+import logging
 import os
 import secrets
 from concurrent.futures import ThreadPoolExecutor
@@ -16,6 +17,10 @@ from typing import Any
 import psycopg
 from psycopg.rows import DictRow, dict_row
 from psycopg.types.json import Jsonb
+
+log = logging.getLogger("preflight.store")
+MAX_WATCHES_PER_CHAT = 20
+UNLINKED_TTL_HOURS = 24
 
 
 class StoreUnavailable(RuntimeError):
@@ -34,7 +39,9 @@ def connect() -> psycopg.Connection[DictRow]:
     try:
         return psycopg.Connection[DictRow].connect(url, row_factory=dict_row, connect_timeout=5)
     except psycopg.OperationalError as error:
-        raise StoreUnavailable(f"database unreachable: {error}") from error
+        # libpq's message names the host and role; keep it in the logs, never in a reply
+        log.warning("database unreachable: %s", error)
+        raise StoreUnavailable("database unreachable") from error
 
 
 def new_id(length: int = 10) -> str:
@@ -113,6 +120,29 @@ def add_watch(network: str, hotkey: str, netuid: int, chat_id: str | None, rules
             (watch_id, network, hotkey, netuid, chat_id, link_code, Jsonb(rules)),
         )
     return {"id": watch_id, "link_code": link_code}
+
+
+def add_chat_watch(network: str, hotkey: str, netuid: int, chat_id: str) -> str:
+    """A watch already bound to a chat, from the bot. "added", "exists" or "full"."""
+    with connect() as db:
+        rows = db.execute("SELECT network, hotkey, netuid FROM watches WHERE chat_id = %s", (chat_id,)).fetchall()
+        if any((r["network"], r["hotkey"], r["netuid"]) == (network, hotkey, netuid) for r in rows):
+            return "exists"
+        if len(rows) >= MAX_WATCHES_PER_CHAT:
+            return "full"
+        db.execute(
+            "INSERT INTO watches (id, network, hotkey, netuid, chat_id, link_code, rules) VALUES (%s, %s, %s, %s, %s, NULL, %s)",
+            (new_id(), network, hotkey, netuid, chat_id, Jsonb({})),
+        )
+    return "added"
+
+
+def prune_unlinked() -> int:
+    """Watches nobody linked within a day can never alert anyone; drop them."""
+    with connect() as db:
+        return db.execute(
+            "DELETE FROM watches WHERE chat_id IS NULL AND created_at < now() - make_interval(hours => %s)", (UNLINKED_TTL_HOURS,)
+        ).rowcount
 
 
 def link_chat(link_code: str, chat_id: str) -> int:

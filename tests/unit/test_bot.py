@@ -104,3 +104,37 @@ def test_webhook_links_a_watch_and_limits_each_chat(telegram_api: type[FakeBot],
     for n in range(13):
         client.post(api.TELEGRAM_WEBHOOK, json={"update_id": 10 + n, "message": {"text": "/help", "chat": {"id": 32}}}, headers=headers)
     assert telegram_api.sent[-1]["text"].startswith("Slow down")
+
+
+def test_webhook_checks_the_secret_before_reading_the_body(telegram_api: type[FakeBot], monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", SECRET)
+    client = TestClient(api.app)
+    junk = client.post(api.TELEGRAM_WEBHOOK, content=b"not json", headers={"content-type": "application/json"})
+    assert junk.status_code == 404
+    signed = client.post(api.TELEGRAM_WEBHOOK, content=b"not json", headers={"content-type": "application/json", "X-Telegram-Bot-Api-Secret-Token": SECRET})
+    assert signed.status_code == 200 and signed.json() == {"ok": False}
+
+
+def test_an_unexpected_failure_still_answers_with_200(telegram_api: type[FakeBot], monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", SECRET)
+
+    def explode(_text: str, _chat: str) -> str:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(bot, "reply", explode)
+    response = TestClient(api.app).post(
+        api.TELEGRAM_WEBHOOK, json={"update_id": 5, "message": {"text": "/help", "chat": {"id": 41}}}, headers={"X-Telegram-Bot-Api-Secret-Token": SECRET}
+    )
+    assert response.status_code == 200 and telegram_api.sent[-1]["text"].startswith("Something went wrong")
+
+
+def test_watch_from_the_bot_dedupes_and_caps(monkeypatch: pytest.MonkeyPatch) -> None:
+    outcomes = iter(["added", "exists", "full"])
+
+    def add_chat_watch(*_args: object) -> str:
+        return next(outcomes)
+
+    monkeypatch.setattr(bot.store, "add_chat_watch", add_chat_watch)
+    assert "Watching" in bot.reply(f"/watch {HOTKEY} 19", "9")
+    assert bot.reply(f"/watch {HOTKEY} 19", "9").startswith("Already watching")
+    assert "the most one chat can" in bot.reply(f"/watch {HOTKEY} 20", "9")

@@ -1,0 +1,112 @@
+{
+  "chain": {
+    "network": "finney",
+    "endpoint": "wss://entrypoint-finney.opentensor.ai:443",
+    "block": 9380688,
+    "block_hash": "0x315efbe7d45a04b9b0134667e7eca9535d60005ff730c773b4ec021b084a0adc",
+    "runtime_spec": 486
+  },
+  "from_block": 9380629,
+  "to_block": 9380688,
+  "blocks": 60,
+  "extrinsics": 755,
+  "failed": 10,
+  "failure_rate": 0.013245033112582781,
+  "headline": "1.3% of transactions failed in the last 12 minutes; most often SlippageTooHigh on SN36, 4 times",
+  "top_errors": [
+    {
+      "error": "SlippageTooHigh",
+      "count": 4,
+      "subnets": [
+        36
+      ],
+      "example_ref": "9380647-5",
+      "title": "Slippage too high",
+      "meaning": "A stake, unstake, or move would move the price past the slippage-protection limit (default 5% tolerance)",
+      "fix": "the pool cannot absorb this trade; reduce the amount or split it into smaller steps"
+    },
+    {
+      "error": "BadOrigin",
+      "count": 4,
+      "subnets": [],
+      "example_ref": "9380652-2",
+      "title": "Bad origin",
+      "meaning": "The call was dispatched with the wrong origin: the signing key (or the unsigned/root origin used) is not allowed to make this call",
+      "fix": "sign with the key or origin that owns the target object, then retry"
+    },
+    {
+      "error": "RegistrationPriceLimitExceeded",
+      "count": 1,
+      "subnets": [
+        24
+      ],
+      "example_ref": "9380633-20",
+      "title": "Registration price limit exceeded",
+      "meaning": "`burned_register` with a price limit failed because the subnet's current registration burn cost exceeds the supplied `limit_price`",
+      "fix": "a chain-side capacity limit was hit; reduce the size or count of the request"
+    },
+    {
+      "error": "InsufficientLiquidity",
+      "count": 1,
+      "subnets": [
+        64
+      ],
+      "example_ref": "9380678-10",
+      "title": "Insufficient liquidity",
+      "meaning": "The pool cannot absorb the operation: the swap simulation failed, reserves are smaller than the payout, or the amount exceeds the pool's supported input",
+      "fix": "the pool cannot absorb this trade; reduce the amount or split it into smaller steps"
+    }
+  ],
+  "by_kind": {
+    "evm": 173,
+    "shielded": 76,
+    "register": 12,
+    "weights": 145,
+    "commitment": 65,
+    "unstake": 116,
+    "stake": 76,
+    "transfer": 75,
+    "serve": 9,
+    "other": 8
+  },
+  "busiest_subnets": [
+    [
+      13,
+      63
+    ],
+    [
+      79,
+      23
+    ],
+    [
+      107,
+      23
+    ],
+    [
+      123,
+      21
+    ],
+    [
+      24,
+      19
+    ],
+    [
+      89,
+      18
+    ]
+  ],
+  "failing_subnets": [
+    [
+      36,
+      4
+    ],
+    [
+      24,
+      1
+    ],
+    [
+      64,
+      1
+    ]
+  ]
+}

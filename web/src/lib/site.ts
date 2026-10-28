@@ -7,4 +7,4 @@ export function siteUrl(): URL {
 }
 
 /** Pages worth indexing. Per hotkey, transaction and shared report pages are reached by link, not by crawl */
-export const INDEXED_ROUTES = ["/", "/live", "/guide", "/sim", "/subnets", "/plan", "/explain", "/changelog", "/house"] as const;
+export const INDEXED_ROUTES = ["/", "/live", "/weather", "/bot", "/guide", "/sim", "/subnets", "/plan", "/explain", "/changelog", "/house"] as const;
