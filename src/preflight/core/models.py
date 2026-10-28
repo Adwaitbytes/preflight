@@ -216,6 +216,44 @@ class NeuronHistory(Model):
     points: list[HistoryPoint] = Field(description="Oldest first, one per tempo")
 
 
+ActivityKind = Literal[
+    "weights", "register", "stake", "unstake", "serve", "transfer", "commitment", "shielded", "evm", "subnet", "other"
+]
+
+
+class Activity(Model):
+    """One extrinsic as a sentence, for the live feed."""
+
+    block: int
+    index: int
+    ref: str = Field(description="block-index, the Tx debugger's reference")
+    hash: str | None
+    kind: ActivityKind
+    pallet: str
+    call: str
+    signer: str | None
+    netuid: int | None
+    summary: str
+    success: bool
+    error: str | None = None
+    amount: str | None = None
+
+
+class LiveBlock(Model):
+    number: int
+    hash: str
+    timestamp: str | None
+    activities: list[Activity]
+    system_calls: int = Field(description="Housekeeping extrinsics counted but not listed")
+    failed: int
+
+
+class LiveFeed(Model):
+    chain: ChainRef
+    head: int
+    blocks: list[LiveBlock] = Field(description="Oldest first")
+
+
 class DecodedArg(Model):
     name: str
     value: str

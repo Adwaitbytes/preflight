@@ -1,0 +1,251 @@
+{
+  "$defs": {
+    "Activity": {
+      "additionalProperties": false,
+      "description": "One extrinsic as a sentence, for the live feed.",
+      "properties": {
+        "amount": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Amount"
+        },
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "call": {
+          "title": "Call",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Hash"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "weights",
+            "register",
+            "stake",
+            "unstake",
+            "serve",
+            "transfer",
+            "commitment",
+            "shielded",
+            "evm",
+            "subnet",
+            "other"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "netuid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Netuid"
+        },
+        "pallet": {
+          "title": "Pallet",
+          "type": "string"
+        },
+        "ref": {
+          "description": "block-index, the Tx debugger's reference",
+          "title": "Ref",
+          "type": "string"
+        },
+        "signer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Signer"
+        },
+        "success": {
+          "title": "Success",
+          "type": "boolean"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "block",
+        "index",
+        "ref",
+        "hash",
+        "kind",
+        "pallet",
+        "call",
+        "signer",
+        "netuid",
+        "summary",
+        "success"
+      ],
+      "title": "Activity",
+      "type": "object"
+    },
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "LiveBlock": {
+      "additionalProperties": false,
+      "properties": {
+        "activities": {
+          "items": {
+            "$ref": "#/$defs/Activity"
+          },
+          "title": "Activities",
+          "type": "array"
+        },
+        "failed": {
+          "title": "Failed",
+          "type": "integer"
+        },
+        "hash": {
+          "title": "Hash",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "integer"
+        },
+        "system_calls": {
+          "description": "Housekeeping extrinsics counted but not listed",
+          "title": "System Calls",
+          "type": "integer"
+        },
+        "timestamp": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Timestamp"
+        }
+      },
+      "required": [
+        "number",
+        "hash",
+        "timestamp",
+        "activities",
+        "system_calls",
+        "failed"
+      ],
+      "title": "LiveBlock",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "blocks": {
+      "description": "Oldest first",
+      "items": {
+        "$ref": "#/$defs/LiveBlock"
+      },
+      "title": "Blocks",
+      "type": "array"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "head": {
+      "title": "Head",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "chain",
+    "head",
+    "blocks"
+  ],
+  "title": "LiveFeed",
+  "type": "object"
+}

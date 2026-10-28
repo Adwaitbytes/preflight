@@ -35,6 +35,7 @@ from .core.models import (
     Health,
     HealthScores,
     LaunchPlan,
+    LiveFeed,
     MinerEconomics,
     NeuronHistory,
     ServiceHealth,
@@ -261,7 +262,7 @@ def health() -> ServiceHealth:
 
 
 NO_CDN_QUERY = ("fresh",)
-CDN_SECONDS = {"/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/live": 6, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -617,4 +618,21 @@ def economics(network: str, netuid: int) -> MinerEconomics:
     number = int(validate.netuid(netuid) or 0)
     result = cache.get_or(f"economics:{net.endpoint}:{number}", lambda: run(net, number), DIRECTORY_TTL, DIRECTORY_STALE)
     assert isinstance(result, MinerEconomics)
+    return result
+
+
+@app.get("/v1/live/{network}", response_model=LiveFeed)
+def live(
+    network: str,
+    after: Annotated[int | None, Query(ge=0, description="Return blocks after this one, up to the head")] = None,
+    limit: Annotated[int, Query(ge=1, le=12)] = 8,
+) -> LiveFeed:
+    """Every extrinsic in recent blocks as a plain sentence. Poll with `after` set to the last
+    block you have; each block is decoded once and cached."""
+    from .core.live.feed import feed
+
+    net = network_for(network)
+    key = f"live:{net.endpoint}:{after}:{limit}"
+    result = cache.get_or(key, lambda: feed(net, after, limit), 4.0, 0.0)
+    assert isinstance(result, LiveFeed)
     return result

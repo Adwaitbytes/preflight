@@ -23,6 +23,7 @@ EXPORTED: list[type[BaseModel]] = [
     models.DoctorReport,
     models.NeuronHistory,
     models.FleetReport,
+    models.LiveFeed,
     models.MinerEconomics,
     models.TxReport,
     models.SimRequest,
