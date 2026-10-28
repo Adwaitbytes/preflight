@@ -3,6 +3,7 @@
 import { ArrowUpRight, CloudLightning, CloudSun, RotateCw, Sun } from "lucide-react";
 import Link from "next/link";
 import { KIND_META } from "@/components/live/kinds";
+import { RichText } from "@/components/shared/rich-text";
 import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -85,10 +86,14 @@ function TopErrors({ weather, network }: { weather: Weather; network: NetworkId 
                 {e.count === 1 ? "once" : `${formatInt(e.count)} times`}
               </span>
             </div>
-            <p className="text-sm leading-6 text-pretty text-muted-foreground">{e.meaning}</p>
+            <p className="text-sm leading-6 text-pretty text-muted-foreground">
+              <RichText text={e.meaning} />
+            </p>
             {e.fix && <p className="text-sm leading-6 text-pretty">
               <span className="font-medium">Fix: </span>
-              <span className="text-muted-foreground">{e.fix}</span>
+              <span className="text-muted-foreground">
+                <RichText text={e.fix} />
+              </span>
             </p>}
             <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
               {e.subnets.slice(0, 6).map((n) => (
@@ -124,7 +129,7 @@ function Mix({ weather }: { weather: Weather }) {
           <span key={m.kind} className={cn("h-full", KIND_META[m.kind].dot)} style={{ width: `${m.share * 100}%` }} />
         ))}
       </div>
-      <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] sm:grid-cols-3">
+      <ul className="grid grid-cols-2 gap-x-5 gap-y-2 text-[13px]">
         {mix.map((m) => (
           <li key={m.kind} className="flex min-w-0 items-center gap-2">
             <span aria-hidden className={cn("size-2 shrink-0 rounded-full", KIND_META[m.kind].dot)} />

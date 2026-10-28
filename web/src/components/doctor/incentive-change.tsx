@@ -85,7 +85,6 @@ function ChangeBody({ change, epochs, onPick }: { change: Change; epochs: number
   const rank = rankDelta(change.before, change.after);
   const bars = supportBars(change.drivers);
   const moved = change.drivers.filter((d) => d.support_after !== d.support_before);
-  const measured = measuredEpochBlocks(change, epochs);
 
   return (
     <div className="rise-in flex flex-col gap-4">
@@ -156,7 +155,6 @@ function ChangeBody({ change, epochs, onPick }: { change: Change; epochs: number
           ))}
         </ul>
       )}
-      {measured && <p className="sr-only">One epoch on this subnet is about {Math.round(measured)} blocks</p>}
     </div>
   );
 }
@@ -193,6 +191,8 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
   const [epochs, setEpochs] = useState(DEFAULT_EPOCHS);
   const [attempt, setAttempt] = useState(0);
   const [settled, setSettled] = useState<Settled | null>(null);
+  // Tempo varies by subnet (360 on most, 7,200 on some), so the hints use the length the first read measured
+  const [epochBlocks, setEpochBlocks] = useState<number | undefined>(undefined);
   const groupId = useId();
   // Each request has a key; until its answer lands, whatever was shown before reads as loading
   const key = `${network}:${hotkey}:${netuid}:${epochs}:${attempt}`;
@@ -205,6 +205,7 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
       .then((m) => m.browserApi(network).change(network, hotkey, netuid, epochs, controller.signal))
       .then((result) => {
         if (controller.signal.aborted) return;
+        if (result.ok) setEpochBlocks(measuredEpochBlocks(result.data, epochs) ?? undefined);
         setSettled({ key, state: result.ok ? { status: "ready", change: result.data } : { status: "failed", error: result.error } });
       });
     return () => controller.abort();
@@ -237,7 +238,7 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
                 )}
               >
                 {option.label}
-                <span className="ml-1 font-normal text-faint">{epochHint(option.epochs)}</span>
+                <span className="ml-1 font-normal text-faint">{epochHint(option.epochs, epochBlocks)}</span>
               </button>
             );
           })}
