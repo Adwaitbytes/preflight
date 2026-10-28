@@ -24,6 +24,15 @@ Date: 2026-10-28. Testnet head 8,316,520, runtime spec 486. Read only: no test T
 - Testnet has 597 subnets against finney's 129, so the bulk health read is the same single call but the response is about five times larger
 - `testnet.taostats.io` does not resolve, so testnet results carry no explorer link (`core/chain/network.py`)
 
+## Ready for test TAO
+
+Wallets exist at `~/.bittensor/wallets/preflight-miner` and `preflight-validator` (throwaway testnet keys, files mode 0600, mnemonics never printed or stored):
+
+- Miner coldkey `5EsJhFJcryS3tyKsLZyCohg74hyfiww7rZUHVT7eRc5fvb9U`
+- Validator coldkey `5DFVgQQbtgqjxuYzxbcSQPLktKUgnPHFRBdkvPD34kK87cws`
+
+`scripts/testnet_run.sh [netuid]` reads both balances, picks the cheapest open subnet, simulates each registration with Preflight and submits only when the simulation passes, then runs the Doctor and Fleet on the results. Dry run on 2026-10-28 with 0 TAO: it chose SN284, the simulator refused the registration (Payment), and nothing was submitted
+
 ## Still to do with test TAO (BUILD.md section 12)
 
 Create `preflight-*` wallets, register a miner and a validator on a testnet subnet that allows it, re-run the break scenarios that need no sudo (unserved axon, LAN axon, stale validator, rate limited validator, low stake), and switch the hosted default to testnet with localnet kept as the stage fallback
