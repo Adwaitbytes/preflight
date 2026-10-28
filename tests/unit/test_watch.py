@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from preflight.core.doctor.engine import evaluate as diagnose_snapshot
+from preflight.core.epoch.preview import preview
 from preflight.core.watch.alerts import evaluate, message
 from preflight.core.watch.telegram import START
 
@@ -58,3 +59,20 @@ def test_start_command_parsing() -> None:
     assert START.match("/start Ab12Cd34") is not None
     assert START.match("/start") is None
     assert START.match("/start ../../etc") is None
+
+
+def test_a_coming_cut_alerts_once_before_the_epoch_pays_it() -> None:
+    healthy = diagnose_snapshot(snap(2))
+    dropped = subnet(weights={0: {3: 0.5, 4: 0.5}, 1: {3: 0.5, 4: 0.5}})
+    coming = preview(dropped, BLOCK + 350, hotkey="5Hot2")
+    fresh, state = evaluate(healthy, None, coming)
+    [alert] = [a for a in fresh if a.id == "epoch_drop"]
+    assert alert.title == "UID 2 on SN7 is set to drop to zero at the next epoch, block 100,350 (in about 1.2 h)"
+    assert "no voting validator weights it any more" in alert.detail
+    text = message(alert, healthy, "https://example.test")
+    assert "https://example.test/epoch/finney/7?hotkey=5Hot2" in text
+    again, state = evaluate(healthy, state, coming)
+    assert "epoch_drop" not in [a.id for a in again]
+    steady, state = evaluate(healthy, state, preview(subnet(), BLOCK + 350, hotkey="5Hot2"))
+    assert steady == [] and "epoch_drop" not in state.active
+

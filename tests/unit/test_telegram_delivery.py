@@ -9,11 +9,12 @@ from typing import Any
 import pytest
 
 from preflight.core.doctor.engine import evaluate
-from preflight.core.models import DoctorReport
+from preflight.core.epoch.preview import preview
+from preflight.core.models import DoctorReport, EpochPreview
 from preflight.core.watch import worker
 
 from .conftest import FakeBot
-from .factory import snap, subnet
+from .factory import BLOCK, snap, subnet
 
 
 @pytest.fixture
@@ -48,6 +49,11 @@ def db(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     monkeypatch.setattr(worker.store, "record_alert", record_alert)
     monkeypatch.setattr(worker.store, "prune_unlinked", lambda: 0)
     monkeypatch.setattr(worker, "diagnose", diagnose)
+    # A forecast where nothing drops, so these tests see only the diagnosis alerts
+    def steady(*_args: object, **_kwargs: object) -> EpochPreview:
+        return preview(subnet(), BLOCK + 350, hotkey="5Hot2")
+
+    monkeypatch.setattr(worker, "next_epoch", steady)
     return {"watch": watch, "alerts": alerts}
 
 

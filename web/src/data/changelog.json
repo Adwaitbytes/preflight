@@ -1,5 +1,10 @@
 [
   {
+    "date": "2026-10-29T03:45:33+05:30",
+    "sha": "84c27ac",
+    "subject": "Epoch Lab: the next epoch before it runs, computed off-chain with a port of Yuma consensus's incentive math and checked against the chain's last epoch (SN19 and SN64 match every UID); what-ifs for kappa, offline validators and new weight rows; preflight epoch with a --min-trust CI gate, /v1/epoch, preview_epoch for MCP, /epoch in Telegram, an Epoch Lab page and a Next epoch card in the Doctor"
+  },
+  {
     "date": "2026-10-28T13:43:54+05:30",
     "sha": "fef87b1",
     "subject": "Design review fixes: the weather hero leads with the failure rate, unsettled reads amber, the strip shows the rate and a tap cue; What changed matches the history header, uses toggle buttons and dims unmoved validators; the poster prints on one A4 sheet; the bot hides its QR on phones"

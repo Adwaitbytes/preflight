@@ -1,7 +1,7 @@
 "use client";
 
 import { FlaskConical, Play, RotateCcw, X } from "lucide-react";
-import { useId } from "react";
+import { useId, type CSSProperties } from "react";
 import { Button } from "@/components/ui/button";
 import { formatShare } from "@/lib/format";
 import type { WhatIfDraft } from "@/lib/epoch";
@@ -14,6 +14,7 @@ export function WhatIfPanel({
   error,
   busy,
   applied,
+  pending,
   onChange,
   onRun,
   onReset,
@@ -24,6 +25,8 @@ export function WhatIfPanel({
   error: string | null;
   busy: boolean;
   applied: boolean;
+  /** The draft differs from what is on screen */
+  pending: boolean;
   onChange: (draft: WhatIfDraft) => void;
   onRun: () => void;
   onReset: () => void;
@@ -31,7 +34,7 @@ export function WhatIfPanel({
   const id = useId();
   const kappaMoved = Math.abs(draft.kappa - liveKappa) > 1e-4;
   return (
-    <section aria-labelledby={`${id}-title`} className="panel flex flex-col gap-5 p-4 sm:p-5 lg:sticky lg:top-20">
+    <section aria-labelledby={`${id}-title`} className="panel flex flex-col gap-5 p-4 sm:p-5">
       <div>
         <h2 id={`${id}-title`} className="flex items-center gap-2 text-sm font-semibold">
           <FlaskConical className="size-4 text-accent-ink" aria-hidden />
@@ -45,9 +48,9 @@ export function WhatIfPanel({
           <label htmlFor={`${id}-kappa`} className="text-[13px] font-medium">
             Kappa
           </label>
-          <span className={cn("font-mono text-xs tnum", kappaMoved ? "font-semibold text-accent-ink" : "text-muted-foreground")}>
+          <span className={cn("font-mono text-[15px] font-semibold tnum", kappaMoved && "text-accent-ink")}>
             {formatShare(draft.kappa, 0)}
-            {kappaMoved && <span className="font-normal text-faint"> (live {formatShare(liveKappa, 0)})</span>}
+            {kappaMoved && <span className="ml-1 text-xs font-normal text-faint">live {formatShare(liveKappa, 0)}</span>}
           </span>
         </div>
         <input
@@ -58,8 +61,10 @@ export function WhatIfPanel({
           step={0.01}
           value={draft.kappa}
           onChange={(event) => onChange({ ...draft, kappa: Number(event.target.value) })}
-          className="w-full accent-[var(--accent)]"
           aria-describedby={`${id}-kappa-hint`}
+          aria-valuetext={`${Math.round(draft.kappa * 100)} percent of validator stake must agree${kappaMoved ? `, live is ${Math.round(liveKappa * 100)} percent` : ""}`}
+          className="guide-range"
+          style={{ "--fill": `${((draft.kappa - 0.05) / 0.9) * 100}%` } as CSSProperties}
         />
         <p id={`${id}-kappa-hint`} className="text-xs leading-5 text-faint">
           The share of validator stake that must agree before a weight counts. Lower lets outliers through.
@@ -108,11 +113,11 @@ export function WhatIfPanel({
         </select>
         {draft.tested && (
           <>
-            <label htmlFor={`${id}-weights`} className="sr-only">
+            <label htmlFor="epoch-weights" className="sr-only">
               Weights for UID {draft.tested.uid}, one uid: weight per line or JSON
             </label>
             <textarea
-              id={`${id}-weights`}
+              id="epoch-weights"
               rows={4}
               value={draft.tested.text}
               onChange={(event) => onChange({ ...draft, tested: draft.tested && { uid: draft.tested.uid, text: event.target.value } })}
@@ -131,6 +136,11 @@ export function WhatIfPanel({
         </p>
       )}
 
+      {pending && !busy && (
+        <p className="-mb-2 text-xs font-medium text-medium" role="status">
+          Changed, not run yet
+        </p>
+      )}
       <div className="flex gap-2">
         <Button variant="primary" className="flex-1" onClick={onRun} disabled={busy}>
           <Play className="size-3.5" aria-hidden />

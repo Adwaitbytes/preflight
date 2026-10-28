@@ -11,9 +11,11 @@ from typing import Any
 
 from pydantic import Field
 
-from ..models import Diagnosis, Model
+from ..models import Diagnosis, EpochPreview, Model
 
 INCENTIVE_DROP = 0.5  # alert when incentive falls by more than half between epochs
+# Forecast alerts are kept active while the forecast holds, so one coming cut sends one message
+FORECAST_ALERTS = {"epoch_drop"}
 
 
 class Alert(Model):
@@ -50,7 +52,8 @@ def state_of(d: Diagnosis) -> WatchState:
     )
 
 
-def evaluate(d: Diagnosis, previous: WatchState | None) -> tuple[list[Alert], WatchState]:
+def evaluate(d: Diagnosis, previous: WatchState | None, upcoming: EpochPreview | None = None) -> tuple[list[Alert], WatchState]:
+    """`upcoming` is the next epoch's preview for this hotkey: a coming cut alerts before it is paid."""
     state = state_of(d)
     candidates: dict[str, Alert] = {}
     who = f"UID {state.uid} on SN{d.netuid}" if state.uid is not None else f"Your hotkey on SN{d.netuid}"
@@ -69,15 +72,24 @@ def evaluate(d: Diagnosis, previous: WatchState | None) -> tuple[list[Alert], Wa
                 title=f"{who} incentive fell {drop:.0%} since block {previous.block:,}",
                 detail=f"{previous.incentive:.5f} to {state.incentive:.5f}. {d.headline}",
             )
+    focus = upcoming.focus if upcoming is not None else None
+    if upcoming is not None and focus is not None and focus.incentive_now > 0 and focus.incentive_next < focus.incentive_now * (1 - INCENTIVE_DROP):
+        size = "to zero" if focus.incentive_next == 0 else f"{1 - focus.incentive_next / focus.incentive_now:.0%}"
+        candidates["epoch_drop"] = Alert(
+            id="epoch_drop",
+            title=f"{who} is set to drop {size} at the next epoch, block {upcoming.epoch_block:,} (in about {upcoming.seconds_until / 3600:.1f} h)",
+            detail=f"{focus.incentive_now:.5f} now, {focus.incentive_next:.5f} next if validators keep their current weights: {focus.reason}",
+        )
     already = set(previous.active) if previous else set()
     fresh = [a for key, a in candidates.items() if key not in already]
     # One-off transitions do not stay "active"; finding-based alerts do while they persist.
-    state = state.model_copy(update={"active": sorted(k for k in candidates if k in FINDING_ALERTS)})
+    state = state.model_copy(update={"active": sorted(k for k in candidates if k in FINDING_ALERTS or k in FORECAST_ALERTS)})
     return fresh, state
 
 
 def message(alert: Alert, d: Diagnosis, site: str) -> str:
-    link = f"{site}/doctor/{d.chain.network}/{d.hotkey}?netuid={d.netuid}"
+    page = f"epoch/{d.chain.network}/{d.netuid}?hotkey=" if alert.id in FORECAST_ALERTS else f"doctor/{d.chain.network}/"
+    link = f"{site}/{page}{d.hotkey}" + ("" if alert.id in FORECAST_ALERTS else f"?netuid={d.netuid}")
     fix = next((f.fix.text for f in d.findings if f.id == alert.id and f.fix), None)
     lines = [f"Preflight: {alert.title}", alert.detail]
     if fix:

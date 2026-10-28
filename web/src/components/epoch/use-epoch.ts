@@ -5,7 +5,7 @@ import type { ApiError, ApiResult } from "@/lib/api";
 import type { NetworkId } from "@/lib/networks";
 import type { EpochCheck, EpochPreview, EpochWhatIf } from "@/lib/types";
 
-export type Loaded<T> = { status: "loading" } | { status: "ready"; data: T } | { status: "failed"; error: ApiError };
+export type Loaded<T> = { status: "loading" } | { status: "ready"; data: T; receivedAt: number } | { status: "failed"; error: ApiError };
 
 /** The one subnet recorded for offline mode */
 export const OFFLINE_NETUID = 64;
@@ -27,7 +27,7 @@ async function recorded(netuid: number): Promise<ApiResult<{ preview: EpochPrevi
 }
 
 /** Keyed request state: whatever was shown for another key reads as loading, with no reset in the effect */
-function useKeyed<T>(key: string | null, load: (signal: AbortSignal) => Promise<ApiResult<T>>): Loaded<T> & { retry: () => void } {
+function useKeyed<T>(key: string | null, load: (signal: AbortSignal) => Promise<ApiResult<T>>): Loaded<T> & { last: T | null; retry: () => void } {
   const [settled, setSettled] = useState<{ key: string; state: Loaded<T> } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
@@ -38,7 +38,7 @@ function useKeyed<T>(key: string | null, load: (signal: AbortSignal) => Promise<
     const controller = new AbortController();
     load(controller.signal).then((result) => {
       if (controller.signal.aborted) return;
-      setSettled({ key: full, state: result.ok ? { status: "ready", data: result.data } : { status: "failed", error: result.error } });
+      setSettled({ key: full, state: result.ok ? { status: "ready", data: result.data, receivedAt: Date.now() } : { status: "failed", error: result.error } });
     });
     return () => controller.abort();
     // `load` is rebuilt every render; `full` already names everything it depends on
@@ -46,7 +46,9 @@ function useKeyed<T>(key: string | null, load: (signal: AbortSignal) => Promise<
   }, [full]);
 
   const state: Loaded<T> = full !== null && settled?.key === full ? settled.state : { status: "loading" };
-  return { ...state, retry };
+  // The last answer for any key, so a view can keep it on screen while the next one loads
+  const last = settled?.state.status === "ready" ? settled.state.data : null;
+  return { ...state, last, retry };
 }
 
 /** The next epoch for a subnet, with `whatif` applied when one is given */
@@ -73,4 +75,14 @@ export function useEpochCheck(network: NetworkId, netuid: number, offline: boole
     const api = (await import("@/lib/browser-api")).browserApi(network);
     return api.epochCheck(network, netuid, signal);
   });
+}
+
+/** The wall clock, refreshed every `everyMs`, for countdowns */
+export function useNow(everyMs = 30_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), everyMs);
+    return () => clearInterval(timer);
+  }, [everyMs]);
+  return now;
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowDownRight, ArrowRight, ArrowUpRight, RotateCw } from "lucide-react";
+import { ArrowRight, RotateCw } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import { DeltaBadge } from "@/components/shared/delta-badge";
 import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,25 +32,6 @@ import { cn } from "@/lib/utils";
 
 type State = { status: "loading" } | { status: "ready"; change: Change } | { status: "failed"; error: ApiError };
 type Settled = { key: string; state: State };
-
-const TONE: Record<Direction, string> = {
-  up: "bg-healthy-soft text-healthy",
-  down: "bg-critical-soft text-critical",
-  flat: "bg-surface-3 text-muted-foreground",
-};
-
-const ICON = { up: ArrowUpRight, down: ArrowDownRight, flat: ArrowRight } as const;
-
-function DeltaBadge({ delta, className }: { delta: Delta; className?: string }) {
-  const Icon = ICON[delta.direction];
-  return (
-    <span className={cn("inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold tnum", TONE[delta.direction], className)}>
-      <Icon className="size-3.5" aria-hidden />
-      <span aria-hidden>{delta.label}</span>
-      <span className="sr-only">{delta.spoken}</span>
-    </span>
-  );
-}
 
 function Point({ label, before, after, delta }: { label: string; before: string; after: string; delta: Delta | null }) {
   return (

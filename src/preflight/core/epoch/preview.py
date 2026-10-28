@@ -91,13 +91,13 @@ def _miner(n: NeuronState, run: EpochRun, kappa: float) -> EpochMiner:
     kept = run.kept.get(n.uid, 0.0)
     clipped = 1 - kept / support if support > 0 else 0.0
     voters = sum(1 for row in run.weights.values() if row.get(n.uid, 0.0) > 0)
-    plural = "s" if voters != 1 else ""
+    who = f"{voters} validator{'s' if voters != 1 else ''} weight{'s' if voters == 1 else ''} it"
     if support == 0:
         reason = "no voting validator weights it" + (" any more" if now > 0 else "")
     elif clipped >= STEADY:
-        reason = f"{voters} validator{plural} weight it; consensus cuts {share(clipped)}, since validators holding kappa ({share(kappa)}) of stake gave less"
+        reason = f"{who}; consensus cuts {share(clipped)}, since validators holding kappa ({share(kappa)}) of stake gave less"
     else:
-        reason = f"{voters} validator{plural} weight it and agree"
+        reason = f"{who} and {'agrees' if voters == 1 else 'agree'}"
     change = (nxt - now) / now if now > 0 else (1.0 if nxt > 0 else 0.0)
     return EpochMiner(
         uid=n.uid,

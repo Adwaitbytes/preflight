@@ -62,6 +62,8 @@ export function EpochPicker() {
             onChange={(event) => setHotkey(event.target.value)}
             placeholder="5…"
             spellCheck={false}
+            aria-invalid={error?.startsWith("The hotkey") ? true : undefined}
+            aria-describedby={error?.startsWith("The hotkey") ? "pick-error" : undefined}
             autoComplete="off"
             className="h-11 w-full rounded-lg bg-surface-2 px-3 font-mono text-[15px] shadow-[0_0_0_1px_var(--line-strong)] outline-none placeholder:text-faint focus-visible:shadow-[0_0_0_2px_var(--ring)]"
           />

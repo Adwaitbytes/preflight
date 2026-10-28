@@ -2,12 +2,12 @@
 
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { DeltaBadge } from "@/components/shared/delta-badge";
 import { useAppState } from "@/components/site/app-state";
-import { DeltaBadge } from "@/components/epoch/epoch-tables";
 import { useEpochPreview } from "@/components/epoch/use-epoch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countdown, epochDelta, epochHref } from "@/lib/epoch";
-import { formatShare } from "@/lib/format";
+import { formatInt, formatShare } from "@/lib/format";
 import type { NetworkId } from "@/lib/networks";
 
 /** What the next epoch pays this miner, read after the diagnosis renders so it never delays it */
@@ -53,7 +53,7 @@ export function NextEpoch({ network, hotkey, netuid }: { network: NetworkId; hot
                     <span className="font-semibold">{formatShare(focus.incentive_next, 3)}</span>
                   </p>
                 )}
-                <span className="text-xs text-faint tnum">{countdown(p.seconds_until)}, block {p.epoch_block.toLocaleString("en-US")}</span>
+                <span className="text-xs text-faint tnum">{countdown(p.seconds_until)}, block {formatInt(p.epoch_block)}</span>
               </div>
               <p className="text-sm leading-6 text-pretty text-muted-foreground">{focus ? focus.reason : p.headline}</p>
             </div>

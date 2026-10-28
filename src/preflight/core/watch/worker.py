@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from .. import store
 from ..chain.network import ChainUnreachable, Network
 from ..doctor.engine import diagnose
+from ..epoch.preview import next_epoch
+from ..models import Diagnosis, EpochPreview
 from . import telegram
 from .alerts import Alert, evaluate, load_state, message
 
@@ -51,6 +53,18 @@ def link_chats(report: RunReport) -> None:
             report.errors.append(str(error))
 
 
+def forecast(diagnosis: Diagnosis, report: RunReport) -> EpochPreview | None:
+    """The next epoch for a watched miner, so a coming cut alerts before it is paid. Best effort:
+    a failed forecast must not stop the diagnosis alerts."""
+    if diagnosis.role != "miner" or diagnosis.neuron is None:
+        return None
+    try:
+        return next_epoch(Network.resolve(diagnosis.chain.network), diagnosis.netuid, hotkey=diagnosis.hotkey)
+    except (ChainUnreachable, ValueError, LookupError) as error:
+        report.errors.append(f"forecast {diagnosis.hotkey[:8]} SN{diagnosis.netuid}: {error}")
+        return None
+
+
 def run_once(network: str | None = None, *, deliver: bool = True) -> RunReport:
     report = RunReport()
     if deliver and telegram.token():
@@ -69,7 +83,8 @@ def run_once(network: str | None = None, *, deliver: bool = True) -> RunReport:
         if not result.diagnoses:
             continue
         diagnosis = result.diagnoses[0]
-        fresh, state = evaluate(diagnosis, load_state(watch.get("last_state")))
+        upcoming = forecast(diagnosis, report)
+        fresh, state = evaluate(diagnosis, load_state(watch.get("last_state")), upcoming)
         for alert in fresh:
             report.alerts.append((str(watch["id"]), alert))
             chat = watch.get("chat_id")
