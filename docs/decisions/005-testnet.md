@@ -33,6 +33,23 @@ Wallets exist at `~/.bittensor/wallets/preflight-miner` and `preflight-validator
 
 `scripts/testnet_run.sh [netuid]` reads both balances, picks the cheapest open subnet, simulates each registration with Preflight and submits only when the simulation passes, then runs the Doctor and Fleet on the results. Dry run on 2026-10-28 with 0 TAO: it chose SN284, the simulator refused the registration (Payment), and nothing was submitted
 
+## Testnet run without test TAO: proof of work registration
+
+Testnet SN597 (labo-test) allows proof of work registration at difficulty 1,000, and `btcli subnets register --pow` with zero tip needs no TAO. So the section 12 run happened on real testnet with zero balance:
+
+| Step | Result |
+|---|---|
+| Register the miner hotkey by PoW | Landed at `8318795-0007`, fee 0, UID 8, mined in about 17 s |
+| `preflight tx 8318795-7 --network test` | Decoded `SubtensorModule.pow_register`, success |
+| Doctor on the new miner | PF103 in immunity (298 blocks left) and PF108 not yet scored: correct for a fresh seat |
+| Serve a LAN axon, `192.168.1.50:8091` (simulated first: would succeed) | Landed at `8318798-0006` |
+| Doctor again | PF106 high, "advertises 192.168.1.50:8091, which validators cannot reach", with the `btcli axon set` fix |
+| Register the validator hotkey by PoW | Landed at `8318802-0006`, fee 0, UID 22 |
+| Simulate set_weights from the unstaked validator | Would fail: SettingWeightsTooFast, 5 blocks since last set against a limit of 100; the SDK's own plan() raised the same refusal, which the simulator now records instead of crashing |
+| Fleet on the miner coldkey | 1 seat, PF106 as the worst finding |
+
+Found on the way: the Doctor reads the head's parent block, so a diagnosis in the same 12 s as a write can still show the state before it; a second read a block later is correct. The localnet kit waits two blocks after its own writes for the same reason
+
 ## Still to do with test TAO (BUILD.md section 12)
 
-Create `preflight-*` wallets, register a miner and a validator on a testnet subnet that allows it, re-run the break scenarios that need no sudo (unserved axon, LAN axon, stale validator, rate limited validator, low stake), and switch the hosted default to testnet with localnet kept as the stage fallback
+Stake the validator so it can hold a permit and set weights, re-run the break scenarios that need no sudo (unserved axon, LAN axon, stale validator, rate limited validator, low stake), and switch the hosted default to testnet with localnet kept as the stage fallback

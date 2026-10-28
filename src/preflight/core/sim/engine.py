@@ -24,7 +24,7 @@ from .. import validate
 from ..chain import registry as R
 from ..chain.network import Network, Pinned, gather, pin, with_retries
 from ..chain.snapshot import SubnetSnapshot, read_subnet
-from ..models import BalanceChange, DecodedArg, DispatchFailure, SimRequest, SimResult
+from ..models import BalanceChange, DecodedArg, DispatchFailure, Evidence, SimRequest, SimResult
 from ..tx.context import ExplainContext
 from ..tx.explain import explain
 from . import rules
@@ -240,8 +240,14 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
     subnet: SubnetSnapshot | None = None
     if req.action != "register_network":
         subnet = with_retries(network, lambda: read_subnet(pinned, req.netuid or 0))
-    plan = with_retries(network, lambda: pinned.client.plan(intent, wallet))
-    fee = float(plan.fee.tao) if plan.fee is not None else 0.0
+    # The SDK's plan() raises for some refusals (a weights rate limit, for one) instead of
+    # listing them; the ported checks below still decide, and the refusal becomes evidence.
+    sdk_refusal: str | None = None
+    try:
+        plan = with_retries(network, lambda: pinned.client.plan(intent, wallet))
+    except bt.BittensorError as error:
+        plan, sdk_refusal = None, str(error)
+    fee = float(plan.fee.tao) if plan is not None and plan.fee is not None else 0.0
     acct = with_retries(network, lambda: _account(pinned, req, signer))
     if req.balance_override_tao is not None:
         acct = rules.AccountState(req.balance_override_tao, acct.stake_alpha, acct.hotkey_owner, acct.hotkey_registered_anywhere)
@@ -249,6 +255,8 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
     prediction = rules.Prediction()
     # The transaction payment extension runs before dispatch: no fee, no execution.
     prediction.check("Balance covers the fee", acct.free_tao >= fee, f"{acct.free_tao:,.6f} TAO free for a {fee:.6f} fee", "Payment")
+    if sdk_refusal:
+        prediction.checks.append(Evidence(label="SDK plan()", value=f"refused: {sdk_refusal}", source="bittensor plan"))
     action_checks = CHECKS[req.action](req, subnet, acct, g)
     prediction.checks.extend(action_checks.checks)
     prediction.error = prediction.error or action_checks.error
@@ -258,7 +266,7 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
     warming = False
     fork = get_fork(network) if use_fork else None
     if fork is not None:
-        pending = _fork_pool.submit(fork.apply, _raw_call(req, plan.call), signer, coldkey=req.coldkey, free_tao=req.balance_override_tao)
+        pending = _fork_pool.submit(fork.apply, _raw_call(req, plan.call if plan is not None else None), signer, coldkey=req.coldkey, free_tao=req.balance_override_tao)
         try:
             outcome, fork_block = pending.result(timeout=FORK_BUDGET_S)
         except FutureTimeout:
@@ -321,7 +329,7 @@ def simulate(network: Network, req: SimRequest, *, use_fork: bool = True) -> Sim
         failure=failure,
         explanation=explanation,
         fee_tao=fee,
-        effects=[humanize_effect(e) for e in plan.effects],
+        effects=[humanize_effect(e) for e in plan.effects] if plan is not None else [],
         balance_changes=_changes(req, acct, subnet, g, quote) if ok else [],
         checks=prediction.checks,
         overrides=overrides,
