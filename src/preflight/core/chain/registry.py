@@ -117,7 +117,7 @@ API_ALL_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_all_dynamic_info")
 # Every subnet's metagraph in one call: 26 s on finney, so only for background directory scoring.
 API_ALL_METAGRAPHS = ("SubnetInfoRuntimeApi", "get_all_metagraphs")
 API_DYNAMIC_INFO = ("SubnetInfoRuntimeApi", "get_dynamic_info")
-# Last epoch block plus tempo; the epoch itself runs in the block after (measured 2026-10-29)
+# Last epoch block plus tempo: the block the next epoch runs in (SN64 ran at 9,385,243 as returned, 2026-10-29)
 API_NEXT_EPOCH_START = ("SubnetInfoRuntimeApi", "get_next_epoch_start_block")
 API_SUBNETS_INFO = ("SubnetInfoRuntimeApi", "get_subnets_info")  # subnetwork_n, max uids, burn
 API_SIM_SWAP_TAO_FOR_ALPHA = ("SwapRuntimeApi", "sim_swap_tao_for_alpha")

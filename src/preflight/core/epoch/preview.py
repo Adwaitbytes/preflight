@@ -296,7 +296,7 @@ def epoch_state(network: Network, netuid: int) -> EpochState:
     got = with_retries(network, read)
     subnet: SubnetSnapshot = got["subnet"]
     start = int(str(got["start"] or 0)) or subnet.last_epoch_block + subnet.params.tempo
-    return EpochState(subnet=subnet, epoch_block=start + 1)
+    return EpochState(subnet=subnet, epoch_block=start)
 
 
 def next_epoch(

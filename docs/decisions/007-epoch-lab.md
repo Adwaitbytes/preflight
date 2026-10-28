@@ -34,9 +34,17 @@ SN19 and SN64 are recorded in `tests/fixtures/epochs/finney/` and must match exa
 SN51 is recorded to keep the gap explained. Every preview page also calls
 `/v1/epoch/{network}/{netuid}/check`, which repeats the comparison for the subnet's latest epoch.
 
+## A forecast scored against what the chain then paid
+
+A preview of SN64 recorded at block 9,385,153 (`web/src/data/samples/epoch-sn64.json`), 90 blocks
+before the epoch, against the `Incentive` stored when it ran at block 9,385,243: 243 of 256 UIDs
+exact, 0.136% of incentive different in total. The gap is validators setting new weights after
+the forecast was read, which is why every preview says it holds "if validators keep their
+current weights". Reproducing that same epoch from the block before it matched all 256 UIDs.
+
 ## Limits, stated where they apply
 
 - Incentive only. Dividends depend on bonds (Yuma3, liquid alpha) and are not computed yet
 - Commit-reveal subnets: sealed commits are encrypted until revealed, so validators count with
   the weights they last revealed; the preview says how many commits are waiting
-- `get_next_epoch_start_block` returns last epoch plus tempo; the epoch runs in the block after
+- `get_next_epoch_start_block` returns last epoch plus tempo, which is the block the epoch runs in: SN64's ran at 9,385,243, the value it returned
