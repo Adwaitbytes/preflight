@@ -89,8 +89,8 @@ function ChangeBody({ change, epochs, onPick }: { change: Change; epochs: number
   return (
     <div className="rise-in flex flex-col gap-4">
       <div className="panel flex flex-col gap-4 p-4 sm:p-5">
-        <div className="flex items-start gap-3">
-          <DeltaBadge delta={delta} className="mt-0.5" />
+        <div className="flex flex-col items-start gap-2 sm:flex-row sm:gap-3">
+          <DeltaBadge delta={delta} className="sm:mt-1" />
           <p className="min-w-0 text-[15px] leading-7 text-pretty">{change.headline}</p>
         </div>
         <dl className="grid gap-px overflow-hidden rounded-xl bg-line shadow-[0_0_0_1px_var(--line)] sm:grid-cols-2">
@@ -222,7 +222,7 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
           </h3>
           <p className="text-xs text-faint">The validators behind this UID’s incentive, now against earlier</p>
         </div>
-        <div role="radiogroup" aria-label="Compare against" className="inline-flex rounded-lg bg-surface-2 p-0.5 shadow-[0_0_0_1px_var(--line)]">
+        <div role="radiogroup" aria-label="Compare against" className="grid w-full grid-cols-3 rounded-lg bg-surface-2 p-0.5 shadow-[0_0_0_1px_var(--line)] sm:inline-grid sm:w-auto">
           {EPOCH_OPTIONS.map((option) => {
             const active = option.epochs === epochs;
             return (
@@ -233,12 +233,12 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
                 aria-checked={active}
                 onClick={() => setEpochs(option.epochs)}
                 className={cn(
-                  "rounded-md px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent",
+                  "flex flex-col items-center rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors sm:flex-row sm:gap-1 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent",
                   active ? "bg-surface text-foreground shadow-[0_0_0_1px_var(--line-strong)]" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {option.label}
-                <span className="ml-1 font-normal text-faint">{epochHint(option.epochs, epochBlocks)}</span>
+                <span className="font-normal text-faint">{epochHint(option.epochs, epochBlocks)}</span>
               </button>
             );
           })}
