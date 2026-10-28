@@ -29,6 +29,9 @@ class RunReport:
 
 def link_chats(report: RunReport) -> None:
     try:
+        if telegram.webhook_url():
+            # Telegram refuses getUpdates while a webhook is set; the API links chats then.
+            return
         requests = telegram.start_requests()
     except telegram.TelegramUnavailable as error:
         report.errors.append(str(error))

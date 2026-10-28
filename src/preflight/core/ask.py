@@ -51,7 +51,7 @@ def ask(query: str, network: str = "finney") -> AskAnswer:
         return answer("tx", f"/tx/{network}/{stripped}", {"ref": stripped, "network": network}, "Decode and explain this transaction")
 
     if names := catalog.parse_error_names(text):
-        return answer("explain_error", f"/explain?error={names[0]}", {"error": names[0]}, f"Explain {names[0]}")
+        return answer("explain_error", f"/explain?text={names[0]}", {"error": names[0]}, f"Explain {names[0]}")
 
     if SIMULATE.search(text):
         return answer("sim", "/sim", {"network": network}, "Simulate a transaction against live state before paying for it")

@@ -48,6 +48,21 @@ export interface ChainRef {
   runtime_spec?: number | null;
 }
 
+export interface ChangeDriver {
+  uid: number;
+  hotkey: string;
+  stake_share_before: number;
+  stake_share_after: number;
+  /** Share of this validator's weight on the UID, 0..1 */
+  weight_before: number;
+  weight_after: number;
+  /** stake share x weight share */
+  support_before: number;
+  support_after: number;
+  blocks_since_update: number;
+  reason: string;
+}
+
 export interface DecodedArg {
   name: string;
   value: string;
@@ -106,6 +121,17 @@ export interface ErrorExplanation {
   source?: string | null;
   docs?: string | null;
   found?: boolean;
+}
+
+export interface ErrorTrend {
+  error: string;
+  count: number;
+  subnets: Array<number>;
+  example_ref: string;
+  title: string;
+  /** The error's own explanation, first sentence */
+  meaning: string;
+  fix?: string | null;
 }
 
 export interface Evidence {
@@ -209,6 +235,21 @@ export interface Hyperparam {
   who: "owner" | "root" | "chain";
 }
 
+export interface IncentiveChange {
+  chain: ChainRef;
+  hotkey: string;
+  netuid: number;
+  from_block: number;
+  to_block: number;
+  before: NeuronPoint;
+  after: NeuronPoint;
+  /** Relative change in incentive, -1..inf; 0 when both are zero */
+  change: number;
+  headline: string;
+  drivers: Array<ChangeDriver>;
+  notes: Array<string>;
+}
+
 export interface LaunchPlan {
   chain: ChainRef;
   lock_cost_tao: number;
@@ -280,6 +321,18 @@ export interface NeuronHistory {
   netuid: number;
   /** Oldest first, one per tempo */
   points: Array<HistoryPoint>;
+}
+
+export interface NeuronPoint {
+  block: number;
+  uid: number | null;
+  incentive: number;
+  /** Alpha per tempo */
+  emission: number;
+  trust: number;
+  /** 1 is the highest emission among miners */
+  rank_by_emission: number | null;
+  miners: number;
 }
 
 export interface NeuronState {
@@ -425,3 +478,20 @@ export interface TxReport {
 }
 
 export type Verdict = "healthy" | "warning" | "broken";
+
+export interface Weather {
+  chain: ChainRef;
+  from_block: number;
+  to_block: number;
+  blocks: number;
+  extrinsics: number;
+  failed: number;
+  failure_rate: number;
+  headline: string;
+  top_errors: Array<ErrorTrend>;
+  by_kind: Record<string, number>;
+  /** (netuid, extrinsics), busiest first */
+  busiest_subnets: Array<[number, number]>;
+  /** (netuid, failures), most first */
+  failing_subnets: Array<[number, number]>;
+}

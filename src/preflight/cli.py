@@ -253,6 +253,45 @@ def mine(
 
 
 @app.command()
+def why(
+    hotkey: Annotated[str, typer.Argument(help="Hotkey ss58 address")],
+    netuid: Annotated[int, typer.Option("--netuid", help="Subnet the hotkey is on")],
+    network: NetworkOpt = "finney",
+    epochs: Annotated[int, typer.Option("--epochs", help="How many epochs back to compare against")] = 1,
+    since: Annotated[int | None, typer.Option("--since", help="Compare against this block instead")] = None,
+    as_json: JsonOpt = False,
+) -> None:
+    """Why did my incentive change? Names the validators whose support moved it"""
+    from .core.doctor.change import explain_change
+
+    def go():
+        key = validate.ss58(hotkey)
+        number = int(validate.netuid(netuid) or 0)
+        with console.status(f"Comparing SN{number} across {epochs} epoch{'s' if epochs > 1 else ''}", spinner="dots") if not as_json else nullcontext():
+            return explain_change(Network.resolve(network), key, number, epochs=epochs, since=since)
+
+    result = run(go)
+    emit(result, as_json, lambda: render.change(console, result))
+
+
+@app.command()
+def weather(
+    network: NetworkOpt = "finney",
+    window: Annotated[int, typer.Option("--window", help="Blocks to look back over, up to 120")] = 60,
+    as_json: JsonOpt = False,
+) -> None:
+    """What is failing on chain right now, grouped by error and explained"""
+    from .core.live.weather import weather as read_weather
+
+    def go():
+        with console.status(f"Reading the last {window} blocks", spinner="dots") if not as_json else nullcontext():
+            return read_weather(Network.resolve(network), window)
+
+    result = run(go)
+    emit(result, as_json, lambda: render.weather(console, result))
+
+
+@app.command()
 def live(
     network: NetworkOpt = "finney",
     netuid: Annotated[int | None, typer.Option("--netuid", help="Only this subnet")] = None,
@@ -574,6 +613,44 @@ def local_fix(
     for step in result.steps:
         console.print(f"  [dim]-[/dim] {step}")
     console.print(f"Check it:  [bold green]preflight doctor {result.hotkey} --netuid {result.netuid} --network local[/bold green]  ({result.rule} should be gone)")
+
+
+bot_app = typer.Typer(help="The Telegram bot: every Preflight tool in a chat", no_args_is_help=True)
+app.add_typer(bot_app, name="bot")
+
+
+@bot_app.command("webhook")
+def bot_webhook(
+    url: Annotated[str, typer.Option("--url", help="Public base URL of the API")] = "https://preflight-lemon.vercel.app",
+) -> None:
+    """Point the bot at the API's webhook and publish its command menu. Needs TELEGRAM_BOT_TOKEN
+    and TELEGRAM_WEBHOOK_SECRET, the same secret the API is deployed with"""
+    import os
+
+    from .bot import COMMANDS
+    from .core.watch import telegram
+
+    secret = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
+    if not telegram.token() or len(secret) < 16:
+        err.print("[red]Set TELEGRAM_BOT_TOKEN and a TELEGRAM_WEBHOOK_SECRET of at least 16 characters[/red]")
+        raise typer.Exit(2)
+    target = url.rstrip("/") + "/v1/telegram/webhook"
+    try:
+        telegram.set_webhook(target, secret)
+        telegram.set_commands(COMMANDS)
+        active = telegram.webhook_url()
+    except telegram.TelegramUnavailable as error:
+        err.print(f"[red]{error}[/red]")
+        raise typer.Exit(3) from error
+    console.print(f"Webhook set to {active}; {len(COMMANDS)} commands published")
+
+
+@bot_app.command("ask")
+def bot_ask(text: Annotated[str, typer.Argument(help="A message as a user would send it, like '/doctor 5F... 19'")]) -> None:
+    """Answer one message exactly as the bot would, without Telegram"""
+    from .bot import reply
+
+    console.print(reply(text, "local"), markup=False)
 
 
 @app.command()

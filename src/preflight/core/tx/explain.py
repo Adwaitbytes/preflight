@@ -141,7 +141,11 @@ def explain(name: str, ctx: ExplainContext | None = None, pallet: str | None = N
     template = TEMPLATES.get(name)
     specific = template(ctx) if template else None
 
-    if entry is None and name in POOL_ERRORS:
+    runtime = catalog.dispatch_error(name) if entry is None else None
+    if entry is None and runtime is not None:
+        code, base = runtime
+        title = _title(name)
+    elif entry is None and name in POOL_ERRORS:
         title, code = POOL_ERRORS[name]
         base = f"{title}. The transaction was rejected before it ran, so no state changed"
     elif entry is None:
@@ -157,7 +161,7 @@ def explain(name: str, ctx: ExplainContext | None = None, pallet: str | None = N
     fix = specific[1] if specific else None
     if fix is None and (hint := catalog.remediation(code)):
         fix = Fix(kind="info", text=hint)
-    found = entry is not None or name in POOL_ERRORS or trap is not None
+    found = entry is not None or runtime is not None or name in POOL_ERRORS or trap is not None
     return ErrorExplanation(
         error=name,
         pallet=pallet or (entry.pallets[0] if entry and entry.pallets else None),

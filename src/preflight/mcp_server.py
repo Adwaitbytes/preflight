@@ -21,7 +21,8 @@ server = MCPServer(
     version=__version__,
     instructions=(
         "Preflight reads live Bittensor chain state and explains it. Use diagnose_neuron when someone asks why a "
-        "miner or validator earns zero or is failing; explain_extrinsic for a failed transaction hash or "
+        "miner or validator earns zero or is failing; explain_incentive_change when its earnings moved; "
+        "network_weather for what is failing on chain right now; explain_extrinsic for a failed transaction hash or "
         "block-index; explain_error for pasted error text; simulate before telling anyone to submit a "
         "transaction; subnet_health, launch_plan and find_subnet for subnet questions. Quote the fix commands "
         "exactly as returned. Mainnet is read only: nothing here signs or submits."
@@ -166,6 +167,33 @@ def recent_activity(network: str = "finney", blocks: int = 8, netuid: int | None
         "summary": f"{len(activities)} activities in blocks {result.blocks[0].number} to {result.head}, {failed} failed",
         "result": [a.model_dump(mode="json") for a in activities],
     }
+
+
+@server.tool()
+def explain_incentive_change(hotkey: str, netuid: int, network: str = "finney", epochs: int = 1) -> dict[str, Any]:
+    """Why did this hotkey's incentive change? Compares the UID now against `epochs` epochs ago and names
+    the validators whose stake weighted support moved it most, and what each did (stopped weighting,
+    cut weight, went stale, lost stake)."""
+    from .core.doctor.change import explain_change
+
+    try:
+        result = explain_change(Network.resolve(network), validate.ss58(hotkey), int(validate.netuid(netuid) or 0), epochs=max(1, min(epochs, 48)))
+    except (ChainUnreachable, ValueError, LookupError) as error:
+        return _failure(error)
+    return _result(result.headline, result)
+
+
+@server.tool()
+def network_weather(network: str = "finney", blocks: int = 60) -> dict[str, Any]:
+    """What is failing on chain right now: failed extrinsics over the last `blocks` blocks (up to 120)
+    grouped by error, with the subnets each hits, what it means, the fix, and one example to open."""
+    from .core.live.weather import weather
+
+    try:
+        result = weather(Network.resolve(network), max(10, min(blocks, 120)))
+    except (ChainUnreachable, ValueError) as error:
+        return _failure(error)
+    return _result(result.headline, result)
 
 
 @server.tool()

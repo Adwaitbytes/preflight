@@ -4,11 +4,7 @@ its fix, and does not repeat it on the next run. Only the chain read and the dat
 
 from __future__ import annotations
 
-import json
-import threading
-from collections.abc import Iterator
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from typing import Any, ClassVar
+from typing import Any
 
 import pytest
 
@@ -16,50 +12,8 @@ from preflight.core.doctor.engine import evaluate
 from preflight.core.models import DoctorReport
 from preflight.core.watch import worker
 
+from .conftest import FakeBot
 from .factory import snap, subnet
-
-TOKEN = "123:test-token"
-
-
-class FakeBot(BaseHTTPRequestHandler):
-    sent: ClassVar[list[dict[str, Any]]] = []
-    updates: ClassVar[list[dict[str, Any]]] = []
-
-    def do_POST(self) -> None:
-        body = json.loads(self.rfile.read(int(self.headers["Content-Length"])) or b"{}")
-        method = self.path.rsplit("/", 1)[-1]
-        assert self.path.startswith(f"/bot{TOKEN}/")
-        if method == "getUpdates":
-            offset = body.get("offset")
-            result = [u for u in FakeBot.updates if offset is None or u["update_id"] >= offset]
-            if offset is not None:
-                FakeBot.updates = result
-        elif method == "sendMessage":
-            FakeBot.sent.append(body)
-            result = {"message_id": len(FakeBot.sent)}
-        else:
-            result = {"username": "PreflightAlertsBot"}
-        payload = json.dumps({"ok": True, "result": result}).encode()
-        self.send_response(200)
-        self.send_header("Content-Type", "application/json")
-        self.send_header("Content-Length", str(len(payload)))
-        self.end_headers()
-        self.wfile.write(payload)
-
-    def log_message(self, format: str, *args: Any) -> None:
-        return None
-
-
-@pytest.fixture
-def bot(monkeypatch: pytest.MonkeyPatch) -> Iterator[type[FakeBot]]:
-    server = HTTPServer(("127.0.0.1", 0), FakeBot)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    monkeypatch.setenv("TELEGRAM_API_BASE", f"http://127.0.0.1:{server.server_port}")
-    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", TOKEN)
-    FakeBot.sent, FakeBot.updates = [], []
-    yield FakeBot
-    server.shutdown()
 
 
 @pytest.fixture
@@ -96,24 +50,31 @@ def db(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     return {"watch": watch, "alerts": alerts}
 
 
-def test_start_links_the_chat_and_the_alert_is_delivered_once(bot: type[FakeBot], db: dict[str, Any]) -> None:
-    bot.updates = [{"update_id": 7, "message": {"text": "/start AbC12345", "chat": {"id": 4242}}}]
+def test_start_links_the_chat_and_the_alert_is_delivered_once(telegram_api: type[FakeBot], db: dict[str, Any]) -> None:
+    telegram_api.updates = [{"update_id": 7, "message": {"text": "/start AbC12345", "chat": {"id": 4242}}}]
 
     first = worker.run_once()
     assert first.linked == 1 and first.errors == []
     assert db["watch"]["chat_id"] == "4242"
-    texts = [m["text"] for m in bot.sent if m["chat_id"] == "4242"]
+    texts = [m["text"] for m in telegram_api.sent if m["chat_id"] == "4242"]
     assert texts[0].startswith("Preflight is watching your neuron")
     alert = next(t for t in texts if "is no longer scored by any validator" in t)
     assert "/doctor/finney/5Hot2?netuid=7" in alert
     assert first.delivered >= 1 and ("w1", "PF108") in db["alerts"]
 
-    sent_before = len(bot.sent)
+    sent_before = len(telegram_api.sent)
     second = worker.run_once()
-    assert second.delivered == 0 and len(bot.sent) == sent_before, "a persisting problem must not be re-sent"
+    assert second.delivered == 0 and len(telegram_api.sent) == sent_before, "a persisting problem must not be re-sent"
 
 
-def test_a_wrong_code_links_nothing(bot: type[FakeBot], db: dict[str, Any]) -> None:
-    bot.updates = [{"update_id": 9, "message": {"text": "/start WRONG999", "chat": {"id": 1}}}]
+def test_a_wrong_code_links_nothing(telegram_api: type[FakeBot], db: dict[str, Any]) -> None:
+    telegram_api.updates = [{"update_id": 9, "message": {"text": "/start WRONG999", "chat": {"id": 1}}}]
     report = worker.run_once()
-    assert report.linked == 0 and db["watch"]["chat_id"] is None and bot.sent == []
+    assert report.linked == 0 and db["watch"]["chat_id"] is None and telegram_api.sent == []
+
+
+def test_with_a_webhook_set_the_worker_leaves_linking_to_the_api(telegram_api: type[FakeBot], db: dict[str, Any]) -> None:
+    telegram_api.webhook = "https://example.test/v1/telegram/webhook"
+    telegram_api.updates = [{"update_id": 11, "message": {"text": "/start AbC12345", "chat": {"id": 5}}}]
+    report = worker.run_once()
+    assert report.linked == 0 and report.errors == [] and db["watch"]["chat_id"] is None

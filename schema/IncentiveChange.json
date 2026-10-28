@@ -1,0 +1,241 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "ChangeDriver": {
+      "additionalProperties": false,
+      "description": "One validator's part in the change: its stake share times its weight on the UID.",
+      "properties": {
+        "blocks_since_update": {
+          "title": "Blocks Since Update",
+          "type": "integer"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "stake_share_after": {
+          "title": "Stake Share After",
+          "type": "number"
+        },
+        "stake_share_before": {
+          "title": "Stake Share Before",
+          "type": "number"
+        },
+        "support_after": {
+          "title": "Support After",
+          "type": "number"
+        },
+        "support_before": {
+          "description": "stake share x weight share",
+          "title": "Support Before",
+          "type": "number"
+        },
+        "uid": {
+          "title": "Uid",
+          "type": "integer"
+        },
+        "weight_after": {
+          "title": "Weight After",
+          "type": "number"
+        },
+        "weight_before": {
+          "description": "Share of this validator's weight on the UID, 0..1",
+          "title": "Weight Before",
+          "type": "number"
+        }
+      },
+      "required": [
+        "uid",
+        "hotkey",
+        "stake_share_before",
+        "stake_share_after",
+        "weight_before",
+        "weight_after",
+        "support_before",
+        "support_after",
+        "blocks_since_update",
+        "reason"
+      ],
+      "title": "ChangeDriver",
+      "type": "object"
+    },
+    "NeuronPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "emission": {
+          "description": "Alpha per tempo",
+          "title": "Emission",
+          "type": "number"
+        },
+        "incentive": {
+          "title": "Incentive",
+          "type": "number"
+        },
+        "miners": {
+          "title": "Miners",
+          "type": "integer"
+        },
+        "rank_by_emission": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "1 is the highest emission among miners",
+          "title": "Rank By Emission"
+        },
+        "trust": {
+          "title": "Trust",
+          "type": "number"
+        },
+        "uid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Uid"
+        }
+      },
+      "required": [
+        "block",
+        "uid",
+        "incentive",
+        "emission",
+        "trust",
+        "rank_by_emission",
+        "miners"
+      ],
+      "title": "NeuronPoint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Why a UID's incentive moved between two blocks, in validators' terms.",
+  "properties": {
+    "after": {
+      "$ref": "#/$defs/NeuronPoint"
+    },
+    "before": {
+      "$ref": "#/$defs/NeuronPoint"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "change": {
+      "description": "Relative change in incentive, -1..inf; 0 when both are zero",
+      "title": "Change",
+      "type": "number"
+    },
+    "drivers": {
+      "items": {
+        "$ref": "#/$defs/ChangeDriver"
+      },
+      "title": "Drivers",
+      "type": "array"
+    },
+    "from_block": {
+      "title": "From Block",
+      "type": "integer"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "hotkey": {
+      "title": "Hotkey",
+      "type": "string"
+    },
+    "netuid": {
+      "title": "Netuid",
+      "type": "integer"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "to_block": {
+      "title": "To Block",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "chain",
+    "hotkey",
+    "netuid",
+    "from_block",
+    "to_block",
+    "before",
+    "after",
+    "change",
+    "headline",
+    "drivers",
+    "notes"
+  ],
+  "title": "IncentiveChange",
+  "type": "object"
+}

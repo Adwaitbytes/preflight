@@ -1,0 +1,208 @@
+{
+  "$defs": {
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "ErrorTrend": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "error": {
+          "title": "Error",
+          "type": "string"
+        },
+        "example_ref": {
+          "title": "Example Ref",
+          "type": "string"
+        },
+        "fix": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fix"
+        },
+        "meaning": {
+          "description": "The error's own explanation, first sentence",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "subnets": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Subnets",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "error",
+        "count",
+        "subnets",
+        "example_ref",
+        "title",
+        "meaning"
+      ],
+      "title": "ErrorTrend",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "The chain's condition over recent blocks, from the live feed.",
+  "properties": {
+    "blocks": {
+      "title": "Blocks",
+      "type": "integer"
+    },
+    "busiest_subnets": {
+      "description": "(netuid, extrinsics), busiest first",
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Busiest Subnets",
+      "type": "array"
+    },
+    "by_kind": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "By Kind",
+      "type": "object"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "extrinsics": {
+      "title": "Extrinsics",
+      "type": "integer"
+    },
+    "failed": {
+      "title": "Failed",
+      "type": "integer"
+    },
+    "failing_subnets": {
+      "description": "(netuid, failures), most first",
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Failing Subnets",
+      "type": "array"
+    },
+    "failure_rate": {
+      "title": "Failure Rate",
+      "type": "number"
+    },
+    "from_block": {
+      "title": "From Block",
+      "type": "integer"
+    },
+    "headline": {
+      "title": "Headline",
+      "type": "string"
+    },
+    "to_block": {
+      "title": "To Block",
+      "type": "integer"
+    },
+    "top_errors": {
+      "items": {
+        "$ref": "#/$defs/ErrorTrend"
+      },
+      "title": "Top Errors",
+      "type": "array"
+    }
+  },
+  "required": [
+    "chain",
+    "from_block",
+    "to_block",
+    "blocks",
+    "extrinsics",
+    "failed",
+    "failure_rate",
+    "headline",
+    "top_errors",
+    "by_kind",
+    "busiest_subnets",
+    "failing_subnets"
+  ],
+  "title": "Weather",
+  "type": "object"
+}

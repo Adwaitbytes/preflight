@@ -254,6 +254,74 @@ class LiveFeed(Model):
     blocks: list[LiveBlock] = Field(description="Oldest first")
 
 
+class NeuronPoint(Model):
+    block: int
+    uid: int | None
+    incentive: float
+    emission: float = Field(description="Alpha per tempo")
+    trust: float
+    rank_by_emission: int | None = Field(description="1 is the highest emission among miners")
+    miners: int
+
+
+class ChangeDriver(Model):
+    """One validator's part in the change: its stake share times its weight on the UID."""
+
+    uid: int
+    hotkey: str
+    stake_share_before: float
+    stake_share_after: float
+    weight_before: float = Field(description="Share of this validator's weight on the UID, 0..1")
+    weight_after: float
+    support_before: float = Field(description="stake share x weight share")
+    support_after: float
+    blocks_since_update: int
+    reason: str
+
+
+class IncentiveChange(Model):
+    """Why a UID's incentive moved between two blocks, in validators' terms."""
+
+    chain: ChainRef
+    hotkey: str
+    netuid: int
+    from_block: int
+    to_block: int
+    before: NeuronPoint
+    after: NeuronPoint
+    change: float = Field(description="Relative change in incentive, -1..inf; 0 when both are zero")
+    headline: str
+    drivers: list[ChangeDriver]
+    notes: list[str]
+
+
+class ErrorTrend(Model):
+    error: str
+    count: int
+    subnets: list[int]
+    example_ref: str
+    title: str
+    meaning: str = Field(description="The error's own explanation, first sentence")
+    fix: str | None = None
+
+
+class Weather(Model):
+    """The chain's condition over recent blocks, from the live feed."""
+
+    chain: ChainRef
+    from_block: int
+    to_block: int
+    blocks: int
+    extrinsics: int
+    failed: int
+    failure_rate: float
+    headline: str
+    top_errors: list[ErrorTrend]
+    by_kind: dict[str, int]
+    busiest_subnets: list[tuple[int, int]] = Field(description="(netuid, extrinsics), busiest first")
+    failing_subnets: list[tuple[int, int]] = Field(description="(netuid, failures), most first")
+
+
 class DecodedArg(Model):
     name: str
     value: str

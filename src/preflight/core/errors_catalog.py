@@ -23,6 +23,17 @@ SITE = "https://www.bittensor.com"
 # custom validity codes and the InvalidTransaction display strings, so read them once here.
 _CUSTOM_CODES: dict[int, str] = vars(sdk_result)["_CUSTOM_TRANSACTION_ERRORS"]
 _POOL_PHRASES: tuple[tuple[str, str], ...] = tuple(vars(sdk_result)["_INVALID_TRANSACTION_ERRORS"])
+# Runtime level DispatchError variants (BadOrigin, Token, Arithmetic...) with their semantic code.
+_DISPATCH: dict[str, tuple[Any, str]] = vars(sdk_result)["_DISPATCH_ERRORS"]
+
+
+def dispatch_error(name: str) -> tuple[str, str] | None:
+    """(semantic code, description) for a runtime DispatchError variant, or None."""
+    found = _DISPATCH.get(name)
+    if found is None:
+        return None
+    code, description = found
+    return str(getattr(code, "value", code)), description
 
 
 @dataclass(frozen=True)

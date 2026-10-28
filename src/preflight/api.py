@@ -8,6 +8,7 @@ PREFLIGHT_LOCAL=1, which allows `local` and custom endpoints for the developer's
 
 from __future__ import annotations
 
+import hmac
 import ipaddress
 import os
 import threading
@@ -16,7 +17,7 @@ from collections import OrderedDict, deque
 from collections.abc import Callable
 from typing import Annotated, Any, Literal
 
-from fastapi import FastAPI, HTTPException, Path, Query, Request
+from fastapi import Body, FastAPI, Header, HTTPException, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -34,6 +35,7 @@ from .core.models import (
     FleetReport,
     Health,
     HealthScores,
+    IncentiveChange,
     LaunchPlan,
     LiveFeed,
     MinerEconomics,
@@ -44,6 +46,7 @@ from .core.models import (
     SubnetCard,
     SubnetDetail,
     TxReport,
+    Weather,
 )
 
 LOCAL_MODE = os.environ.get("PREFLIGHT_LOCAL") == "1"
@@ -175,6 +178,8 @@ class _Cache:
 
 
 limiter = _Limiter(RATE_PER_MINUTE)
+chat_limiter = _Limiter(12)
+TELEGRAM_WEBHOOK = "/v1/telegram/webhook"
 cache = _Cache()
 HEALTH_TTL = 15.0
 DIRECTORY_TTL = 60.0
@@ -188,7 +193,9 @@ def _client_ip(request: Request) -> str:
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next: Callable[[Request], Any]) -> Any:
-    if request.url.path.startswith("/v1/") and request.url.path != "/v1/health" and request.method != "OPTIONS" and not limiter.allow(_client_ip(request)):
+    # Telegram's few servers carry every chat, so the bot limits per chat instead of per IP.
+    exempt = request.url.path in ("/v1/health", TELEGRAM_WEBHOOK) or request.method == "OPTIONS"
+    if request.url.path.startswith("/v1/") and not exempt and not limiter.allow(_client_ip(request)):
         return JSONResponse({"detail": "rate limited: try again in a minute"}, status_code=429)
     return await call_next(request)
 
@@ -262,7 +269,7 @@ def health() -> ServiceHealth:
 
 
 NO_CDN_QUERY = ("fresh",)
-CDN_SECONDS = {"/v1/live": 3, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/live": 3, "/v1/weather": 12, "/v1/change": 60, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -638,3 +645,56 @@ def live(
     result = cache.get_or(key, lambda: feed(net, after, limit), 4.0, 0.0)
     assert isinstance(result, LiveFeed)
     return result
+
+
+@app.get("/v1/weather/{network}", response_model=Weather)
+def network_weather(network: str, window: Annotated[int, Query(ge=10, le=120, description="Blocks to look back over")] = 60) -> Weather:
+    """What is failing on chain right now: errors grouped with the subnets they hit, explained."""
+    from .core.live.weather import weather
+
+    net = network_for(network)
+    result = cache.get_or(f"weather:{net.endpoint}:{window}", lambda: weather(net, window), CACHE_SECONDS, 60.0)
+    assert isinstance(result, Weather)
+    return result
+
+
+@app.get("/v1/change/{network}/{hotkey}", response_model=IncentiveChange)
+def incentive_change(
+    network: str,
+    hotkey: str,
+    netuid: Annotated[int, Query(ge=1, le=validate.MAX_NETUID)],
+    epochs: Annotated[int, Query(ge=1, le=48, description="How many epochs back to compare against")] = 1,
+) -> IncentiveChange:
+    """Why a UID's incentive moved: the validators whose stake weighted support changed most."""
+    from .core.doctor.change import explain_change
+
+    net = network_for(network)
+    key = validate.ss58(hotkey)
+    store.count("doctor", net.name)
+    if net.name in ("local", "custom"):
+        return explain_change(net, key, netuid, epochs=epochs)
+    result = cache.get_or(f"change:{net.endpoint}:{key}:{netuid}:{epochs}", lambda: explain_change(net, key, netuid, epochs=epochs), CACHE_SECONDS * 5, 300.0)
+    assert isinstance(result, IncentiveChange)
+    return result
+
+
+@app.post(TELEGRAM_WEBHOOK, include_in_schema=False)
+def telegram_webhook(
+    update: Annotated[dict[str, Any], Body()],
+    secret: Annotated[str, Header(alias="X-Telegram-Bot-Api-Secret-Token")] = "",
+) -> dict[str, bool]:
+    """Telegram posts every message to the bot here. Only Telegram knows the secret, set with
+    `preflight bot webhook`; anything else gets a 404 as if the route did not exist."""
+    from . import bot
+    from .core.watch.telegram import TelegramUnavailable
+
+    expected = os.environ.get("TELEGRAM_WEBHOOK_SECRET", "")
+    if not expected or not hmac.compare_digest(secret.encode(), expected.encode()):
+        raise HTTPException(404, "Not Found")
+    try:
+        answered = bot.handle_update(update, chat_limiter.allow)
+    except TelegramUnavailable as error:
+        # A 200 stops Telegram retrying an answer it could not deliver; the failure is logged.
+        bot.log.warning("Telegram reply failed: %s", error)
+        return {"ok": False}
+    return {"ok": answered}

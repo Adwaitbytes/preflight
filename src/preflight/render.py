@@ -15,6 +15,7 @@ from .core.models import (
     Finding,
     Fix,
     FleetReport,
+    IncentiveChange,
     LaunchPlan,
     MinerEconomics,
     Severity,
@@ -23,6 +24,7 @@ from .core.models import (
     SubnetDetail,
     TxReport,
     Verdict,
+    Weather,
 )
 
 SEVERITY_STYLE = {
@@ -296,3 +298,48 @@ def economics(console: Console, e: MinerEconomics) -> None:
         console.print(Text(f"  - {note}"))
     for f in e.findings:
         console.print(finding_block(f, verbose=False))
+
+
+def change(console: Console, c: IncentiveChange) -> None:
+    style = "bold black on green" if c.change > 0.05 else "bold white on red" if c.change < -0.05 or (c.before.uid is not None and c.after.uid is None) else "bold black on yellow"
+    word = "UP" if c.change > 0.05 else "DOWN" if c.change < -0.05 else "STEADY"
+    console.print()
+    console.print(Text.assemble(Text(f" {word} ", style=style), "  ", Text(c.headline, style="bold")))
+    console.print(Text.assemble(chain_line(c.chain), Text(f"  blocks {c.from_block:,} to {c.to_block:,}", style="dim")))
+    if c.drivers:
+        table = Table(header_style="dim", box=None, padding=(0, 1))
+        for column in ("Validator", "Stake", "Weight before", "Weight now", "Support moved", "What it did"):
+            table.add_column(column, justify="right" if column not in ("Validator", "What it did") else "left")
+        for d in c.drivers:
+            moved = d.support_after - d.support_before
+            table.add_row(
+                f"UID {d.uid}",
+                f"{d.stake_share_after:.1%}",
+                f"{d.weight_before:.2%}",
+                f"{d.weight_after:.2%}",
+                Text(f"{moved:+.3%}", style="green" if moved > 0 else "red" if moved < 0 else "dim"),
+                d.reason,
+            )
+        console.print(Panel(table, title="Validators that moved it", title_align="left", border_style="grey50"))
+    for note in c.notes:
+        console.print(Text(f"  - {note}", style="dim"))
+
+
+def weather(console: Console, w: Weather) -> None:
+    calm = w.failure_rate < 0.02
+    console.print()
+    console.print(Text.assemble(Text(" CLEAR " if calm else " STORMY ", style="bold black on green" if calm else "bold black on yellow"), "  ", Text(w.headline, style="bold")))
+    console.print(Text.assemble(chain_line(w.chain), Text(f"  blocks {w.from_block:,} to {w.to_block:,}, {w.extrinsics:,} transactions, {w.failed} failed", style="dim")))
+    if w.top_errors:
+        table = Table(header_style="dim", box=None, padding=(0, 1))
+        for column in ("Error", "Times", "Subnets", "What it means", "Open one"):
+            table.add_column(column, justify="right" if column == "Times" else "left")
+        for e in w.top_errors:
+            subnets = ", ".join(f"SN{n}" for n in e.subnets[:4]) + (" ..." if len(e.subnets) > 4 else "")
+            table.add_row(Text(e.error, style="red"), str(e.count), subnets, e.meaning, Text(f"preflight tx {e.example_ref}", style="dim"))
+        console.print(Panel(table, title="What is failing", title_align="left", border_style="grey50"))
+    kinds = ", ".join(f"{count} {kind}" for kind, count in sorted(w.by_kind.items(), key=lambda item: -item[1]))
+    busiest = ", ".join(f"SN{n} ({count})" for n, count in w.busiest_subnets)
+    console.print(Text(f"  Activity: {kinds}", style="dim"))
+    if busiest:
+        console.print(Text(f"  Busiest subnets: {busiest}", style="dim"))

@@ -121,7 +121,7 @@ def describe(call: dict[str, Any], signer: Any) -> tuple[ActivityKind, str, int 
     return "other", f"{who} called {module}.{function}", netuid, None
 
 
-def _block(pinned: Pinned, number: int) -> LiveBlock:
+def decoded_block(pinned: Pinned, number: int) -> LiveBlock:
     key = f"{pinned.network.endpoint}:{number}"
     with _cache_lock:
         hit = _cache.get(key)
@@ -187,5 +187,5 @@ def feed(network: Network, after: int | None = None, limit: int = 8) -> LiveFeed
     count = max(1, min(limit, MAX_BLOCKS))
     start = head - count + 1 if after is None else max(after + 1, head - MAX_BLOCKS + 1)
     numbers = list(range(start, head + 1))
-    blocks = with_retries(network, lambda: gather({str(n): (lambda n=n: _block(pinned, n)) for n in numbers}))
+    blocks = with_retries(network, lambda: gather({str(n): (lambda n=n: decoded_block(pinned, n)) for n in numbers}))
     return LiveFeed(chain=pinned.ref, head=head, blocks=[blocks[str(n)] for n in numbers])

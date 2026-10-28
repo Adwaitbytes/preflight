@@ -1,8 +1,8 @@
 """Telegram Bot API: send alerts and link chats. The token never leaves the environment.
 
 Linking without sign-in: a watch created without a chat id gets a one-time code, and the
-user sends `/start <code>` to the bot. The worker reads those messages with getUpdates and
-binds the chat to the watch.
+user sends `/start <code>` to the bot. With the webhook set (`preflight bot webhook`), the
+API answers it at once; without one, the worker reads it with getUpdates and binds the chat.
 """
 
 from __future__ import annotations
@@ -51,8 +51,34 @@ def _call(method: str, payload: dict[str, object]) -> object:
     return body.get("result")
 
 
-def send(chat_id: str, text: str) -> None:
-    _call("sendMessage", {"chat_id": chat_id, "text": text, "disable_web_page_preview": True})
+def send(chat_id: str, text: str, *, html: bool = False) -> None:
+    payload: dict[str, object] = {"chat_id": chat_id, "text": text, "link_preview_options": {"is_disabled": True}}
+    if html:
+        payload["parse_mode"] = "HTML"
+    _call("sendMessage", payload)
+
+
+def typing(chat_id: str) -> None:
+    """Best effort: the reply still arrives if the indicator does not."""
+    try:
+        _call("sendChatAction", {"chat_id": chat_id, "action": "typing"})
+    except TelegramUnavailable:
+        return
+
+
+def webhook_url() -> str | None:
+    """The URL Telegram posts updates to, or None when the bot is polled with getUpdates."""
+    info = _call("getWebhookInfo", {})
+    url = info.get("url") if isinstance(info, dict) else None
+    return str(url) if url else None
+
+
+def set_webhook(url: str, secret: str) -> None:
+    _call("setWebhook", {"url": url, "secret_token": secret, "allowed_updates": ["message"], "drop_pending_updates": False})
+
+
+def set_commands(commands: list[tuple[str, str]]) -> None:
+    _call("setMyCommands", {"commands": [{"command": c, "description": d} for c, d in commands]})
 
 
 def start_requests(offset: int | None = None) -> list[StartRequest]:
