@@ -70,3 +70,16 @@ jobs:
           fail-on: high
           start-localnet: "false"
       - run: test "${{ steps.broken.outcome }}" = failure
+
+  action-published:
+    # The action as an outside repository uses it: by its public name, not a local path.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - run: docker pull ghcr.io/raofoundation/subtensor-localnet:devnet
+      - id: gate
+        uses: Adwaitbytes/preflight@main
+        with:
+          fail-on: critical
+      - run: echo "Published action passed with ${{ steps.gate.outputs.findings }} failing hotkeys"
