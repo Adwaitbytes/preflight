@@ -23,7 +23,7 @@ export default function PosterPage() {
   return (
     <div className="flex justify-center px-4 py-10 print:p-0">
       <p className="sr-only">Use your browser’s print command to print this poster on one page.</p>
-      <article className="flex aspect-[210/297] w-full max-w-[794px] flex-col justify-between rounded-2xl bg-[#fbfbfc] p-[6%] text-[#121316] shadow-[0_0_0_1px_var(--line),0_24px_64px_rgb(0_0_0/0.12)] print:max-w-none print:rounded-none print:shadow-none">
+      <article className="flex aspect-[210/297] w-full max-w-[794px] flex-col justify-between rounded-2xl bg-[#fbfbfc] p-[6%] text-[#121316] shadow-[0_0_0_1px_var(--line),0_24px_64px_rgb(0_0_0/0.12)] print:aspect-auto print:h-[100vh] print:w-[100vw] print:max-w-none print:rounded-none print:shadow-none">
         <header className="flex items-center gap-3">
           <LogoMark mono className="size-9 text-[#1f6feb]" />
           <span className="text-2xl font-semibold tracking-[-0.03em]">Preflight</span>

@@ -106,9 +106,10 @@ function ChangeBody({ change, epochs, onPick }: { change: Change; epochs: number
           <ol className="overflow-hidden rounded-xl bg-line shadow-[0_0_0_1px_var(--line)]">
             {change.drivers.map((d, i) => {
               const bar = bars[i] ?? { direction: "flat" as const, width: 0 };
+              const unmoved = d.support_after === d.support_before;
               const stale = d.reason.includes("has not set weights");
               return (
-                <li key={d.uid} className={cn("grid gap-x-5 gap-y-2 bg-surface px-4 py-3.5 sm:grid-cols-[9rem_1fr_11rem] sm:items-center sm:px-5", i > 0 && "mt-px")}>
+                <li key={d.uid} className={cn("grid gap-x-5 gap-y-2 bg-surface px-4 py-3.5 sm:grid-cols-[9rem_1fr_11rem] sm:items-center sm:px-5", i > 0 && "mt-px", unmoved && "opacity-60")}>
                   <div className="flex items-baseline gap-2 sm:flex-col sm:gap-0.5">
                     <span className="font-semibold">UID {d.uid}</span>
                     <span className="text-xs text-faint tnum">{formatSharePercent(d.stake_share_after || d.stake_share_before)} of stake</span>
@@ -217,23 +218,22 @@ export function IncentiveChange({ network, hotkey, netuid }: { network: NetworkI
     <section aria-labelledby={`${groupId}-title`} className="flex flex-col gap-3">
       <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <div>
-          <h3 id={`${groupId}-title`} className="text-sm font-semibold">
+          <h3 id={`${groupId}-title`} className="text-xs font-medium text-muted-foreground">
             What changed
           </h3>
           <p className="text-xs text-faint">The validators behind this UID’s incentive, now against earlier</p>
         </div>
-        <div role="radiogroup" aria-label="Compare against" className="grid w-full grid-cols-3 rounded-lg bg-surface-2 p-0.5 shadow-[0_0_0_1px_var(--line)] sm:inline-grid sm:w-auto">
+        <div role="group" aria-label="Compare against" className="grid w-full grid-cols-3 rounded-lg bg-surface-2 p-0.5 shadow-[0_0_0_1px_var(--line)] sm:inline-grid sm:w-auto">
           {EPOCH_OPTIONS.map((option) => {
             const active = option.epochs === epochs;
             return (
               <button
                 key={option.epochs}
                 type="button"
-                role="radio"
-                aria-checked={active}
+                aria-pressed={active}
                 onClick={() => setEpochs(option.epochs)}
                 className={cn(
-                  "flex flex-col items-center rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors sm:flex-row sm:gap-1 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-accent",
+                  "flex flex-col items-center rounded-md px-2.5 py-1 text-xs font-medium whitespace-nowrap transition-colors sm:flex-row sm:gap-1",
                   active ? "bg-surface text-foreground shadow-[0_0_0_1px_var(--line-strong)]" : "text-muted-foreground hover:text-foreground",
                 )}
               >

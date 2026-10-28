@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CloudLightning, CloudSun, RotateCw, Sun } from "lucide-react";
+import { ArrowUpRight, RotateCw } from "lucide-react";
 import Link from "next/link";
 import { KIND_META } from "@/components/live/kinds";
 import { RichText } from "@/components/shared/rich-text";
@@ -12,21 +12,17 @@ import { formatInt, formatShare } from "@/lib/format";
 import { NETWORK_LABEL, type NetworkId } from "@/lib/networks";
 import type { Weather } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { kindMix, sky, SKY_LABEL, subnetBars, windowMinutes, type Sky } from "@/lib/weather";
+import { kindMix, sky, SKY_ICON, SKY_LABEL, SKY_TONE, subnetBars, windowMinutes } from "@/lib/weather";
 import { useWeather } from "./use-weather";
 
-export const SKY_ICON = { clear: Sun, unsettled: CloudSun, stormy: CloudLightning } as const;
-export const SKY_TONE: Record<Sky, string> = {
-  clear: "bg-healthy-soft text-healthy",
-  unsettled: "bg-medium-soft text-medium",
-  stormy: "bg-critical-soft text-critical",
-};
 
-function Stat({ label, value, caption, alert = false }: { label: string; value: string; caption: string; alert?: boolean }) {
+const ALERT_TEXT = { clear: "", unsettled: "text-medium", stormy: "text-critical" } as const;
+
+function Stat({ label, value, caption, tone = "" }: { label: string; value: string; caption: string; tone?: string }) {
   return (
     <div className="flex min-w-0 flex-col bg-surface px-4 py-3.5 sm:px-5 sm:py-4">
       <dt className="eyebrow truncate">{label}</dt>
-      <dd className={cn("mt-1.5 text-xl leading-7 font-semibold tracking-[-0.025em] tnum sm:text-2xl sm:leading-8", alert && "text-critical")}>{value}</dd>
+      <dd className={cn("mt-1.5 text-xl leading-7 font-semibold tracking-[-0.025em] tnum sm:text-2xl sm:leading-8", tone)}>{value}</dd>
       <dd className="mt-0.5 truncate text-xs text-faint tnum">{caption}</dd>
     </div>
   );
@@ -44,15 +40,18 @@ function Hero({ weather, network }: { weather: Weather; network: NetworkId }) {
         </div>
         <div className="min-w-0">
           <p className="eyebrow">
-            {SKY_LABEL[level]} · {NETWORK_LABEL[network]}
+            {NETWORK_LABEL[network]} · last {minutes} minutes
           </p>
-          <h2 className="mt-2 text-title font-semibold text-balance">{weather.headline}</h2>
+          <p className="mt-3 flex flex-wrap items-baseline gap-x-3 font-sans text-[2.75rem] leading-none font-semibold tracking-[-0.045em] tnum sm:text-[3.5rem]">
+            <span className={ALERT_TEXT[level]}>{formatShare(weather.failure_rate)}</span>
+            <span className="text-title font-medium tracking-[-0.015em] text-muted-foreground">failing, {SKY_LABEL[level].toLowerCase()}</span>
+          </p>
+          <h2 className="mt-3 max-w-[64ch] text-[15px] leading-7 text-pretty text-muted-foreground">{weather.headline}</h2>
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-px border-t border-line bg-line sm:grid-cols-4">
-        <Stat label="Transactions" value={formatInt(weather.extrinsics)} caption={`in the last ${minutes} minutes`} />
-        <Stat label="Failed" value={formatInt(weather.failed)} caption="each one opens in the debugger" alert={weather.failed > 0 && level !== "clear"} />
-        <Stat label="Failure rate" value={formatShare(weather.failure_rate)} caption="under 2% is ordinary" alert={level === "stormy"} />
+      <dl className="grid grid-cols-3 gap-px border-t border-line bg-line">
+        <Stat label="Transactions" value={formatInt(weather.extrinsics)} caption={`in ${minutes} minutes`} />
+        <Stat label="Failed" value={formatInt(weather.failed)} caption="under 2% is ordinary" tone={weather.failed > 0 ? ALERT_TEXT[level] : ""} />
         <Stat label="Window" value={`${formatInt(weather.blocks)} blocks`} caption={`${formatInt(weather.from_block)} to ${formatInt(weather.to_block)}`} />
       </dl>
     </section>
@@ -174,7 +173,7 @@ function WeatherSkeleton() {
   return (
     <div className="flex flex-col gap-6" aria-busy>
       <span className="sr-only" role="status">
-        Reading the last hour of blocks
+        Reading the last 60 blocks
       </span>
       <div className="panel overflow-hidden">
         <div className="flex gap-5 p-6">

@@ -3,6 +3,7 @@
  * what these return.
  */
 
+import { CloudLightning, CloudSun, Sun } from "lucide-react";
 import { ACTIVITY_KINDS, type ActivityKind } from "./live";
 import type { Weather } from "./types";
 
@@ -15,6 +16,12 @@ export function sky(failureRate: number): Sky {
 }
 
 export const SKY_LABEL: Record<Sky, string> = { clear: "Clear", unsettled: "Unsettled", stormy: "Stormy" };
+export const SKY_ICON = { clear: Sun, unsettled: CloudSun, stormy: CloudLightning } as const;
+export const SKY_TONE: Record<Sky, string> = {
+  clear: "bg-healthy-soft text-healthy",
+  unsettled: "bg-medium-soft text-medium",
+  stormy: "bg-critical-soft text-critical",
+};
 
 export interface KindShare {
   kind: ActivityKind;

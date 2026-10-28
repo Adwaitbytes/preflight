@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useAppState } from "@/components/site/app-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { sky, SKY_LABEL } from "@/lib/weather";
+import { formatShare } from "@/lib/format";
+import { sky, SKY_ICON, SKY_LABEL, SKY_TONE } from "@/lib/weather";
 import { useWeather } from "./use-weather";
-import { SKY_ICON, SKY_TONE } from "./weather-view";
 
 /** One line of network weather above the live explorer. Fixed height, so it never shifts the feed */
 export function WeatherStrip() {
@@ -33,7 +33,9 @@ export function WeatherStrip() {
               </span>
             );
           })()}
+          <span className="shrink-0 font-mono text-xs font-medium text-foreground tnum">{formatShare(state.weather.failure_rate)}</span>
           <span className="min-w-0 flex-1 truncate text-muted-foreground group-hover:text-foreground">{state.weather.headline}</span>
+          <ArrowRight className="size-4 shrink-0 text-faint sm:hidden" aria-hidden />
           <span className="hidden shrink-0 items-center gap-1 text-xs font-medium text-accent-ink sm:inline-flex">
             Network weather
             <ArrowRight className="size-3.5" aria-hidden />

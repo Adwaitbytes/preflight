@@ -5,7 +5,7 @@ import { WeatherView } from "@/components/weather/weather-view";
 export const metadata: Metadata = {
   title: "Network weather",
   description:
-    "What is failing on Bittensor right now: failed transactions over the last hour of blocks, grouped by error, with the subnets they hit, what each means and the fix",
+    "What is failing on Bittensor right now: failed transactions over the last 60 blocks, about 12 minutes, grouped by error, with the subnets they hit, what each means and the fix",
   alternates: { canonical: "/weather" },
 };
 

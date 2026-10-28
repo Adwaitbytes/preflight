@@ -1,5 +1,20 @@
 [
   {
+    "date": "2026-10-28T13:41:28+05:30",
+    "sha": "b32013e",
+    "subject": "What changed: the epoch picker spans the width on phones with its hint under each label, and the change badge sits above the headline"
+  },
+  {
+    "date": "2026-10-28T13:40:08+05:30",
+    "sha": "2d1d406",
+    "subject": "Weather renders code spans in error prose and gives the activity legend room; What changed hints use the subnet's measured epoch length (SN19's is 7,200 blocks, not 360)"
+  },
+  {
+    "date": "2026-10-28T13:38:02+05:30",
+    "sha": "6930780",
+    "subject": "Web: what changed on the Doctor, a network weather page and strip on Live, a /bot page and a printable Builders House poster; security hardening from review"
+  },
+  {
     "date": "2026-10-28T12:51:35+05:30",
     "sha": "fb49241",
     "subject": "Docs: incentive change, network weather, live explorer and the Telegram bot in the README; the webhook's design and verification in 006"

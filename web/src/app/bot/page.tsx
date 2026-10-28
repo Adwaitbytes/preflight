@@ -27,6 +27,7 @@ export default function BotPage() {
       />
       <section className="panel grid gap-8 p-5 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">
         <div className="flex flex-col gap-5">
+          <h2 className="sr-only">What the bot does</h2>
           <ul className="flex flex-col gap-5">
             {POINTS.map(({ icon: Icon, title, body }) => (
               <li key={title} className="flex gap-4">
@@ -34,7 +35,7 @@ export default function BotPage() {
                   <Icon className="size-4" aria-hidden />
                 </span>
                 <div>
-                  <h2 className="text-[15px] font-semibold">{title}</h2>
+                  <h3 className="text-[15px] font-semibold">{title}</h3>
                   <p className="mt-0.5 text-sm leading-6 text-pretty text-muted-foreground">{body}</p>
                 </div>
               </li>
@@ -49,7 +50,7 @@ export default function BotPage() {
             </Button>
           </div>
         </div>
-        <figure className="flex flex-col items-center gap-3 justify-self-center">
+        <figure className="hidden flex-col items-center gap-3 justify-self-center md:flex">
           <QrCode value={BOT_URL} label={`QR code that opens @${BOT_USERNAME} in Telegram`} className="size-44 p-2 shadow-[0_0_0_1px_var(--line)] sm:size-52" />
           <figcaption className="text-xs text-faint">Scan with your phone camera</figcaption>
         </figure>

@@ -422,3 +422,10 @@
   text-transform: uppercase;
   color: var(--faint);
 }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
