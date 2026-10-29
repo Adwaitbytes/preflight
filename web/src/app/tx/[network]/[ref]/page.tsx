@@ -1,7 +1,7 @@
 import { CircleSlash } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { LocalView } from "@/components/shared/local-view-loader";
 import { TxView } from "@/components/tx/tx-view";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,8 @@ export default async function TxPage({ params }: PageProps<"/tx/[network]/[ref]"
   }
 
   const result = await getTx(network, ref);
+  // A block hash pasted where a transaction goes: open that block and say so
+  if (!result.ok && result.error.block != null) redirect(`/block/${network}/${result.error.block}?from=hash`);
   return (
     <Container>
       {result.ok ? (

@@ -461,6 +461,26 @@ class TxReport(Model):
     netuid: int | None = None
 
 
+
+class BlockExtrinsic(Model):
+    index: int
+    extrinsic_hash: str | None
+    pallet: str
+    call: str
+    signer: str | None
+    success: bool
+    error: str | None = Field(default=None, description="Pallet.Error when it failed")
+
+
+class BlockReport(Model):
+    """One block's extrinsics, each openable in the Transaction Debugger by block-index."""
+
+    chain: ChainRef
+    block: int
+    block_hash: str
+    extrinsics: list[BlockExtrinsic]
+    failed: int
+
 SimAction = Literal[
     "burned_register",
     "add_stake",

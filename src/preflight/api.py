@@ -32,6 +32,7 @@ from .core.chain.network import ChainUnreachable, Network, client_for, gather
 from .core.models import (
     AskAnswer,
     AxonInfo,
+    BlockReport,
     DoctorReport,
     EpochCheck,
     EpochPreview,
@@ -54,6 +55,7 @@ from .core.models import (
     TxReport,
     Weather,
 )
+from .core.tx.debugger import BlockHashGiven
 
 LOCAL_MODE = os.environ.get("PREFLIGHT_LOCAL") == "1"
 RATE_PER_MINUTE = int(os.environ.get("PREFLIGHT_RATE_PER_MINUTE", "60"))
@@ -269,6 +271,11 @@ async def unprocessable(_: Request, error: RequestValidationError) -> JSONRespon
     return JSONResponse({"detail": message, "kind": "invalid_input"}, status_code=422)
 
 
+@app.exception_handler(BlockHashGiven)
+async def block_hash_given(_: Request, error: BlockHashGiven) -> JSONResponse:
+    return JSONResponse({"detail": str(error), "kind": "block_hash", "block": error.block}, status_code=404)
+
+
 @app.exception_handler(LookupError)
 async def not_found(_: Request, error: LookupError) -> JSONResponse:
     return JSONResponse({"detail": str(error), "kind": "not_found"}, status_code=404)
@@ -320,7 +327,7 @@ def health() -> ServiceHealth:
 
 
 NO_CDN_QUERY = ("fresh",)
-CDN_SECONDS = {"/v1/live": 3, "/v1/weather": 12, "/v1/change": 60, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/live": 3, "/v1/weather": 12, "/v1/change": 60, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/block": 3600, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -421,6 +428,19 @@ def tx(network: str, ref: str) -> TxReport:
     store.count("tx", net.name)
     result = cache.get_or(f"tx:{net.endpoint}:{ref.lower()}", lambda: debug(net, ref))
     assert isinstance(result, TxReport)
+    return result
+
+
+@app.get("/v1/block/{network}/{ref}", response_model=BlockReport)
+def block(network: str, ref: str) -> BlockReport:
+    from .core.tx.debugger import block_report
+
+    net = network_for(network)
+    ref = ref.strip()
+    if not (ref.isdigit() or (ref.startswith("0x") and len(ref) == 66)):
+        raise HTTPException(400, "expected a block number or a 0x block hash")
+    result = cache.get_or(f"block:{net.endpoint}:{ref.lower()}", lambda: block_report(net, ref))
+    assert isinstance(result, BlockReport)
     return result
 
 

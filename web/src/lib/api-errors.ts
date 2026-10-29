@@ -11,6 +11,8 @@ export interface ApiError {
   message: string;
   /** Seconds, from Retry-After on a 429 */
   retryAfter?: number | null;
+  /** On a 404 for a block hash pasted as a transaction: the block it names, so the page can open it */
+  block?: number | null;
 }
 
 export const API_ERROR_TITLE: Record<ApiErrorKind, string> = {

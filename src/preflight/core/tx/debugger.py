@@ -13,7 +13,7 @@ from typing import Any
 from ..chain import registry as R
 from ..chain.decode import call_args, events_for, failure_from, fee_from
 from ..chain.network import Network, Pinned, gather, pin, with_retries
-from ..models import TxReport
+from ..models import BlockExtrinsic, BlockReport, TxReport
 from .context import ExplainContext
 from .explain import explain
 
@@ -28,6 +28,14 @@ class TxNotFound(LookupError):
     pass
 
 
+class BlockHashGiven(LookupError):
+    """The hash names a block, not an extrinsic: the page can open that block instead."""
+
+    def __init__(self, block: int) -> None:
+        super().__init__(f"that is a block hash, not a transaction hash: it names block {block:,}")
+        self.block = block
+
+
 def is_tx_ref(ref: str) -> bool:
     ref = ref.strip()
     return bool(HASH.match(ref) or BLOCK_INDEX.match(ref))
@@ -36,6 +44,15 @@ def is_tx_ref(ref: str) -> bool:
 def _extrinsics(pinned: Pinned, block: int) -> list[Any]:
     info = pinned.client.block_info(block)
     return list(getattr(info, "extrinsics", None) or [])
+
+
+def block_for_hash(pinned: Pinned, block_hash: str) -> int | None:
+    """The block number a hash names, or None when no block has it (0.3-0.6 s on finney).
+    The SDK's public block lookups take a number only, so this asks its substrate layer."""
+    substrate = pinned.client._client._substrate  # pyright: ignore[reportPrivateUsage]
+    raw = pinned.client._call(substrate.get_block(block_hash=block_hash))  # pyright: ignore[reportPrivateUsage]
+    header = (raw or {}).get("header") or {}
+    return int(header["number"]) if header.get("number") is not None else None
 
 
 def locate(pinned: Pinned, ref: str, window: int = SEARCH_WINDOW) -> tuple[int, int, dict[str, Any]]:
@@ -50,6 +67,9 @@ def locate(pinned: Pinned, ref: str, window: int = SEARCH_WINDOW) -> tuple[int, 
     if not HASH.match(ref):
         raise ValueError("expected a 0x extrinsic hash or block-index such as 9376733-28")
     wanted = ref.lower()
+    # People paste the hash beside "Block" on explorers and on our own pages: name it, don't scan
+    if (block := block_for_hash(pinned, wanted)) is not None:
+        raise BlockHashGiven(block)
     start = pinned.block
     for offset in range(0, window, SEARCH_BATCH):
         blocks = [start - offset - k for k in range(SEARCH_BATCH) if start - offset - k > 0]
@@ -59,8 +79,9 @@ def locate(pinned: Pinned, ref: str, window: int = SEARCH_WINDOW) -> tuple[int, 
                 if extrinsic and str(extrinsic.get("extrinsic_hash", "")).lower() == wanted:
                     return block, index, extrinsic
     raise TxNotFound(
-        f"no extrinsic with that hash in the last {window} blocks; pass it as block-index "
-        "(for example 9376733-28) to look further back"
+        f"no transaction with that hash in the last {window} blocks (about {window * 12 // 60} minutes). "
+        "If it is older, paste it as block-index, for example 9376733-28: block number, a dash, "
+        "then its index in the block, as explorers list it"
     )
 
 
@@ -186,3 +207,53 @@ def debug(network: Network, ref: str, *, window: int = SEARCH_WINDOW) -> TxRepor
         hotkey=str(hotkey) if hotkey else None,
         netuid=int(netuid) if netuid is not None else None,
     )
+
+
+def summarize_extrinsics(extrinsics: list[Any], events: list[dict[str, Any]]) -> list[BlockExtrinsic]:
+    rows: list[BlockExtrinsic] = []
+    for index, extrinsic in enumerate(extrinsics):
+        if not extrinsic:
+            continue
+        call = extrinsic.get("call") or {}
+        failure = failure_from(events, index)
+        rows.append(
+            BlockExtrinsic(
+                index=index,
+                extrinsic_hash=extrinsic.get("extrinsic_hash"),
+                pallet=str(call.get("call_module", "?")),
+                call=str(call.get("call_function", "?")),
+                signer=extrinsic.get("address"),
+                success=failure is None,
+                error=f"{failure.pallet}.{failure.error}" if failure else None,
+            )
+        )
+    return rows
+
+
+def block_report(network: Network, ref: str) -> BlockReport:
+    """A block by number or hash, with every extrinsic and whether it failed."""
+    pinned = pin(network)
+    ref = ref.strip()
+    if ref.isdigit():
+        block = int(ref)
+        if block > pinned.block:
+            raise TxNotFound(f"block {block:,} has not been produced yet; the chain is at {pinned.block:,}")
+    elif HASH.match(ref):
+        found = with_retries(network, lambda: block_for_hash(pinned, ref.lower()))
+        if found is None:
+            raise TxNotFound("no block has that hash on this network")
+        block = found
+    else:
+        raise ValueError("expected a block number or a 0x block hash")
+    got = with_retries(
+        network,
+        lambda: gather(
+            {
+                "extrinsics": lambda: _extrinsics(pinned, block),
+                "events": lambda: pinned.client.query(("System", "Events"), None, block=block) or [],
+            }
+        ),
+    )
+    rows = summarize_extrinsics(got["extrinsics"], got["events"])
+    at = pin(network, block)
+    return BlockReport(chain=at.ref, block=block, block_hash=at.block_hash, extrinsics=rows, failed=sum(not r.success for r in rows))

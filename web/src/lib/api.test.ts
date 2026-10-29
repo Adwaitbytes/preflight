@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createHttpApi, errorForStatus } from "./api";
+import { createHttpApi, errorForStatus, readBlock } from "./api";
 
 function fakeFetch(status: number, body: unknown, headers: Record<string, string> = {}): typeof fetch {
   return async () => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", ...headers } });
@@ -73,5 +73,16 @@ describe("createHttpApi", () => {
     const pending = createHttpApi({ baseUrl: "http://api", fetch: hanging }).live("finney", null, 12, controller.signal);
     controller.abort();
     expect(await pending).toEqual({ ok: false, error: { kind: "network", status: null, message: "The request was cancelled" } });
+  });
+});
+
+describe("readBlock", () => {
+  it("names the block when a block hash was pasted as a transaction", () => {
+    expect(readBlock({ detail: "that is a block hash", kind: "block_hash", block: 9392800 })).toBe(9392800);
+  });
+  it("ignores other 404s and malformed bodies", () => {
+    expect(readBlock({ detail: "nothing", kind: "not_found" })).toBeNull();
+    expect(readBlock({ kind: "block_hash", block: "9392800" })).toBeNull();
+    expect(readBlock(null)).toBeNull();
   });
 });

@@ -5,6 +5,7 @@
 
 import type { z } from "zod";
 import {
+  blockReportSchema,
   epochCheckSchema,
   epochPreviewSchema,
   houseStatsSchema,
@@ -21,6 +22,7 @@ import {
 import type { NetworkId } from "./networks";
 import type {
   AskAnswer,
+  BlockReport,
   DoctorReport,
   EpochCheck,
   EpochPreview,
@@ -59,6 +61,8 @@ export interface DoctorOptions {
 export interface PreflightApi {
   doctor(network: NetworkId, hotkey: string, options?: DoctorOptions): Promise<ApiResult<DoctorReport>>;
   tx(network: NetworkId, ref: string): Promise<ApiResult<TxReport>>;
+  /** A block by number or hash, with each extrinsic and whether it failed */
+  block(network: NetworkId, ref: string): Promise<ApiResult<BlockReport>>;
   explainError(text: string): Promise<ApiResult<ErrorExplanation>>;
   simulate(network: NetworkId, request: SimRequest): Promise<ApiResult<SimResult>>;
   plan(network: NetworkId): Promise<ApiResult<LaunchPlan>>;
@@ -115,6 +119,13 @@ export function errorForStatus(status: number, detail: string | null, retryAfter
   }
   if (status === 503 || status === 504) return { kind: "unreachable", status, message };
   return { kind: "server", status, message };
+}
+
+/** The block a pasted block hash names, when the API says the hash is a block, not a transaction */
+export function readBlock(body: unknown): number | null {
+  if (typeof body !== "object" || body === null) return null;
+  const { kind, block } = body as { kind?: unknown; block?: unknown };
+  return kind === "block_hash" && typeof block === "number" && Number.isInteger(block) ? block : null;
 }
 
 /** FastAPI puts a string in `detail` for HTTPException and a list of issues for validation */
@@ -193,7 +204,9 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     }
 
     if (!response.ok) {
-      return { ok: false, error: errorForStatus(response.status, readDetail(body), response.headers.get("retry-after")) };
+      const error = errorForStatus(response.status, readDetail(body), response.headers.get("retry-after"));
+      const block = readBlock(body);
+      return { ok: false, error: block === null ? error : { ...error, block } };
     }
     if (!guard(body)) {
       return { ok: false, error: { kind: "server", status: response.status, message: "The API answered with an unexpected shape" } };
@@ -222,6 +235,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
       return call(`/v1/doctor/${network}/${enc(hotkey)}${suffix}`, objectWith("hotkey", "diagnoses", "verdict", "headline"));
     },
     tx: (network, ref) => call(`/v1/tx/${network}/${enc(ref)}`, objectWith("pallet", "call", "success", "events")),
+    block: (network, ref) => parsed(`/v1/block/${network}/${enc(ref)}`, blockReportSchema),
     explainError: (text) =>
       call("/v1/explain-error", objectWith("error", "title", "explanation"), { method: "POST", body: JSON.stringify({ text }) }),
     simulate: (network, request) =>

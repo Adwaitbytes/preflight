@@ -40,6 +40,25 @@ export interface BalanceChange {
   delta: string;
 }
 
+export interface BlockExtrinsic {
+  index: number;
+  extrinsic_hash: string | null;
+  pallet: string;
+  call: string;
+  signer: string | null;
+  success: boolean;
+  /** Pallet.Error when it failed */
+  error?: string | null;
+}
+
+export interface BlockReport {
+  chain: ChainRef;
+  block: number;
+  block_hash: string;
+  extrinsics: Array<BlockExtrinsic>;
+  failed: number;
+}
+
 export interface ChainRef {
   network: "local" | "test" | "finney" | "custom";
   endpoint: string;

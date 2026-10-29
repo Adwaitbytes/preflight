@@ -29,4 +29,5 @@ export const getDoctor = cache(async (network: NetworkId, hotkey: string, netuid
   (await getApi()).doctor(network, hotkey, { netuid, fresh }),
 );
 export const getTx = cache(async (network: NetworkId, ref: string) => (await getApi()).tx(network, ref));
+export const getBlock = cache(async (network: NetworkId, ref: string) => (await getApi()).block(network, ref));
 export const getReport = cache(async (id: string) => (await getApi()).report(id));

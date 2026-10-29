@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, StatsReport, TxReport, Weather } from "./types";
+import type { BlockReport, DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, StatsReport, TxReport, Weather } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -90,6 +90,24 @@ const errorExplanation = z.object({
   docs: z.string().nullish(),
   found: z.boolean().optional(),
 });
+
+export const blockReportSchema = z.object({
+  chain: chainRef,
+  block: z.number().int(),
+  block_hash: z.string(),
+  extrinsics: z.array(
+    z.object({
+      index: z.number().int(),
+      extrinsic_hash: z.string().nullable(),
+      pallet: z.string(),
+      call: z.string(),
+      signer: z.string().nullable(),
+      success: z.boolean(),
+      error: z.string().nullish(),
+    }),
+  ),
+  failed: z.number().int(),
+}) satisfies z.ZodType<BlockReport>;
 
 export const txReportSchema = z.object({
   chain: chainRef,

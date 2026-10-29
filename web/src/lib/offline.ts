@@ -107,6 +107,9 @@ export const offlineApi: PreflightApi = {
     const report = DEMO_TX.find((t) => t.ref === needle || t.extrinsic_hash === needle);
     return report ? ok(report) : miss("The offline demo has three recorded extrinsics. Pick one from the examples");
   },
+  async block() {
+    return miss("The offline demo has no recorded blocks. Turn offline mode off to open a block");
+  },
   async explainError(text) {
     return ok(explainFromCatalog(text));
   },
