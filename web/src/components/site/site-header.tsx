@@ -91,7 +91,8 @@ export function SiteHeader() {
           </button>
           <div className="hidden items-center gap-1 lg:flex">
             <NetworkSwitch />
-            <ThemeToggle />
+            {/* The landing is pinned to its own colours, so a theme switch there would change nothing you can see */}
+            {!landing && <ThemeToggle />}
           </div>
           <Link
             href="/"
