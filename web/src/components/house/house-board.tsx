@@ -24,7 +24,7 @@ export function HouseBoard({ initial }: { initial: HouseStats }) {
         {items.map((item) => (
           <div key={item.label} className="bg-surface px-5 py-7 sm:px-6">
             <dt className="text-[13px] text-muted-foreground">{item.label}</dt>
-            <dd className="mt-3 font-mono text-4xl font-semibold tracking-[-0.04em] text-foreground tabular-nums sm:text-5xl">{formatInt(item.value)}</dd>
+            <dd className="mt-3 text-5xl font-light tracking-[-0.05em] text-foreground tabular-nums sm:text-6xl">{formatInt(item.value)}</dd>
             <dd className="mt-2 text-xs text-faint">{item.note}</dd>
           </div>
         ))}

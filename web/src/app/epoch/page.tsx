@@ -39,6 +39,7 @@ export default function EpochIndexPage() {
       <PageHeader
         eyebrow="Epoch Lab"
         title="See the next epoch before it runs"
+        accent="before it runs"
         description="Every miner’s incentive at the next epoch, and why, computed from live chain state with Yuma consensus’s own math. Then change the inputs and recompute, without touching the chain"
       />
       <EpochPicker />

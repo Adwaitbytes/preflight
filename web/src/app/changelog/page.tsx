@@ -24,7 +24,7 @@ export default function ChangelogPage() {
   const entries = loadChangelog();
   return (
     <Container className="max-w-4xl">
-      <PageHeader eyebrow="Changelog" title="Every commit, as it shipped" description="Straight from git log, newest first" />
+      <PageHeader eyebrow="Changelog" title="Every commit, as it shipped" accent="shipped" description="Straight from git log, newest first" />
       {entries.length === 0 ? (
         <StateView icon={FileClock} title="No entries yet">
           The changelog is generated from git log at build time

@@ -5,6 +5,7 @@ import { AppStateProvider } from "@/components/site/app-state";
 import { LazyCommandPalette } from "@/components/site/command-palette-loader";
 import { OfflineBanner } from "@/components/site/offline-banner";
 import { SiteFooter } from "@/components/site/site-footer";
+import { PageBackdrop } from "@/components/site/page-backdrop";
 import { SiteHeader } from "@/components/site/site-header";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { BRAND } from "@/lib/brand";
@@ -43,7 +44,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             {offline && <OfflineBanner />}
             <SiteHeader />
             {/* At least a screen tall, so the footer never sits in the first viewport while a page streams in */}
-            <main id="main" className="flex min-h-[calc(100svh-3.5rem)] min-w-0 flex-1 flex-col">
+            <main id="main" className="relative isolate flex min-h-[calc(100svh-3.5rem)] min-w-0 flex-1 flex-col">
+              <PageBackdrop />
               {children}
             </main>
             <SiteFooter />

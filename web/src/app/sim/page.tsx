@@ -17,6 +17,7 @@ export default async function SimPage() {
       <PageHeader
         eyebrow="Simulator"
         title="Try a transaction before you spend a single rao"
+        accent="before"
         description="Pick an action and a signer. Preflight runs it against real chain state and reports whether it would succeed, the fee, the effects and the balance changes. Every result says honestly whether it executed on a fork or was predicted"
       />
       <Simulator forkAvailable={forkAvailable} />

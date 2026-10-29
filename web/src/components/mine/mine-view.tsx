@@ -56,7 +56,7 @@ function BigNumber({ value, unit }: { value: string; unit?: string }) {
     return <p className="text-[1.75rem] leading-10 font-semibold tracking-[-0.03em] text-foreground">{value}</p>;
   }
   return (
-    <p className="font-mono text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-foreground tnum">
+    <p className="text-[2.75rem] leading-none font-light tracking-[-0.05em] text-foreground tnum">
       {value}
       {unit && <span className="ml-2 text-lg font-medium tracking-normal text-faint">{unit}</span>}
     </p>
@@ -266,7 +266,7 @@ export function MineView({ economics, network }: { economics: MinerEconomics; ne
             </Badge>
           </div>
           <div className="flex flex-col gap-3">
-            <h1 className="max-w-[26ch] text-headline font-semibold text-balance">{lead}</h1>
+            <h1 className="max-w-[26ch] text-[clamp(2rem,1.5rem+2.2vw,3.25rem)] leading-[1.06] font-light tracking-[-0.045em] text-balance">{lead}</h1>
             {rest && <p className="max-w-[64ch] text-[17px] leading-7 text-pretty text-muted-foreground">{rest}</p>}
           </div>
         </div>
@@ -304,7 +304,7 @@ export function MineView({ economics, network }: { economics: MinerEconomics; ne
 
           <Panel eyebrow="Earning today">
             <p className="flex flex-wrap items-baseline gap-x-2 font-mono leading-none">
-              <span className="text-[2.5rem] font-semibold tracking-[-0.04em] text-foreground tnum">{formatInt(economics.earning_miners)}</span>
+              <span className="text-[2.75rem] font-light tracking-[-0.05em] text-foreground tnum">{formatInt(economics.earning_miners)}</span>
               <span className="text-lg font-medium text-faint">of {formatInt(economics.miners)}</span>
             </p>
             <p className="text-[13px] leading-5 text-muted-foreground">Miners with any emission at this block</p>

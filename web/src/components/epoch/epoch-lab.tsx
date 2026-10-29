@@ -23,7 +23,7 @@ function Stat({ label, value, caption }: { label: string; value: string; caption
   return (
     <div className="flex min-w-0 flex-col bg-surface px-4 py-3.5 sm:px-5 sm:py-4">
       <dt className="eyebrow truncate">{label}</dt>
-      <dd className="mt-1.5 text-xl leading-7 font-semibold tracking-[-0.025em] tnum sm:text-2xl sm:leading-8">{value}</dd>
+      <dd className="mt-1.5 text-2xl leading-8 font-light tracking-[-0.035em] tnum sm:text-[1.75rem]">{value}</dd>
       <dd className="mt-0.5 truncate text-xs text-faint tnum">{caption}</dd>
     </div>
   );
@@ -77,13 +77,13 @@ function Hero({ preview, check, network, remaining, whatif, onRefresh }: { previ
           )}
         </div>
         {remaining > 0 ? (
-          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-sans leading-none font-semibold tracking-[-0.045em]">
-            <span className="text-[2.5rem] tnum sm:text-[3.25rem]">{countdown(remaining)}</span>
-            <span className="text-title font-medium tracking-[-0.015em] text-muted-foreground">next epoch, block {formatInt(preview.epoch_block)}</span>
+          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-sans leading-none font-light tracking-[-0.05em]">
+            <span className="text-[2.75rem] tnum sm:text-[4rem]">{countdown(remaining)}</span>
+            <span className="text-title font-normal tracking-[-0.02em] text-muted-foreground">next epoch, block {formatInt(preview.epoch_block)}</span>
           </p>
         ) : (
           <div className="flex flex-wrap items-center gap-3">
-            <p className="text-[2rem] leading-none font-semibold tracking-[-0.04em]">The epoch at block {formatInt(preview.epoch_block)} has run</p>
+            <p className="text-[2rem] leading-none font-light tracking-[-0.04em]">The epoch at block {formatInt(preview.epoch_block)} has run</p>
             <Button size="sm" variant="secondary" onClick={onRefresh}>
               <RotateCw className="size-3.5" aria-hidden />
               Preview the next one

@@ -21,6 +21,7 @@ export default async function PlanPage({ searchParams }: PageProps<"/plan">) {
       <PageHeader
         eyebrow="Launch planner"
         title="What a subnet costs today, and when it starts earning"
+        accent="today"
         description="Lock cost, the registration rate limit, which subnet the cap would replace and the launch timeline, all read from the runtime at one block"
       />
       {network === "local" ? (

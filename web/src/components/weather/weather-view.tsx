@@ -17,6 +17,8 @@ import { useWeather } from "./use-weather";
 
 
 const ALERT_TEXT = { clear: "", unsettled: "text-medium", stormy: "text-critical" } as const;
+// A clear sky keeps the site's own light; trouble tints the top of the page
+const GLOW = { clear: undefined, unsettled: "medium", stormy: "critical" } as const;
 
 function Stat({ label, value, caption, tone = "" }: { label: string; value: string; caption: string; tone?: string }) {
   return (
@@ -33,7 +35,7 @@ function Hero({ weather, network }: { weather: Weather; network: NetworkId }) {
   const Icon = SKY_ICON[level];
   const minutes = windowMinutes(weather.blocks);
   return (
-    <section aria-label="Conditions" className="panel overflow-hidden">
+    <section aria-label="Conditions" data-glow={GLOW[level]} className="panel overflow-hidden">
       <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
         <div className={cn("grid size-12 shrink-0 place-items-center rounded-xl", SKY_TONE[level])}>
           <Icon className="size-6" aria-hidden />
@@ -42,9 +44,9 @@ function Hero({ weather, network }: { weather: Weather; network: NetworkId }) {
           <p className="eyebrow">
             {NETWORK_LABEL[network]} · last {minutes} minutes
           </p>
-          <p className="mt-3 flex flex-wrap items-baseline gap-x-3 font-sans text-[2.75rem] leading-none font-semibold tracking-[-0.045em] tnum sm:text-[3.5rem]">
+          <p className="mt-3 flex flex-wrap items-baseline gap-x-3 font-sans text-[2.75rem] leading-none font-light tracking-[-0.05em] tnum sm:text-[4rem]">
             <span className={ALERT_TEXT[level]}>{formatShare(weather.failure_rate)}</span>
-            <span className="text-title font-medium tracking-[-0.015em] text-muted-foreground">failing, {SKY_LABEL[level].toLowerCase()}</span>
+            <span className="text-title font-normal tracking-[-0.02em] text-muted-foreground">failing, {SKY_LABEL[level].toLowerCase()}</span>
           </p>
           <h2 className="mt-3 max-w-[64ch] text-[15px] leading-7 text-pretty text-muted-foreground">{weather.headline}</h2>
         </div>

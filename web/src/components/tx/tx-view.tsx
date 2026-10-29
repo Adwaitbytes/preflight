@@ -37,7 +37,7 @@ export function TxView({ report, network, shared = false }: { report: TxReport; 
   const checkHotkey = report.hotkey ?? report.signer;
   return (
     <div className="flex flex-col gap-8">
-      <header className="rise-in flex flex-col gap-6 pt-10 sm:pt-14">
+      <header data-glow={report.success ? "healthy" : "critical"} className="rise-in flex flex-col gap-6 pt-10 sm:pt-14">
         <p className="eyebrow">Transaction · {NETWORK_LABEL[network]}</p>
         <div className="flex flex-col gap-4">
           <Badge tone={report.success ? "healthy" : "critical"} dot size="md" className="self-start">

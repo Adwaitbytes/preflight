@@ -49,7 +49,7 @@ function BlockClock({ newest, state }: { newest: LiveBlock; state: PulseState })
   const late = elapsed != null && elapsed > BLOCK_SECONDS * 3;
   return (
     <>
-      <p className="mt-4 flex h-12 items-baseline overflow-hidden font-sans text-[2.75rem] leading-[3rem] font-semibold tracking-[-0.045em] text-foreground sm:h-14 sm:text-[3.5rem] sm:leading-[3.5rem]">
+      <p className="mt-4 flex h-12 items-baseline overflow-hidden font-sans text-[2.75rem] leading-[3rem] font-light tracking-[-0.05em] text-foreground sm:h-16 sm:text-[4rem] sm:leading-[4rem]">
         <span className="mr-0.5 font-normal text-faint">#</span>
         <span key={newest.number} className="live-tick tnum">
           {formatInt(newest.number)}

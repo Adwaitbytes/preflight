@@ -51,7 +51,7 @@ export function FleetView({ report, network }: { report: FleetReport; network: N
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <h1 className="max-w-[24ch] text-headline font-semibold text-balance">{lead}</h1>
+          <h1 className="max-w-[24ch] text-[clamp(2rem,1.5rem+2.2vw,3.25rem)] leading-[1.06] font-light tracking-[-0.045em] text-balance">{lead}</h1>
           {rest && <p className="max-w-[68ch] text-[17px] leading-7 text-pretty text-muted-foreground">{rest}</p>}
         </div>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

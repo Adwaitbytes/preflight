@@ -17,6 +17,7 @@ export default function LivePage() {
       <PageHeader
         eyebrow="Live explorer"
         title="The chain, as it happens"
+        accent="as it happens"
         description="Every signed transaction decoded into a plain sentence the moment its block lands. Open any row in the debugger, follow one wallet, or watch a single subnet"
       />
       <WeatherStrip />

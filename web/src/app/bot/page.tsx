@@ -23,6 +23,7 @@ export default function BotPage() {
       <PageHeader
         eyebrow="Telegram"
         title="Preflight in your pocket"
+        accent="pocket"
         description={`@${BOT_USERNAME} answers the same questions as this site, from any phone: why a neuron earns zero, why a transaction failed, and what is breaking on chain right now`}
       />
       <section className="panel grid gap-8 p-5 sm:p-8 md:grid-cols-[1fr_auto] md:items-center">

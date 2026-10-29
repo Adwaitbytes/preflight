@@ -100,7 +100,7 @@ export function StatsDashboard({ report, range, automated }: { report: StatsRepo
       <header className="flex flex-col gap-4 pt-10 pb-2 sm:pt-12 md:flex-row md:items-end md:justify-between">
         <div className="min-w-0">
           <p className="eyebrow">Private · only you can see this</p>
-          <h1 className="mt-3 text-headline font-semibold text-balance">Who uses Preflight</h1>
+          <h1 className="mt-3 text-[clamp(2.25rem,1.55rem+2.9vw,3.5rem)] leading-[1.03] font-light tracking-[-0.045em] text-balance">Who uses Preflight</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <span className="relative flex size-2">

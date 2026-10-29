@@ -23,6 +23,7 @@ export default async function ExplainPage({ searchParams }: PageProps<"/explain"
       <PageHeader
         eyebrow="Error explainer"
         title="Paste the error, get the cause and the fix"
+        accent="the fix"
         description="Works with btcli output, SDK tracebacks and bare runtime error names. Every Subtensor error is covered, with the source line it is raised from"
       />
       <div className="flex flex-col gap-6">

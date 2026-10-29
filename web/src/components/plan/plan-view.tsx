@@ -126,7 +126,7 @@ export function PlanView({ plan }: { plan: LaunchPlan }) {
       <ChainMeta chain={plan.chain} />
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel eyebrow="Lock cost">
-          <p className="font-mono text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-foreground">
+          <p className="text-[2.75rem] leading-none font-light tracking-[-0.05em] text-foreground tnum">
             {formatAmount(plan.lock_cost_tao)}
             <span className="ml-2 text-lg font-medium tracking-normal text-faint">TAO</span>
           </p>
@@ -158,7 +158,7 @@ export function PlanView({ plan }: { plan: LaunchPlan }) {
         </Panel>
 
         <Panel eyebrow="Subnet cap" className={cn(atCap && "shadow-[0_0_0_1px_color-mix(in_oklab,var(--high)_35%,transparent),0_6px_20px_-12px_rgb(0_0_0/0.25)]")}>
-          <p className="font-mono text-[2.5rem] leading-none font-semibold tracking-[-0.04em] text-foreground">
+          <p className="text-[2.75rem] leading-none font-light tracking-[-0.05em] text-foreground tnum">
             {plan.subnet_count}
             <span className="ml-1 text-lg font-medium tracking-normal text-faint">/ {plan.subnet_limit}</span>
           </p>

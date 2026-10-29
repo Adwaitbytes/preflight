@@ -21,7 +21,7 @@ export function GuideSectionShell({ section, children }: { section: GuideSection
           <span className="sr-only">Chapter </span>
           {String(section.number).padStart(2, "0")}
         </p>
-        <h2 id={titleId} className="group mt-2 text-headline font-semibold text-balance">
+        <h2 id={titleId} className="group mt-2 text-[clamp(1.85rem,1.3rem+2vw,2.75rem)] leading-[1.08] font-light tracking-[-0.04em] text-balance">
           {section.title}
           <a
             href={`#${section.id}`}

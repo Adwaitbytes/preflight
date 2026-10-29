@@ -18,6 +18,7 @@ export default async function HousePage() {
       <PageHeader
         eyebrow="Builders House"
         title="Builders helped at the House"
+        accent="helped"
         description="Live counters from the Preflight API. They count runs, never who ran them: no keys, hotkeys or addresses are stored"
       />
       {result.ok ? (

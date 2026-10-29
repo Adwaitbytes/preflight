@@ -8,7 +8,7 @@ import { useId } from "react";
 import { ChainMeta } from "@/components/shared/chain-meta";
 import { RefreshButton } from "@/components/shared/refresh-button";
 import { ShareButton } from "@/components/shared/share-button";
-import { Badge, VerdictBadge } from "@/components/ui/badge";
+import { Badge, VERDICT_TONE, VerdictBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MonoValue } from "@/components/ui/mono-value";
 import { isOnlyUnregistered, isUnregisteredOnly } from "@/lib/doctor-state";
@@ -154,7 +154,7 @@ export function DoctorView({ report, network, shared = false }: { report: Doctor
 
   return (
     <div className="flex flex-col">
-      <header className="rise-in flex flex-col gap-6 pt-10 pb-10 sm:pt-14">
+      <header data-glow={unregistered ? undefined : VERDICT_TONE[report.verdict]} className="rise-in flex flex-col gap-6 pt-10 pb-10 sm:pt-14">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <p className="eyebrow">Doctor · {NETWORK_LABEL[network]}</p>
           <span aria-hidden className="h-3 w-px bg-line-strong" />
@@ -173,7 +173,7 @@ export function DoctorView({ report, network, shared = false }: { report: Doctor
               <VerdictBadge verdict={report.verdict} />
             )}
           </div>
-          <h1 className={cn("max-w-[30ch] font-semibold text-balance", report.headline.length > 90 ? "text-[clamp(1.5rem,1.15rem+1.2vw,2rem)] leading-tight tracking-[-0.025em]" : "text-headline")}>
+          <h1 className={cn("max-w-[28ch] font-light text-balance", report.headline.length > 90 ? "text-[clamp(1.75rem,1.3rem+1.5vw,2.5rem)] leading-[1.12] tracking-[-0.035em]" : "text-[clamp(2.1rem,1.5rem+2.4vw,3.25rem)] leading-[1.06] tracking-[-0.045em]")}>
             {report.headline}
           </h1>
         </div>

@@ -31,6 +31,7 @@ export default async function EpochPage({ params, searchParams }: PageProps<"/ep
       <PageHeader
         eyebrow="Epoch Lab"
         title={`SN${netuid}: the next epoch, before it runs`}
+        accent="before it runs"
         description="Yuma consensus's own incentive math, run on live chain state. See what each miner will be paid and why, then change kappa, take a validator offline or test new weights and recompute"
       />
       <EpochLab network={network} netuid={netuid} hotkey={hotkey} />

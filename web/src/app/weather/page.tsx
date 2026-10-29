@@ -15,6 +15,7 @@ export default function WeatherPage() {
       <PageHeader
         eyebrow="Network weather"
         title="What is failing on chain right now"
+        accent="right now"
         description="The last 60 blocks, about 12 minutes, read and decoded. Failures are grouped by error with the subnets they hit, what the error means and how to fix it, and each opens in the debugger"
       />
       <WeatherView />

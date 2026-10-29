@@ -24,6 +24,7 @@ export default async function SubnetsPage({ searchParams }: PageProps<"/subnets"
       <PageHeader
         eyebrow="Directory"
         title="What each subnet does, and whether it is healthy"
+        accent="healthy"
         description="Curated catalog entries with a cited source for every claim, joined to live chain numbers and a 0 to 100 health score built from the same rules the Doctor runs"
       />
       {network === "local" ? (

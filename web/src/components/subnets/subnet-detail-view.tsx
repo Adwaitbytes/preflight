@@ -53,7 +53,7 @@ export function SubnetDetailView({ detail, network }: { detail: SubnetDetail; ne
         <p className="eyebrow">Subnet {card.netuid}</p>
         <div className="flex items-start gap-5">
           <div className="min-w-0 flex-1">
-            <h1 className="text-headline font-semibold text-balance">{name}</h1>
+            <h1 className="text-[clamp(2.5rem,1.8rem+3vw,4rem)] leading-[1.02] font-light tracking-[-0.05em] text-balance">{name}</h1>
             <p className="mt-3 max-w-[64ch] text-[15px] leading-7 text-pretty text-muted-foreground">
               {catalog?.summary ?? "This subnet has no curated catalog entry yet. The numbers below are read live from chain"}
             </p>

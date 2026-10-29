@@ -61,7 +61,7 @@
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --shadow-raise: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px -12px rgb(0 0 0 / 0.25);
+  --shadow-raise: var(--raise);
   --shadow-float: 0 0 0 1px var(--line-strong), 0 4px 8px rgb(0 0 0 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.4);
 }
 
@@ -69,10 +69,10 @@
 /* `.light` pins a section to the light palette inside the dark site, as the landing's numbers band does */
 :root,
 .light {
-  --background: #f7f7f8;
+  --background: #f6f5f2;
   --surface: #ffffff;
-  --surface-2: #f1f1f3;
-  --surface-3: #e8e8eb;
+  --surface-2: #f1f0ec;
+  --surface-3: #e7e5df;
   --foreground: #121316;
   --muted-foreground: #565a63;
   --faint: #62666f;
@@ -84,6 +84,11 @@
   --accent-soft: rgb(47 79 224 / 0.08);
   --accent-ink: #2a45c9;
   --accent-contrast: #ffffff;
+
+  --raise: 0 0 0 1px var(--line), 0 1px 2px rgb(18 19 22 / 0.05), 0 14px 34px -22px rgb(18 19 22 / 0.24);
+  --glow: rgb(47 79 224 / 0.1);
+  --glow-strength: 12%;
+  --dot: rgb(18 19 22 / 0.11);
 
   /* Each ink passes 4.5:1 on its own soft tint over --surface, --background and --surface-2 */
   --critical: #b42626;
@@ -100,10 +105,10 @@
 
 /* Dark: cool graphite, lifted surfaces instead of drop shadows */
 .dark {
-  --background: #0a0b0d;
-  --surface: #111215;
-  --surface-2: #17181c;
-  --surface-3: #1f2026;
+  --background: #07080a;
+  --surface: #0f1014;
+  --surface-2: #16171c;
+  --surface-3: #1e1f26;
   --foreground: #ededf0;
   --muted-foreground: #a3a7b1;
   --faint: #868b96;
@@ -116,6 +121,12 @@
   --accent-ink: #a9b8ff;
   --accent-contrast: #07101f;
 
+  /* A lit top edge and a deep soft shadow, so panels sit above the page instead of on it */
+  --raise: 0 0 0 1px var(--line), inset 0 1px 0 rgb(255 255 255 / 0.04), 0 1px 2px rgb(0 0 0 / 0.4), 0 20px 44px -28px rgb(0 0 0 / 0.85);
+  --glow: rgb(76 107 255 / 0.2);
+  --glow-strength: 22%;
+  --dot: rgb(157 176 255 / 0.16);
+
   --critical: #ff7b72;
   --critical-soft: rgb(255 123 114 / 0.1);
   --high: #ffa657;
@@ -126,6 +137,17 @@
   --healthy-soft: rgb(86 214 138 / 0.1);
   --info: #a3a7b1;
   --info-soft: rgb(163 167 177 / 0.1);
+}
+
+/* A result page tints the light at its top with its answer: red when broken, green when healthy */
+main:has([data-glow="critical"]) {
+  --glow: color-mix(in oklab, var(--critical) var(--glow-strength), transparent);
+}
+main:has([data-glow="medium"]) {
+  --glow: color-mix(in oklab, var(--medium) var(--glow-strength), transparent);
+}
+main:has([data-glow="healthy"]) {
+  --glow: color-mix(in oklab, var(--healthy) var(--glow-strength), transparent);
 }
 
 @layer base {
@@ -168,7 +190,7 @@
 @layer components {
   .panel {
     background: var(--surface);
-    border-radius: var(--radius-xl);
+    border-radius: 1rem;
     box-shadow: var(--shadow-raise);
   }
 

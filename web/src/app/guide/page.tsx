@@ -49,7 +49,9 @@ function Hero() {
         <p className="eyebrow rise-in">
           Guide · {GUIDE_SECTIONS.length} chapters · {RULES.length} rules<span className="hidden sm:inline"> · real finney data</span>
         </p>
-        <h1 className="rise-in mt-5 max-w-[15ch] text-display font-semibold text-balance [animation-delay:60ms]">Bittensor, explained from zero</h1>
+        <h1 className="rise-in mt-5 max-w-[15ch] text-[clamp(2.75rem,1.8rem+4.2vw,5.25rem)] leading-[0.98] font-light tracking-[-0.055em] text-balance [animation-delay:60ms]">
+          Bittensor, explained <span className="font-serif font-normal tracking-[-0.01em] text-accent-ink italic">from zero</span>
+        </h1>
         <p className="rise-in mt-5 max-w-[60ch] text-[17px] leading-7 text-pretty text-muted-foreground [animation-delay:120ms]">
           Subnets, miners, validators, consensus and the errors that cost you TAO, in plain words. Every example is a real read from finney, and every problem
           links to the Preflight rule that catches it
@@ -84,7 +86,7 @@ function Outro() {
       <div aria-hidden className="hairline-grid absolute inset-0 opacity-70" />
       <div className="relative">
         <p className="eyebrow">That is the guide</p>
-        <h2 id="next-title" className="mt-3 max-w-[22ch] text-headline font-semibold text-balance">
+        <h2 id="next-title" className="mt-3 max-w-[22ch] text-[clamp(1.85rem,1.3rem+2vw,2.75rem)] leading-[1.08] font-light tracking-[-0.04em] text-balance">
           Now run it on your own hotkey
         </h2>
         <p className="mt-3 max-w-[56ch] text-[16px] leading-[27px] text-pretty text-muted-foreground">
