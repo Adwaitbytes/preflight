@@ -21,7 +21,7 @@ export async function sameOrigin(): Promise<string> {
 export async function getApi(): Promise<PreflightApi> {
   if (isOffline()) return offlineApi;
   const configured = process.env.PREFLIGHT_API_URL?.trim();
-  return createHttpApi({ baseUrl: configured || (await sameOrigin()) });
+  return createHttpApi({ baseUrl: configured || (await sameOrigin()), client: "site" });
 }
 
 // One read per request: generateMetadata and the page share the same chain read

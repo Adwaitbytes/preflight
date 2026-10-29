@@ -457,6 +457,23 @@ def reply(text: str, chat_id: str) -> str:
         return escape(str(error))
 
 
+def usage_of(update: dict[str, object]) -> tuple[str, str] | None:
+    """What a message asked for, for anonymous usage counts: the command name or "paste",
+    and the chat id (hashed per day by the caller). Never the message's arguments."""
+    message = update.get("message")
+    if not isinstance(message, dict):
+        return None
+    chat = message.get("chat")
+    text = message.get("text")
+    if not isinstance(chat, dict) or chat.get("id") is None or not isinstance(text, str):
+        return None
+    match = COMMAND.match(text.strip())
+    if not match:
+        return "paste", str(chat["id"])
+    name = match.group(1).lower()
+    return (f"/{name}" if name in HANDLERS or name in ("start", "help") else "/unknown"), str(chat["id"])
+
+
 def handle_update(update: dict[str, object], allow: Callable[[str], bool]) -> bool:
     """Answer one Telegram update. False when there was nothing to answer or it was rate limited."""
     message = update.get("message")

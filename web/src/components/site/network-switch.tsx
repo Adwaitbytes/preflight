@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter } from "next/navigation";
+import { track } from "@/lib/analytics";
 import { NETWORK_LABEL, NETWORKS, type NetworkId } from "@/lib/networks";
 import { cn } from "@/lib/utils";
 import { useAppState } from "./app-state";
@@ -20,6 +21,7 @@ export function useSwitchNetwork(): (next: NetworkId) => void {
   const pathname = usePathname();
   const router = useRouter();
   return (next) => {
+    track("network", next);
     setNetwork(next);
     const match = ROUTE_WITH_NETWORK.exec(pathname);
     if (match) router.push(`/${match[1]}/${next}${match[3]}`);

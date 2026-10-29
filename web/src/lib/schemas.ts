@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, TxReport, Weather } from "./types";
+import type { DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, StatsReport, TxReport, Weather } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -324,3 +324,61 @@ export const epochCheckSchema = z.object({
   matched: z.boolean(),
   headline: z.string(),
 }) satisfies z.ZodType<EpochCheck>;
+
+const countStat = z.object({ label: z.string(), count: z.number().int() });
+const geoStat = z.object({ country: z.string().nullable(), city: z.string().nullable(), sessions: z.number().int(), visitors: z.number().int() });
+
+/** GET /v1/stats: read server side by the private /stats page */
+export const statsReportSchema = z.object({
+  range: z.enum(["24h", "7d", "30d"]),
+  since: z.string(),
+  generated_at: z.string(),
+  include_automated: z.boolean(),
+  totals: z.object({
+    visitors: z.number().int(),
+    sessions: z.number().int(),
+    views: z.number().int(),
+    avg_engaged_s: z.number().nullable(),
+    median_engaged_s: z.number().nullable(),
+    bounce_rate: z.number(),
+    pages_per_session: z.number(),
+    returning_share: z.number(),
+    tool_runs: z.number().int(),
+    api_error_rate: z.number(),
+    rejected: z.number().int(),
+    bot_messages: z.number().int(),
+    bot_chats: z.number().int(),
+    active_now: z.number().int(),
+  }),
+  series: z.array(z.object({ t: z.string(), views: z.number().int(), sessions: z.number().int(), tool_runs: z.number().int(), bot: z.number().int() })),
+  pages: z.array(z.object({ path: z.string(), views: z.number().int(), sessions: z.number().int(), entries: z.number().int(), avg_engaged_s: z.number().nullable() })),
+  tools: z.array(z.object({ name: z.string(), runs: z.number().int(), errors: z.number().int(), rejected: z.number().int(), p50_ms: z.number().int(), p95_ms: z.number().int() })),
+  countries: z.array(geoStat),
+  cities: z.array(geoStat),
+  sources: z.array(countStat),
+  devices: z.array(countStat),
+  browsers: z.array(countStat),
+  systems: z.array(countStat),
+  networks: z.array(countStat),
+  clients: z.array(countStat),
+  actions: z.array(countStat),
+  bot_commands: z.array(countStat),
+  vitals: z.array(z.object({ metric: z.string(), page: z.string().nullable(), p75: z.number(), samples: z.number().int(), rating: z.enum(["good", "needs work", "poor"]) })),
+  engagement: z.array(countStat),
+  hours: z.array(z.number().int()).length(24),
+  recent: z.array(
+    z.object({
+      at: z.string(),
+      kind: z.string(),
+      name: z.string(),
+      detail: z.string().nullable(),
+      country: z.string().nullable(),
+      city: z.string().nullable(),
+      device: z.string().nullable(),
+      client: z.string().nullable(),
+      value: z.number().nullable(),
+      status: z.number().int().nullable(),
+    }),
+  ),
+  notes: z.array(z.string()),
+}) satisfies z.ZodType<StatsReport>;

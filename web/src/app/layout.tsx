@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
+import { Analytics } from "@/components/site/analytics";
 import { AppStateProvider } from "@/components/site/app-state";
 import { LazyCommandPalette } from "@/components/site/command-palette-loader";
 import { OfflineBanner } from "@/components/site/offline-banner";
@@ -47,6 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             </main>
             <SiteFooter />
             <LazyCommandPalette />
+            <Analytics />
           </AppStateProvider>
         </ThemeProvider>
       </body>

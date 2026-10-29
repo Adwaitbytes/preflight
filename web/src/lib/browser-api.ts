@@ -9,5 +9,5 @@ export function localApi(): HttpApi {
 export function browserApi(network: NetworkId): HttpApi {
   if (network === "local") return localApi();
   const configured = process.env.NEXT_PUBLIC_PREFLIGHT_API_URL?.trim();
-  return createHttpApi({ baseUrl: configured || window.location.origin });
+  return createHttpApi({ baseUrl: configured || window.location.origin, client: "browser" });
 }

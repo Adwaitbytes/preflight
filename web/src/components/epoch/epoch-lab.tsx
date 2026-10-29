@@ -8,6 +8,7 @@ import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ApiErrorState } from "@/components/ui/state";
+import { track } from "@/lib/analytics";
 import { buildWhatIf, consensusCut, countdown, epochDelta, epochHref, type WhatIfDraft } from "@/lib/epoch";
 import { formatInt, formatShare, truncateMiddle } from "@/lib/format";
 import { NETWORK_LABEL, type NetworkId } from "@/lib/networks";
@@ -239,6 +240,7 @@ export function EpochLab({ network, netuid, hotkey }: { network: NetworkId; netu
       return;
     }
     setDraftError(null);
+    if (built.whatif) track("whatif", Object.keys(built.whatif).join("+"));
     setApplied(built.whatif);
   };
   const reset = () => {

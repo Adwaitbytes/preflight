@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import { useAppState } from "@/components/site/app-state";
 import { Kbd } from "@/components/ui/kbd";
+import { track } from "@/lib/analytics";
 import { truncateMiddle } from "@/lib/format";
 import { classifyInput, describeInput, hrefForInput } from "@/lib/route-input";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,7 @@ export function Omnibox({ examples }: { examples: Example[] }) {
 
   function go(target: string | null) {
     if (!target) return;
+    track("search", input.kind);
     startTransition(() => router.push(target));
   }
 

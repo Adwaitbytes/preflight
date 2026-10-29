@@ -40,6 +40,7 @@ EXPORTED: list[type[BaseModel]] = [
     models.SubnetDetail,
     models.AskAnswer,
     models.ServiceHealth,
+    models.StatsReport,
 ]
 
 

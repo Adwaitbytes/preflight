@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-10-29T03:59:27+05:30",
+    "sha": "2340530",
+    "subject": "Epoch Lab: the next epoch runs in the block get_next_epoch_start_block returns (SN64 ran at 9,385,243), not the one after; a forecast 90 blocks ahead matched 243 of 256 UIDs of what the chain then paid"
+  },
+  {
+    "date": "2026-10-29T03:54:09+05:30",
+    "sha": "eb8cc35",
+    "subject": "Epoch Lab design review: a what-if keeps its last result on screen while the next computes, the hero marks what-ifs and ticks its countdown, the focused miner never hides behind Show all, accessible toggles with steady labels, the site's range control, a sticky Run bar on phones; watched miners get a Telegram alert before an epoch cuts them"
+  },
+  {
     "date": "2026-10-29T03:45:33+05:30",
     "sha": "84c27ac",
     "subject": "Epoch Lab: the next epoch before it runs, computed off-chain with a port of Yuma consensus's incentive math and checked against the chain's last epoch (SN19 and SN64 match every UID); what-ifs for kappa, offline validators and new weight rows; preflight epoch with a --min-trust CI gate, /v1/epoch, preview_epoch for MCP, /epoch in Telegram, an Epoch Lab page and a Next epoch card in the Doctor"

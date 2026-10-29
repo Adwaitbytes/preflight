@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from .. import store
+from .. import analytics, store
 from ..chain.network import ChainUnreachable, Network
 from ..doctor.engine import diagnose
 from ..epoch.preview import next_epoch
@@ -70,6 +70,11 @@ def run_once(network: str | None = None, *, deliver: bool = True) -> RunReport:
     if deliver and telegram.token():
         link_chats(report)
     store.prune_unlinked()
+    if analytics.enabled():
+        try:
+            analytics.prune()
+        except store.StoreUnavailable as error:
+            report.errors.append(f"analytics prune: {error}")
     for watch in store.watches(network):
         if not watch.get("chat_id"):
             # Nobody can be told about an unlinked watch, so it is not worth a chain read

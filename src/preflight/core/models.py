@@ -632,6 +632,109 @@ class AskAnswer(Model):
     message: str
 
 
+class CountStat(Model):
+    label: str
+    count: int
+
+
+class GeoStat(Model):
+    country: str | None = Field(description="ISO 3166 alpha-2, from Vercel's edge")
+    city: str | None
+    sessions: int
+    visitors: int
+
+
+class PageStat(Model):
+    path: str = Field(description="Page template: accounts, hashes and refs replaced by placeholders")
+    views: int
+    sessions: int
+    entries: int = Field(description="Sessions that started on this page")
+    avg_engaged_s: float | None = Field(description="Average seconds the page was visible")
+
+
+class ToolStat(Model):
+    name: str
+    runs: int
+    errors: int = Field(description="Answers with a 5xx status")
+    rejected: int = Field(description="Answers with a 4xx status: bad input or rate limited")
+    p50_ms: int
+    p95_ms: int
+
+
+class VitalStat(Model):
+    metric: str = Field(description="LCP, INP, CLS, FCP or TTFB")
+    page: str | None = Field(description="None for the whole site")
+    p75: float
+    samples: int
+    rating: Literal["good", "needs work", "poor"]
+
+
+class StatsPoint(Model):
+    t: str = Field(description="Bucket start, ISO 8601 UTC")
+    views: int
+    sessions: int
+    tool_runs: int
+    bot: int
+
+
+class RecentEvent(Model):
+    at: str
+    kind: str
+    name: str
+    detail: str | None
+    country: str | None
+    city: str | None
+    device: str | None
+    client: str | None
+    value: float | None
+    status: int | None
+
+
+class StatsTotals(Model):
+    visitors: int = Field(description="Daily unique visitors, summed over the range")
+    sessions: int
+    views: int
+    avg_engaged_s: float | None
+    median_engaged_s: float | None
+    bounce_rate: float = Field(description="Share of sessions with one page view, 0..1")
+    pages_per_session: float
+    returning_share: float = Field(description="Share of sessions from a browser that visited before, 0..1")
+    tool_runs: int
+    api_error_rate: float
+    rejected: int
+    bot_messages: int
+    bot_chats: int = Field(description="Daily unique Telegram chats, summed")
+    active_now: int = Field(description="Sessions with activity in the last 5 minutes")
+
+
+class StatsReport(Model):
+    """Anonymous usage for the private /stats page. No IPs, hotkeys or chat ids are stored."""
+
+    range: Literal["24h", "7d", "30d"]
+    since: str
+    generated_at: str
+    include_automated: bool
+    totals: StatsTotals
+    series: list[StatsPoint]
+    pages: list[PageStat]
+    tools: list[ToolStat]
+    countries: list[GeoStat]
+    cities: list[GeoStat]
+    sources: list[CountStat]
+    devices: list[CountStat]
+    browsers: list[CountStat]
+    systems: list[CountStat]
+    networks: list[CountStat]
+    clients: list[CountStat]
+    actions: list[CountStat]
+    bot_commands: list[CountStat]
+    vitals: list[VitalStat]
+    engagement: list[CountStat]
+    hours: list[int] = Field(description="Page views by UTC hour, 0 to 23")
+    recent: list[RecentEvent]
+    notes: list[str]
+
+
 class ServiceHealth(Model):
     ok: bool
     version: str

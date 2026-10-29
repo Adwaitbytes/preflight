@@ -151,9 +151,11 @@ export interface HttpApiOptions {
   baseUrl: string;
   fetch?: typeof fetch;
   timeoutMs?: number;
+  /** Tells the API's anonymous usage counts who called: the site's server or a browser */
+  client?: "site" | "browser";
 }
 
-export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS }: HttpApiOptions): HttpApi {
+export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = DEFAULT_TIMEOUT_MS, client }: HttpApiOptions): HttpApi {
   const root = baseUrl.replace(/\/+$/, "");
 
   async function call<T>(path: string, guard: Guard, init?: RequestInit, limitMs = timeoutMs): Promise<ApiResult<T>> {
@@ -162,7 +164,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     try {
       response = await fetchImpl(`${root}${path}`, {
         ...init,
-        headers: { accept: "application/json", ...(init?.body ? { "content-type": "application/json" } : {}) },
+        headers: { accept: "application/json", ...(init?.body ? { "content-type": "application/json" } : {}), ...(client ? { "x-preflight-client": client } : {}) },
         signal: init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout,
         cache: "no-store",
       });

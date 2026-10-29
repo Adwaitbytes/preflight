@@ -85,6 +85,8 @@ Use it in CI: the action boots a localnet subnet and fails the job on findings a
 
 Preflight reads public chain state only and never asks for keys. Nothing is stored unless you share a report or create a watch; the house counters store counts, not hotkeys
 
+The site keeps anonymous usage stats for its owner at `/stats` (password protected): the page template (`/doctor/finney/:key`, never the hotkey), visible time, country and city from Vercel's edge, device, browser, traffic source, page speed, and which tool or bot command ran. No cookies, no IP addresses, no hotkeys, hashes, chat ids or typed text are stored; a visitor is a hash salted per day, so nobody can be followed across days. Do Not Track and Global Privacy Control are honoured, and rows are deleted after 90 days
+
 ## Layout
 
 ```

@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { track } from "@/lib/analytics";
 import { detectLocalApi } from "@/lib/detect-local";
 import { isNetwork, type NetworkId } from "@/lib/networks";
 
@@ -34,7 +35,11 @@ function readStoredNetwork(): NetworkId | null {
 export function AppStateProvider({ offline, children }: { offline: boolean; children: ReactNode }) {
   const [network, setNetworkState] = useState<NetworkId>("finney");
   const [localAvailable, setLocalAvailable] = useState<boolean | null>(null);
-  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteOpen, setPaletteState] = useState(false);
+  const setPaletteOpen = useCallback((open: boolean) => {
+    if (open) track("palette");
+    setPaletteState(open);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -63,7 +68,7 @@ export function AppStateProvider({ offline, children }: { offline: boolean; chil
 
   const value = useMemo(
     () => ({ offline, network, setNetwork, localAvailable, paletteOpen, setPaletteOpen }),
-    [offline, network, setNetwork, localAvailable, paletteOpen],
+    [offline, network, setNetwork, localAvailable, paletteOpen, setPaletteOpen],
   );
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

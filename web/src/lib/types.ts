@@ -63,6 +63,11 @@ export interface ChangeDriver {
   reason: string;
 }
 
+export interface CountStat {
+  label: string;
+  count: number;
+}
+
 export interface DecodedArg {
   name: string;
   value: string;
@@ -275,6 +280,14 @@ export interface FleetRow {
   tao_per_day?: number;
 }
 
+export interface GeoStat {
+  /** ISO 3166 alpha-2, from Vercel's edge */
+  country: string | null;
+  city: string | null;
+  sessions: number;
+  visitors: number;
+}
+
 export interface Health {
   netuid: number;
   score: number;
@@ -437,6 +450,30 @@ export interface NeuronState {
   axon?: AxonInfo | null;
 }
 
+export interface PageStat {
+  /** Page template: accounts, hashes and refs replaced by placeholders */
+  path: string;
+  views: number;
+  sessions: number;
+  /** Sessions that started on this page */
+  entries: number;
+  /** Average seconds the page was visible */
+  avg_engaged_s: number | null;
+}
+
+export interface RecentEvent {
+  at: string;
+  kind: string;
+  name: string;
+  detail: string | null;
+  country: string | null;
+  city: string | null;
+  device: string | null;
+  client: string | null;
+  value: number | null;
+  status: number | null;
+}
+
 export interface ServiceHealth {
   ok: boolean;
   version: string;
@@ -482,6 +519,64 @@ export interface SimResult {
   /** Storage overrides applied on the fork */
   overrides?: Array<string>;
   elapsed_ms: number;
+}
+
+export interface StatsPoint {
+  /** Bucket start, ISO 8601 UTC */
+  t: string;
+  views: number;
+  sessions: number;
+  tool_runs: number;
+  bot: number;
+}
+
+export interface StatsReport {
+  range: "24h" | "7d" | "30d";
+  since: string;
+  generated_at: string;
+  include_automated: boolean;
+  totals: StatsTotals;
+  series: Array<StatsPoint>;
+  pages: Array<PageStat>;
+  tools: Array<ToolStat>;
+  countries: Array<GeoStat>;
+  cities: Array<GeoStat>;
+  sources: Array<CountStat>;
+  devices: Array<CountStat>;
+  browsers: Array<CountStat>;
+  systems: Array<CountStat>;
+  networks: Array<CountStat>;
+  clients: Array<CountStat>;
+  actions: Array<CountStat>;
+  bot_commands: Array<CountStat>;
+  vitals: Array<VitalStat>;
+  engagement: Array<CountStat>;
+  /** Page views by UTC hour, 0 to 23 */
+  hours: Array<number>;
+  recent: Array<RecentEvent>;
+  notes: Array<string>;
+}
+
+export interface StatsTotals {
+  /** Daily unique visitors, summed over the range */
+  visitors: number;
+  sessions: number;
+  views: number;
+  avg_engaged_s: number | null;
+  median_engaged_s: number | null;
+  /** Share of sessions with one page view, 0..1 */
+  bounce_rate: number;
+  pages_per_session: number;
+  /** Share of sessions from a browser that visited before, 0..1 */
+  returning_share: number;
+  tool_runs: number;
+  api_error_rate: number;
+  rejected: number;
+  bot_messages: number;
+  /** Daily unique Telegram chats, summed */
+  bot_chats: number;
+  /** Sessions with activity in the last 5 minutes */
+  active_now: number;
 }
 
 export interface SubnetCard {
@@ -534,6 +629,17 @@ export interface TimelineStep {
   detail: string;
 }
 
+export interface ToolStat {
+  name: string;
+  runs: number;
+  /** Answers with a 5xx status */
+  errors: number;
+  /** Answers with a 4xx status: bad input or rate limited */
+  rejected: number;
+  p50_ms: number;
+  p95_ms: number;
+}
+
 export interface TxEvent {
   index: number;
   pallet: string;
@@ -561,6 +667,16 @@ export interface TxReport {
 }
 
 export type Verdict = "healthy" | "warning" | "broken";
+
+export interface VitalStat {
+  /** LCP, INP, CLS, FCP or TTFB */
+  metric: string;
+  /** None for the whole site */
+  page: string | null;
+  p75: number;
+  samples: number;
+  rating: "good" | "needs work" | "poor";
+}
 
 export interface Weather {
   chain: ChainRef;

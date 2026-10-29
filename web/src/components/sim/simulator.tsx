@@ -6,6 +6,7 @@ import { Suspense, useId, useState, useTransition } from "react";
 import { useAppState } from "@/components/site/app-state";
 import { Button } from "@/components/ui/button";
 import { ApiErrorState } from "@/components/ui/state";
+import { track } from "@/lib/analytics";
 import type { ApiResult, SimAction } from "@/lib/api";
 import { ShareButton } from "@/components/shared/share-button";
 import { simulate, simulateOnLocalFork } from "@/lib/client-calls";
@@ -163,6 +164,7 @@ function SimulatorForm({ forkAvailable, prefill }: { forkAvailable: boolean; pre
       return;
     }
     setProblem(null);
+    track("simulate", action);
     startTransition(async () => {
       setLastRun({ network: activeNetwork, request: built.request });
       setResult(await simulate(activeNetwork, built.request));

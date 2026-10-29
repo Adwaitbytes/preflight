@@ -1,0 +1,623 @@
+{
+  "$defs": {
+    "CountStat": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "count"
+      ],
+      "title": "CountStat",
+      "type": "object"
+    },
+    "GeoStat": {
+      "additionalProperties": false,
+      "properties": {
+        "city": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "City"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "ISO 3166 alpha-2, from Vercel's edge",
+          "title": "Country"
+        },
+        "sessions": {
+          "title": "Sessions",
+          "type": "integer"
+        },
+        "visitors": {
+          "title": "Visitors",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "country",
+        "city",
+        "sessions",
+        "visitors"
+      ],
+      "title": "GeoStat",
+      "type": "object"
+    },
+    "PageStat": {
+      "additionalProperties": false,
+      "properties": {
+        "avg_engaged_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Average seconds the page was visible",
+          "title": "Avg Engaged S"
+        },
+        "entries": {
+          "description": "Sessions that started on this page",
+          "title": "Entries",
+          "type": "integer"
+        },
+        "path": {
+          "description": "Page template: accounts, hashes and refs replaced by placeholders",
+          "title": "Path",
+          "type": "string"
+        },
+        "sessions": {
+          "title": "Sessions",
+          "type": "integer"
+        },
+        "views": {
+          "title": "Views",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "views",
+        "sessions",
+        "entries",
+        "avg_engaged_s"
+      ],
+      "title": "PageStat",
+      "type": "object"
+    },
+    "RecentEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "title": "At",
+          "type": "string"
+        },
+        "city": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "City"
+        },
+        "client": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Client"
+        },
+        "country": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Country"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Detail"
+        },
+        "device": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Device"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Status"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "at",
+        "kind",
+        "name",
+        "detail",
+        "country",
+        "city",
+        "device",
+        "client",
+        "value",
+        "status"
+      ],
+      "title": "RecentEvent",
+      "type": "object"
+    },
+    "StatsPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "bot": {
+          "title": "Bot",
+          "type": "integer"
+        },
+        "sessions": {
+          "title": "Sessions",
+          "type": "integer"
+        },
+        "t": {
+          "description": "Bucket start, ISO 8601 UTC",
+          "title": "T",
+          "type": "string"
+        },
+        "tool_runs": {
+          "title": "Tool Runs",
+          "type": "integer"
+        },
+        "views": {
+          "title": "Views",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "t",
+        "views",
+        "sessions",
+        "tool_runs",
+        "bot"
+      ],
+      "title": "StatsPoint",
+      "type": "object"
+    },
+    "StatsTotals": {
+      "additionalProperties": false,
+      "properties": {
+        "active_now": {
+          "description": "Sessions with activity in the last 5 minutes",
+          "title": "Active Now",
+          "type": "integer"
+        },
+        "api_error_rate": {
+          "title": "Api Error Rate",
+          "type": "number"
+        },
+        "avg_engaged_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Avg Engaged S"
+        },
+        "bot_chats": {
+          "description": "Daily unique Telegram chats, summed",
+          "title": "Bot Chats",
+          "type": "integer"
+        },
+        "bot_messages": {
+          "title": "Bot Messages",
+          "type": "integer"
+        },
+        "bounce_rate": {
+          "description": "Share of sessions with one page view, 0..1",
+          "title": "Bounce Rate",
+          "type": "number"
+        },
+        "median_engaged_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median Engaged S"
+        },
+        "pages_per_session": {
+          "title": "Pages Per Session",
+          "type": "number"
+        },
+        "rejected": {
+          "title": "Rejected",
+          "type": "integer"
+        },
+        "returning_share": {
+          "description": "Share of sessions from a browser that visited before, 0..1",
+          "title": "Returning Share",
+          "type": "number"
+        },
+        "sessions": {
+          "title": "Sessions",
+          "type": "integer"
+        },
+        "tool_runs": {
+          "title": "Tool Runs",
+          "type": "integer"
+        },
+        "views": {
+          "title": "Views",
+          "type": "integer"
+        },
+        "visitors": {
+          "description": "Daily unique visitors, summed over the range",
+          "title": "Visitors",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "visitors",
+        "sessions",
+        "views",
+        "avg_engaged_s",
+        "median_engaged_s",
+        "bounce_rate",
+        "pages_per_session",
+        "returning_share",
+        "tool_runs",
+        "api_error_rate",
+        "rejected",
+        "bot_messages",
+        "bot_chats",
+        "active_now"
+      ],
+      "title": "StatsTotals",
+      "type": "object"
+    },
+    "ToolStat": {
+      "additionalProperties": false,
+      "properties": {
+        "errors": {
+          "description": "Answers with a 5xx status",
+          "title": "Errors",
+          "type": "integer"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "p50_ms": {
+          "title": "P50 Ms",
+          "type": "integer"
+        },
+        "p95_ms": {
+          "title": "P95 Ms",
+          "type": "integer"
+        },
+        "rejected": {
+          "description": "Answers with a 4xx status: bad input or rate limited",
+          "title": "Rejected",
+          "type": "integer"
+        },
+        "runs": {
+          "title": "Runs",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "runs",
+        "errors",
+        "rejected",
+        "p50_ms",
+        "p95_ms"
+      ],
+      "title": "ToolStat",
+      "type": "object"
+    },
+    "VitalStat": {
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "description": "LCP, INP, CLS, FCP or TTFB",
+          "title": "Metric",
+          "type": "string"
+        },
+        "p75": {
+          "title": "P75",
+          "type": "number"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "None for the whole site",
+          "title": "Page"
+        },
+        "rating": {
+          "enum": [
+            "good",
+            "needs work",
+            "poor"
+          ],
+          "title": "Rating",
+          "type": "string"
+        },
+        "samples": {
+          "title": "Samples",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "metric",
+        "page",
+        "p75",
+        "samples",
+        "rating"
+      ],
+      "title": "VitalStat",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Anonymous usage for the private /stats page. No IPs, hotkeys or chat ids are stored.",
+  "properties": {
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Actions",
+      "type": "array"
+    },
+    "bot_commands": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Bot Commands",
+      "type": "array"
+    },
+    "browsers": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Browsers",
+      "type": "array"
+    },
+    "cities": {
+      "items": {
+        "$ref": "#/$defs/GeoStat"
+      },
+      "title": "Cities",
+      "type": "array"
+    },
+    "clients": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Clients",
+      "type": "array"
+    },
+    "countries": {
+      "items": {
+        "$ref": "#/$defs/GeoStat"
+      },
+      "title": "Countries",
+      "type": "array"
+    },
+    "devices": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Devices",
+      "type": "array"
+    },
+    "engagement": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Engagement",
+      "type": "array"
+    },
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    },
+    "hours": {
+      "description": "Page views by UTC hour, 0 to 23",
+      "items": {
+        "type": "integer"
+      },
+      "title": "Hours",
+      "type": "array"
+    },
+    "include_automated": {
+      "title": "Include Automated",
+      "type": "boolean"
+    },
+    "networks": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Networks",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "pages": {
+      "items": {
+        "$ref": "#/$defs/PageStat"
+      },
+      "title": "Pages",
+      "type": "array"
+    },
+    "range": {
+      "enum": [
+        "24h",
+        "7d",
+        "30d"
+      ],
+      "title": "Range",
+      "type": "string"
+    },
+    "recent": {
+      "items": {
+        "$ref": "#/$defs/RecentEvent"
+      },
+      "title": "Recent",
+      "type": "array"
+    },
+    "series": {
+      "items": {
+        "$ref": "#/$defs/StatsPoint"
+      },
+      "title": "Series",
+      "type": "array"
+    },
+    "since": {
+      "title": "Since",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "systems": {
+      "items": {
+        "$ref": "#/$defs/CountStat"
+      },
+      "title": "Systems",
+      "type": "array"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ToolStat"
+      },
+      "title": "Tools",
+      "type": "array"
+    },
+    "totals": {
+      "$ref": "#/$defs/StatsTotals"
+    },
+    "vitals": {
+      "items": {
+        "$ref": "#/$defs/VitalStat"
+      },
+      "title": "Vitals",
+      "type": "array"
+    }
+  },
+  "required": [
+    "range",
+    "since",
+    "generated_at",
+    "include_automated",
+    "totals",
+    "series",
+    "pages",
+    "tools",
+    "countries",
+    "cities",
+    "sources",
+    "devices",
+    "browsers",
+    "systems",
+    "networks",
+    "clients",
+    "actions",
+    "bot_commands",
+    "vitals",
+    "engagement",
+    "hours",
+    "recent",
+    "notes"
+  ],
+  "title": "StatsReport",
+  "type": "object"
+}

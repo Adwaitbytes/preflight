@@ -4,6 +4,7 @@ import { Link2 } from "lucide-react";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/ui/copy-button";
+import { track } from "@/lib/analytics";
 import type { ApiError } from "@/lib/api";
 import { shareReport } from "@/lib/client-calls";
 import type { ShareKind } from "@/lib/schemas";
@@ -29,6 +30,7 @@ export function ShareButton(props: ShareProps & { className?: string }) {
         setError(result.error);
         return;
       }
+      track("share", kind);
       const link = `${window.location.origin}/d/${result.data.id}`;
       setUrl(link);
       try {

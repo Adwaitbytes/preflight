@@ -15,16 +15,17 @@ import threading
 import time
 from collections import OrderedDict, deque
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, HTTPException, Path, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from . import __version__
-from .core import store, validate
+from .core import analytics, store, validate
 from .core.ask import ask as ask_router
 from .core.chain.network import ChainUnreachable, Network, client_for, gather
 from .core.models import (
@@ -46,6 +47,7 @@ from .core.models import (
     ServiceHealth,
     SimRequest,
     SimResult,
+    StatsReport,
     SubnetCard,
     SubnetDetail,
     TxReport,
@@ -90,7 +92,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"https://preflight[a-z0-9-]*\.vercel\.app|http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["content-type"],
+    allow_headers=["content-type", "x-preflight-client"],
     max_age=600,
 )
 
@@ -201,6 +203,41 @@ async def rate_limit(request: Request, call_next: Callable[[Request], Any]) -> A
     if request.url.path.startswith("/v1/") and not exempt and not limiter.allow(_client_ip(request)):
         return JSONResponse({"detail": "rate limited: try again in a minute"}, status_code=429)
     return await call_next(request)
+
+
+def _context(request: Request) -> analytics.Context:
+    host = request.headers.get("x-forwarded-host") or request.headers.get("host")
+    return analytics.Context(
+        ip=_client_ip(request),
+        ua=request.headers.get("user-agent", "")[:400],
+        host=host.split(":")[0] if host else None,
+        headers={k: v for k, v in request.headers.items() if k.startswith("x-vercel-ip-")},
+    )
+
+
+def _opted_out(request: Request) -> bool:
+    return request.headers.get("sec-gpc") == "1" or request.headers.get("dnt") == "1"
+
+
+@app.middleware("http")
+async def usage(request: Request, call_next: Callable[[Request], Any]) -> Any:
+    """Time every tool call and count it anonymously: the tool, status and latency, never its arguments."""
+    started = time.perf_counter()
+    response = await call_next(request)
+    if analytics.enabled() and request.method in ("GET", "POST") and not _opted_out(request):
+        row = analytics.api_row(
+            request.url.path,
+            request.method,
+            response.status_code,
+            (time.perf_counter() - started) * 1000,
+            _context(request),
+            request.headers.get("x-preflight-client"),
+            datetime.now(UTC),
+            analytics.salt(),
+        )
+        if row is not None:
+            analytics.record([row])
+    return response
 
 
 @app.exception_handler(ChainUnreachable)
@@ -728,6 +765,45 @@ def incentive_change(
     return result
 
 
+MAX_BEACON_BYTES = 32_000
+
+
+@app.post("/v1/collect", status_code=204, include_in_schema=False)
+async def collect(request: Request) -> Response:
+    """Anonymous page analytics from the site. Malformed or oversized batches are dropped
+    silently: a beacon has nobody waiting to read an error."""
+    body = await request.body()
+    if not analytics.enabled() or _opted_out(request) or len(body) > MAX_BEACON_BYTES:
+        return Response(status_code=204)
+    try:
+        beacon = analytics.Beacon.model_validate_json(body)
+    except ValueError:
+        return Response(status_code=204)
+    analytics.record(analytics.rows_from_beacon(beacon, _context(request), datetime.now(UTC), analytics.salt()))
+    return Response(status_code=204)
+
+
+@app.get("/v1/stats", response_model=StatsReport, include_in_schema=False)
+def stats(
+    request: Request,
+    range_: Annotated[Literal["24h", "7d", "30d"], Query(alias="range")] = "7d",
+    automated: bool = False,
+) -> JSONResponse:
+    """The private usage report behind /stats. Answers only with the stats key; otherwise a
+    404, as if the route did not exist."""
+    expected = os.environ.get("STATS_PASSWORD", "")
+    given = request.headers.get("x-stats-key", "")
+    if not expected or not hmac.compare_digest(given.encode(), expected.encode()):
+        raise HTTPException(404, "Not Found")
+    if not analytics.enabled():
+        raise HTTPException(503, "analytics needs DATABASE_URL")
+    try:
+        result = analytics.report(range_, automated)
+    except store.StoreUnavailable as error:
+        raise HTTPException(503, str(error)) from error
+    return JSONResponse(result.model_dump(mode="json"), headers={"Cache-Control": "no-store"})
+
+
 @app.post(TELEGRAM_WEBHOOK, include_in_schema=False)
 async def telegram_webhook(request: Request) -> dict[str, bool]:
     """Telegram posts every message to the bot here. Only Telegram knows the secret, set with
@@ -748,6 +824,9 @@ async def telegram_webhook(request: Request) -> dict[str, bool]:
         return {"ok": False}
     if not isinstance(update, dict):
         return {"ok": False}
+    used = bot.usage_of(update)
+    if used is not None and analytics.enabled():
+        analytics.record([analytics.bot_row(used[0], used[1], datetime.now(UTC), analytics.salt())])
     try:
         answered = await run_in_threadpool(bot.handle_update, update, chat_limiter.allow)
     except TelegramUnavailable as error:
