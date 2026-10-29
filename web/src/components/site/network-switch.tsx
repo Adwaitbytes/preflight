@@ -13,7 +13,7 @@ const ROUTE_WITH_NETWORK = /^\/(doctor|tx|fleet)\/(finney|test|local)(\/.*)$/;
 export const NETWORK_DOT: Record<NetworkId, string> = { finney: "bg-healthy", test: "bg-medium", local: "bg-accent" };
 
 export const NETWORK_TRIGGER_CLASS =
-  "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg px-2.5 text-[13px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)] transition-[background-color,color] hover:bg-surface-2 hover:text-foreground data-[state=open]:bg-surface-2";
+  "inline-flex h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-[13px] font-medium text-muted-foreground shadow-[0_0_0_1px_var(--line)] transition-[background-color,color] hover:bg-surface-2 hover:text-foreground data-[state=open]:bg-surface-2";
 
 /** Rewrites the network segment of the current route, so switching on a result page re-runs it */
 export function useSwitchNetwork(): (next: NetworkId) => void {

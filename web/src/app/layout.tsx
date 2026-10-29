@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/site/theme-provider";
 import { BRAND } from "@/lib/brand";
 import { isOffline } from "@/lib/server-api";
 import { siteUrl } from "@/lib/site";
-import { geistMono, geistSans } from "./fonts";
+import { geistMono, geistSans, instrumentSerif } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   await connection();
   const offline = isOffline();
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}>
       <body className="flex min-h-dvh flex-col overflow-x-clip">
         <ThemeProvider>
           <AppStateProvider offline={offline}>

@@ -1,0 +1,78 @@
+"use client";
+
+import { ArrowRight } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Omnibox, type Example } from "@/components/landing/omnibox";
+import seats from "@/data/seats.json";
+import { LiveTicker } from "./live-ticker";
+import { SeatGalaxy, type HoveredSubnet } from "./seat-galaxy";
+
+const FORMAT = new Intl.NumberFormat("en-US");
+
+/**
+ * The landing hero: every miner seat on Bittensor as a turning field of light behind one
+ * question. Always dark, whatever the visitor's theme, like an instrument panel.
+ */
+export function Hero({ examples }: { examples: Example[] }) {
+  const [hovered, setHovered] = useState<HoveredSubnet | null>(null);
+  const onHover = useCallback((subnet: HoveredSubnet | null) => setHovered(subnet), []);
+  const zeroShare = Math.round((seats.zero / seats.miners) * 100);
+
+  return (
+    <section aria-labelledby="hero-title" className="dark relative isolate -mt-14 flex min-h-svh flex-col overflow-hidden bg-[#040407] pt-14 text-foreground">
+      <SeatGalaxy className="absolute inset-0 -z-10" onHover={onHover} />
+      {/* Keep the headline readable over the field: dark on the left, open on the right */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgb(4_4_7/0.9)_0%,rgb(4_4_7/0.78)_55%,transparent_88%)] md:bg-[linear-gradient(90deg,#040407_30%,rgb(4_4_7/0.9)_44%,rgb(4_4_7/0.5)_58%,transparent_74%)]" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-48 bg-gradient-to-t from-[#040407] to-transparent" />
+
+      {hovered && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-20 hidden -translate-x-1/2 -translate-y-[calc(100%+14px)] rounded-xl bg-[#0d0f18]/90 px-3.5 py-2.5 text-left shadow-[0_0_0_1px_rgb(124_147_255/0.35),0_16px_40px_-12px_rgb(0_0_0/0.8)] backdrop-blur-md md:block"
+          style={{ left: hovered.x, top: hovered.y }}
+        >
+          <p className="font-mono text-xs text-[#a9b8ff]">SN{hovered.netuid}</p>
+          <p className="mt-0.5 text-sm font-medium tnum text-white">
+            {hovered.earning} of {hovered.miners} seats earn
+          </p>
+          <p className="text-xs text-white/50 tnum">{Math.round(((hovered.miners - hovered.earning) / Math.max(hovered.miners, 1)) * 100)}% earned nothing</p>
+        </div>
+      )}
+
+      <div className="pointer-events-none mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-4 pt-10 pb-8 sm:px-6 lg:px-8">
+        <div className="pointer-events-auto max-w-[40rem]">
+          <a
+            href="#numbers-title"
+            className="group inline-flex max-w-full items-center gap-2 rounded-full bg-white/[0.06] py-1.5 pr-3 pl-2.5 text-xs font-medium text-white/80 shadow-[0_0_0_1px_rgb(255_255_255/0.12)] backdrop-blur-md transition-colors hover:bg-white/10 hover:text-white"
+          >
+            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-[#ff8a4c] shadow-[0_0_8px_#ff8a4c]" />
+            <span className="truncate tnum">{FORMAT.format(seats.zero)} miner seats earned nothing at the last epoch</span>
+            <ArrowRight className="size-3 shrink-0 text-white/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white motion-reduce:transition-none" aria-hidden />
+          </a>
+          <h1 id="hero-title" className="mt-7 text-[clamp(2.9rem,min(6.4vw,9.5svh),6rem)] leading-[0.98] font-light tracking-[-0.055em] text-balance text-white">
+            Know <span className="font-serif font-normal tracking-[-0.02em] text-[#9db0ff] italic">why</span> your miner earns nothing
+          </h1>
+          <p className="mt-6 max-w-[34rem] text-[17px] leading-7 text-pretty text-white/65 sm:text-lg sm:leading-8">
+            Paste a hotkey, a transaction or an error. Preflight reads the chain, tells you the cause in plain words and hands you the fix, in about two seconds.
+          </p>
+          <div className="mt-9">
+            <Omnibox examples={examples} variant="hero" />
+          </div>
+        </div>
+      </div>
+
+      <div className="pointer-events-none mx-auto w-full max-w-6xl px-4 pb-6 sm:px-6 lg:px-8 [&_a]:pointer-events-auto">
+        <div className="flex flex-col gap-4 border-t border-white/10 pt-5 lg:flex-row lg:items-end lg:justify-between">
+          <p className="max-w-[30rem] text-[13px] leading-5 text-pretty text-white/55">
+            <span className="mr-2 inline-flex translate-y-[-1px] items-center gap-1.5 align-middle">
+              <span className="size-2 rounded-full bg-[#7c93ff] shadow-[0_0_10px_#7c93ff]" />
+              <span className="size-2 rounded-full bg-white/25" />
+            </span>
+            Every dot is one of {FORMAT.format(seats.miners)} miner seats on Bittensor. The lit ones earned at the last epoch; {zeroShare}% earned nothing.<span className="hidden md:inline"> Hover a spoke to see its subnet.</span>
+          </p>
+          <LiveTicker />
+        </div>
+      </div>
+    </section>
+  );
+}

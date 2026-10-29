@@ -6,6 +6,7 @@
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -65,7 +66,9 @@
 }
 
 /* Light: paper white, graphite ink, one runway blue accent */
-:root {
+/* `.light` pins a section to the light palette inside the dark site, as the landing's numbers band does */
+:root,
+.light {
   --background: #f7f7f8;
   --surface: #ffffff;
   --surface-2: #f1f1f3;
@@ -75,11 +78,11 @@
   --faint: #62666f;
   --line: rgb(18 19 22 / 0.09);
   --line-strong: rgb(18 19 22 / 0.16);
-  --ring: #1f6feb;
+  --ring: #2f4fe0;
 
-  --accent: #1f6feb;
-  --accent-soft: rgb(31 111 235 / 0.09);
-  --accent-ink: #1858c4;
+  --accent: #2f4fe0;
+  --accent-soft: rgb(47 79 224 / 0.08);
+  --accent-ink: #2a45c9;
   --accent-contrast: #ffffff;
 
   /* Each ink passes 4.5:1 on its own soft tint over --surface, --background and --surface-2 */
@@ -106,11 +109,11 @@
   --faint: #868b96;
   --line: rgb(235 238 245 / 0.075);
   --line-strong: rgb(235 238 245 / 0.14);
-  --ring: #6aa8ff;
+  --ring: #8ea2ff;
 
-  --accent: #6aa8ff;
-  --accent-soft: rgb(106 168 255 / 0.1);
-  --accent-ink: #9cc5ff;
+  --accent: #7c93ff;
+  --accent-soft: rgb(124 147 255 / 0.1);
+  --accent-ink: #a9b8ff;
   --accent-contrast: #07101f;
 
   --critical: #ff7b72;
@@ -346,6 +349,44 @@
   box-shadow:
     0 0 0 2px var(--background),
     0 0 0 4px var(--ring);
+}
+
+/* The header menus: one surface that opens from the bar and slides between panels */
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+@keyframes nav-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+@keyframes nav-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+@keyframes nav-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+}
+@keyframes nav-to-right {
+  to {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+@keyframes nav-to-left {
+  to {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
 }
 
 /* Live explorer: a calm heartbeat, new rows settle in from above, the block number rolls forward */
