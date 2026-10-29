@@ -23,6 +23,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field
+from starlette.background import BackgroundTask, BackgroundTasks
 
 from . import __version__
 from .core import analytics, store, validate
@@ -215,6 +216,16 @@ def _context(request: Request) -> analytics.Context:
     )
 
 
+def _after(response: Any, job: Callable[..., object], *args: object) -> None:
+    """Run `job` once the reply has gone out, after any task the response already carries."""
+    earlier = response.background
+    tasks = BackgroundTasks()
+    if earlier is not None:
+        tasks.add_task(earlier)
+    tasks.add_task(job, *args)
+    response.background = tasks
+
+
 def _opted_out(request: Request) -> bool:
     return request.headers.get("sec-gpc") == "1" or request.headers.get("dnt") == "1"
 
@@ -236,7 +247,7 @@ async def usage(request: Request, call_next: Callable[[Request], Any]) -> Any:
             analytics.salt(),
         )
         if row is not None:
-            analytics.record([row])
+            _after(response, analytics.record, [row])
     return response
 
 
@@ -779,8 +790,8 @@ async def collect(request: Request) -> Response:
         beacon = analytics.Beacon.model_validate_json(body)
     except ValueError:
         return Response(status_code=204)
-    analytics.record(analytics.rows_from_beacon(beacon, _context(request), datetime.now(UTC), analytics.salt()))
-    return Response(status_code=204)
+    rows = analytics.rows_from_beacon(beacon, _context(request), datetime.now(UTC), analytics.salt())
+    return Response(status_code=204, background=BackgroundTask(analytics.record, rows))
 
 
 @app.get("/v1/stats", response_model=StatsReport, include_in_schema=False)
@@ -826,7 +837,7 @@ async def telegram_webhook(request: Request) -> dict[str, bool]:
         return {"ok": False}
     used = bot.usage_of(update)
     if used is not None and analytics.enabled():
-        analytics.record([analytics.bot_row(used[0], used[1], datetime.now(UTC), analytics.salt())])
+        await run_in_threadpool(analytics.record, [analytics.bot_row(used[0], used[1], datetime.now(UTC), analytics.salt())])
     try:
         answered = await run_in_threadpool(bot.handle_update, update, chat_limiter.allow)
     except TelegramUnavailable as error:

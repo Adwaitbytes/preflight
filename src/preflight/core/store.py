@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import os
 import secrets
-from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
@@ -50,12 +49,6 @@ def new_id(length: int = 10) -> str:
 
 
 _counter_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="preflight-count")
-
-
-def submit(job: Callable[..., object], *args: object) -> None:
-    """Run a write off the request path, on the same single worker the counters use."""
-    if configured():
-        _counter_pool.submit(job, *args)
 
 
 def count(kind: str, network: str) -> None:

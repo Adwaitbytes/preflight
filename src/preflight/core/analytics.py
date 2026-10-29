@@ -399,9 +399,11 @@ def enabled() -> bool:
 
 
 def record(rows: list[dict[str, Any]]) -> None:
-    """Queue rows for insert off the request path. A lost event is fine; a slow answer is not."""
+    """Insert rows. The API runs this as a background task after the reply is sent: nobody
+    waits on it, and on Vercel the function stays alive until it finishes, where a thread
+    pool can be frozen with the write still queued. A failed write is logged and dropped."""
     if rows and enabled():
-        store.submit(_insert, rows)
+        _insert(rows)
 
 
 INSERT = (
