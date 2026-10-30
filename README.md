@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/hero.jpg" alt="Preflight: stop flying blind on Bittensor. The live site, with every miner seat on Bittensor drawn as a galaxy" width="100%"></a>
+<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/hero.jpg" alt="Preflight: stop flying blind on Bittensor. The live site: paste a hotkey, a transaction or an error, with every miner seat on Bittensor drawn as a galaxy behind the search box" width="100%"></a>
 
 <h1>Preflight</h1>
 
@@ -21,7 +21,7 @@ and it tells you why it failed, what the next epoch will pay, and what would bre
 <p>
 <a href="https://preflight-lemon.vercel.app"><b>Open the app</b></a>
 &nbsp;·&nbsp;
-<a href="docs/readme/preflight-film-720p.mp4"><b>Watch the 3 minute film</b></a>
+<a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view"><b>▶ Watch the 3 minute film</b></a>
 &nbsp;·&nbsp;
 <a href="#quick-start">Quick start</a>
 &nbsp;·&nbsp;
@@ -39,6 +39,8 @@ and it tells you why it failed, what the next epoch will pay, and what would bre
 ## What Preflight does
 
 Three jobs, from one paste, every answer read from mainnet at a single block.
+
+<p align="center"><a href="https://preflight-lemon.vercel.app"><img src="docs/readme/toolkit.jpg" alt="Twelve tools in one place. Explains: Doctor, Transaction debugger, Error explainer, Guide. Predicts: Simulator, Epoch Lab, Launch planner, Subnet directory. Warns: Network weather, Live explorer, Telegram alerts, CI gate" width="100%"></a></p>
 
 | | When | Tools |
 |---|---|---|
@@ -66,7 +68,7 @@ Explorers like Taostats show the same numbers, and they are great at it. Preflig
 <summary><b>What the Doctor found when it checked all 23,737 zero seats</b></summary>
 <br>
 
-<p align="center"><img src="docs/readme/why-zero.png" alt="Why 23,737 miner seats earned nothing: 47% are on subnets that pay one UID, 41% never served an axon, 8% have no validator weight, 3% are still in immunity, under 1% are cut by consensus, 1% other" width="88%"></p>
+<p align="center"><img src="docs/readme/why-zero.jpg" alt="Why 23,737 miner seats earned nothing: 47% are on subnets that pay one UID, 41% never served an axon, 8% have no validator weight, 3% are still in immunity, under 1% are cut by consensus, 1% other" width="88%"></p>
 
 | Why it earned nothing | Seats | Share |
 |---|---:|---:|
@@ -85,11 +87,11 @@ Explorers like Taostats show the same numbers, and they are great at it. Preflig
 
 Paste a hotkey and the Doctor answers in one sentence, with the fix and the evidence behind it, read from mainnet at a single block.
 
-<p align="center"><img src="docs/readme/doctor.gif" alt="Pasting a hotkey into Preflight: the Doctor answers that UID 0 on SN64 earns nothing because no validator has scored it, with the block it read" width="88%"></p>
+<p align="center"><img src="docs/readme/doctor.gif" alt="Typing a hotkey into the search box on the live site: the Doctor answers that UID 0 on SN64 earns nothing because no validator has scored it, then shows the fix and the evidence" width="88%"></p>
 
 <p align="center">
-<a href="docs/readme/preflight-film-720p.mp4"><img src="docs/readme/film-poster.jpg" alt="Watch the 3 minute Preflight film" width="88%"></a><br>
-<sub>The whole product in 3 minutes. Every screen in it is the real product on mainnet.</sub>
+<a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view"><img src="docs/readme/film-poster.jpg" alt="Watch the 3 minute Preflight film" width="88%"></a><br>
+<sub>▶ <a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view">Watch the film</a>: the whole product in 3 minutes, every screen real and on mainnet.</sub>
 </p>
 
 <br>
