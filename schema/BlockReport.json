@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "BlockExtrinsic": {
+      "additionalProperties": false,
+      "properties": {
+        "call": {
+          "title": "Call",
+          "type": "string"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pallet.Error when it failed",
+          "title": "Error"
+        },
+        "extrinsic_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Extrinsic Hash"
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer"
+        },
+        "pallet": {
+          "title": "Pallet",
+          "type": "string"
+        },
+        "signer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Signer"
+        },
+        "success": {
+          "title": "Success",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "index",
+        "extrinsic_hash",
+        "pallet",
+        "call",
+        "signer",
+        "success"
+      ],
+      "title": "BlockExtrinsic",
+      "type": "object"
+    },
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One block's extrinsics, each openable in the Transaction Debugger by block-index.",
+  "properties": {
+    "block": {
+      "title": "Block",
+      "type": "integer"
+    },
+    "block_hash": {
+      "title": "Block Hash",
+      "type": "string"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "extrinsics": {
+      "items": {
+        "$ref": "#/$defs/BlockExtrinsic"
+      },
+      "title": "Extrinsics",
+      "type": "array"
+    },
+    "failed": {
+      "title": "Failed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "chain",
+    "block",
+    "block_hash",
+    "extrinsics",
+    "failed"
+  ],
+  "title": "BlockReport",
+  "type": "object"
+}
