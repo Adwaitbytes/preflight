@@ -42,14 +42,9 @@ export function Surfaces() {
   return (
     <section aria-labelledby="surfaces-title" className="light bg-[#efeae2] text-[#17191e]">
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <h2 id="surfaces-title" className="max-w-[15ch] text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance">
-            One answer, wherever you <span className="font-serif font-normal tracking-[-0.01em] text-[#2f4fe0] italic">already</span> work
-          </h2>
-          <p className="max-w-[26rem] text-[15px] leading-7 text-pretty text-[#4a4f5a]">
-            The same engine answers the site, your terminal, your own Claude, a Telegram chat, your code and your CI. This is one real answer from mainnet, in all six.
-          </p>
-        </div>
+        <h2 id="surfaces-title" className="max-w-[15ch] text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance">
+          One answer, wherever you <span className="font-serif font-normal tracking-[-0.01em] text-[#2f4fe0] italic">already</span> work
+        </h2>
 
         <Tabs.Root defaultValue="web" className="mt-14">
           <Tabs.List aria-label="Where to ask" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0">
@@ -109,7 +104,6 @@ export function Surfaces() {
                     </p>
                     <p className="mt-2 text-white/65">Fix: {FIX}.</p>
                   </div>
-                  <p className="text-xs text-white/40">Thirteen tools, from diagnose_neuron to preview_epoch and simulate. Claude answers from the tool’s real result.</p>
                 </div>
               </Window>
             </Tabs.Content>
@@ -128,7 +122,6 @@ export function Surfaces() {
                   <p className="mt-2 max-w-[40rem] rounded-2xl rounded-bl-md bg-white/[0.07] px-4 py-3 text-[14px] leading-6 text-white/85">
                     <b className="text-white">Preflight:</b> UID 85 on SN19 is set to drop to zero at the next epoch, block 9,392,129 (in about 0.4 h)
                   </p>
-                  <p className="text-xs text-white/40">Both are real messages: a /doctor reply, and a watch alert sent before the epoch cut the pay.</p>
                 </div>
               </Window>
             </Tabs.Content>

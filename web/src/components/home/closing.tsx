@@ -13,7 +13,7 @@ export function Closing({ examples }: { examples: Example[] }) {
         <h2 id="closing-title" className="text-[clamp(2.6rem,5.8vw,5.25rem)] leading-[1] font-light tracking-[-0.05em] text-balance text-white">
           The chain gives you numbers. Preflight gives you <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">reasons</span>
         </h2>
-        <p className="mt-6 max-w-[34rem] text-lg leading-8 text-pretty text-white/60">Free, open source, and it only ever reads public chain data. Paste a hotkey, a transaction or an error to try it.</p>
+        <p className="mt-6 font-mono text-xs tracking-[0.14em] text-white/50 uppercase">Free · Open source · Read only</p>
         <div className="mt-10 w-full max-w-2xl text-left">
           <Omnibox examples={examples} variant="hero" inputId="omnibox-closing" align="center" />
         </div>

@@ -114,9 +114,9 @@ export function Omnibox({
         aria-live="polite"
         className={cn("mt-3 min-h-5 px-1 text-[13px] text-pretty", align === "center" && "text-center", input.kind === "empty" ? "text-faint" : invalid ? "text-critical" : "text-accent-ink")}
       >
-        {describeInput(input)}
+        {hero && input.kind === "empty" ? "" : describeInput(input)}
       </p>
-      <div className={cn("mt-4 flex flex-wrap items-center gap-2", align === "center" && "justify-center")}>
+      <div className={cn("flex flex-wrap items-center gap-2", hero ? "mt-2" : "mt-4", align === "center" && "justify-center")}>
         <span className="mr-1 text-xs text-faint">Try</span>
         {examples.map((example) => (
           <button

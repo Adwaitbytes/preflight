@@ -27,7 +27,7 @@ export function SiteFooter() {
               <LogoMark className="size-5" />
               <span className="text-[17px] font-medium tracking-[-0.02em]">Preflight</span>
             </Link>
-            <p className="mt-4 mb-12 max-w-[34ch] text-[15px] leading-6 text-white/55">The debugger for Bittensor. It explains failures, predicts epochs and warns you before a mistake costs TAO.</p>
+            <p className="mt-4 mb-12 max-w-[34ch] text-[15px] leading-6 text-white/55">The debugger for Bittensor.</p>
             <p className="font-mono text-[11px] tracking-[0.16em] text-white/55 uppercase">Use it from your own Claude</p>
             <div className="mt-3 flex max-w-xl items-center gap-2 rounded-2xl bg-white/[0.05] py-1.5 pr-1.5 pl-4 shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">
               <span aria-hidden className="font-mono text-[13px] text-white/35 select-none">
@@ -38,7 +38,6 @@ export function SiteFooter() {
               </code>
               <CopyButton value={MCP_INSTALL} label="Copy MCP install command" />
             </div>
-            <p className="mt-3 max-w-[52ch] text-[13px] leading-5 text-white/55">Thirteen tools, from diagnose_neuron and preview_epoch to network_weather and simulate. Same answers as the API</p>
           </div>
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
             {GROUPS.map((group) => (
@@ -67,7 +66,7 @@ export function SiteFooter() {
         <div className="mt-20 flex flex-col gap-3 border-t border-white/10 py-6 text-[13px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex items-center gap-2.5">
             <LogoMark className="size-4 text-white/70" />
-            Reads public chain data only. Never asks for keys, never signs, never sends.
+            Read only. Never asks for keys, never signs.
           </p>
           <p className="flex items-center gap-2">
             <span className="relative flex size-2">

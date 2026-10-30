@@ -235,11 +235,11 @@ export function SeatGalaxy({ className, onHover }: { className?: string; onHover
         const { width, height } = host.getBoundingClientRect();
         renderer.setSize(width, height, false);
         camera.aspect = width / Math.max(height, 1);
-        // Wide screens put the disc to the right of the headline; narrow ones sink it below the text
+        // The disc sits centred under the headline and rises behind the search box on every width
         const wide = camera.aspect > 1.15;
-        disc.position.set(wide ? 2.9 : 0, wide ? -0.2 : -1.6, wide ? 0 : -1.5);
-        camera.position.set(0, wide ? 5.4 : 7.4, wide ? 7.6 : 8.6);
-        camera.lookAt(0, wide ? -0.4 : 0.2, 0);
+        disc.position.set(0, wide ? -1.3 : -1.6, wide ? -0.4 : -1.5);
+        camera.position.set(0, wide ? 4.6 : 7.4, wide ? 8.2 : 8.6);
+        camera.lookAt(0, wide ? 1.05 : 0.2, 0);
         camera.updateProjectionMatrix();
       };
 

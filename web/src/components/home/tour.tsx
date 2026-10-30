@@ -11,7 +11,6 @@ interface Step {
   tool: string;
   question: string;
   body: string;
-  proof: string[];
   href: string;
   cta: string;
   shot: string;
@@ -24,8 +23,7 @@ const STEPS: Step[] = [
     chapter: "Before you act",
     tool: "Simulator",
     question: "Will this transaction work?",
-    body: "Dry run a stake, unstake, transfer or registration against the live chain before you sign. If it would fail, you see the error, what it means and the fix, and nothing is ever sent.",
-    proof: ["Checked against live mainnet state", "Never signs, never broadcasts", "Catches the traps the chain only tells you after you pay"],
+    body: "Dry run it against the live chain. See the error and the fix before you sign.",
     href: "/sim",
     cta: "Test a transaction",
     shot: "/shots/sim-fail.png",
@@ -36,8 +34,7 @@ const STEPS: Step[] = [
     chapter: "Before you act",
     tool: "Epoch Lab",
     question: "What will the next epoch pay me?",
-    body: "Bittensor’s own consensus math, run on live data before the chain runs it. Then try a new kappa, take a validator offline, or test the weights you are about to set.",
-    proof: ["Called all 256 seats of SN19, 111 blocks early", "About two seconds, no fork or download", "Warns you on Telegram before a cut lands"],
+    body: "Bittensor’s own consensus math on live data, before the chain pays.",
     href: "/epoch/finney/64",
     cta: "See the next epoch",
     shot: "/shots/epoch-sn64.png",
@@ -48,8 +45,7 @@ const STEPS: Step[] = [
     chapter: "When it breaks",
     tool: "Doctor",
     question: "Why does my miner earn nothing?",
-    body: "Paste a hotkey. You get the reason in one sentence, the evidence read from the chain at one block, and the exact step that fixes it.",
-    proof: ["27 rules copied from the chain’s own code", "Every answer names its block and hash", "About a second on a real mainnet miner"],
+    body: "Paste a hotkey. Get the reason, the evidence and the fix.",
     href: "/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64",
     cta: "Diagnose a real miner",
     shot: "/shots/doctor-sn64.png",
@@ -60,8 +56,7 @@ const STEPS: Step[] = [
     chapter: "When it breaks",
     tool: "Transaction debugger",
     question: "Why did my transaction fail?",
-    body: "Paste a hash, a block and position, or just the error text. You get what it means on chain, what it cost you, and what to do instead.",
-    proof: ["406 chain errors, plus the traps they miss", "Explained with the transaction’s own numbers", "Paste a block hash and it opens the block"],
+    body: "Paste a hash. See what failed, what it cost and what to do instead.",
     href: "/tx/finney/9382178-8",
     cta: "Open a failed unstake",
     shot: "/shots/tx-failed-unstake.png",
@@ -72,8 +67,7 @@ const STEPS: Step[] = [
     chapter: "Always watching",
     tool: "Network weather",
     question: "Is it me, or the whole network?",
-    body: "What is failing on chain right now, grouped by error, with the subnets it hits and the fix. Add a watch and Preflight messages you on Telegram before your miner drops, not after.",
-    proof: ["Every block decoded as it lands", "Each failure opens in the debugger", "Telegram alerts before an epoch cuts your pay"],
+    body: "What is failing across the chain right now, with Telegram alerts before a cut.",
     href: "/weather",
     cta: "Check the weather",
     shot: "/shots/weather-finney.png",
@@ -111,8 +105,7 @@ export function Tour() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#4c6bff]/40 to-transparent" />
       <div className="mx-auto max-w-6xl px-4 pt-24 sm:px-6 sm:pt-32 lg:px-8">
         <div className="max-w-3xl">
-          <p className="font-mono text-xs tracking-[0.16em] text-[#9db0ff] uppercase">Explain · Predict · Warn</p>
-          <h2 id="tour-title" className="mt-5 text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance text-white">
+          <h2 id="tour-title" className="text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance text-white">
             Before you act, when it breaks, and <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">always</span> watching
           </h2>
         </div>
@@ -127,7 +120,7 @@ export function Tour() {
                 }}
                 data-step={i}
                 className={cn(
-                  "flex flex-col justify-center py-14 transition-opacity duration-500 motion-reduce:transition-none lg:min-h-[86vh] lg:py-0",
+                  "flex flex-col justify-center py-14 transition-opacity duration-500 motion-reduce:transition-none lg:min-h-[72vh] lg:py-0",
                   i === active ? "lg:opacity-100" : "lg:opacity-35",
                 )}
               >
@@ -139,17 +132,10 @@ export function Tour() {
                   {step.tool}
                 </p>
                 <h3 className="mt-4 text-[clamp(1.9rem,3vw,2.75rem)] leading-[1.08] font-light tracking-[-0.035em] text-balance text-white">{step.question}</h3>
-                <p className="mt-5 max-w-[34rem] text-[17px] leading-7 text-pretty text-white/60">{step.body}</p>
-                <ul className="mt-7 max-w-[34rem] border-t border-white/10">
-                  {step.proof.map((line) => (
-                    <li key={line} className="border-b border-white/10 py-3 text-[15px] text-white/80">
-                      {line}
-                    </li>
-                  ))}
-                </ul>
+                <p className="mt-4 max-w-[30rem] text-[17px] leading-7 text-pretty text-white/60">{step.body}</p>
                 <Link
                   href={step.href}
-                  className="group/cta mt-8 inline-flex h-11 w-fit items-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#05060a] transition-colors hover:bg-[#dfe5ff]"
+                  className="group/cta mt-7 inline-flex h-11 w-fit items-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#05060a] transition-colors hover:bg-[#dfe5ff]"
                 >
                   {step.cta}
                   <ArrowRight className="size-4 transition-transform group-hover/cta:translate-x-0.5" aria-hidden />

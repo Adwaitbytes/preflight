@@ -10,12 +10,6 @@ const SEATS = SIDE * SIDE;
 // UID 85: the miner Epoch Lab said would drop to zero, and did
 const CALLED = 85;
 
-const CHECKS = [
-  { what: "SN1, SN3, SN8, SN9, SN19, SN56, SN64", how: "last epoch rebuilt", result: "256 of 256 each" },
-  { what: "SN64", how: "called 90 blocks early", result: "243 of 256" },
-  { what: "SN4", how: "last epoch rebuilt", result: "254 of 256" },
-  { what: "SN51", how: "last epoch rebuilt", result: "245 of 256" },
-] as const;
 
 /**
  * The forecast that came true: SN19's next epoch, written down 111 blocks before it ran, against
@@ -62,30 +56,17 @@ export function Proof() {
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(60%_55%_at_75%_45%,rgb(31_154_85/0.16),transparent_70%)]" />
       <div ref={ref} className="mx-auto grid max-w-6xl items-center gap-14 px-4 py-24 sm:px-6 sm:py-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:px-8">
         <div className="min-w-0">
-          <p className="font-mono text-xs tracking-[0.16em] text-[#9db0ff] uppercase">Proof, not promises</p>
-          <h2 id="proof-title" className="mt-5 text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance text-white">
+          <h2 id="proof-title" className="text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance text-white">
             We called the epoch <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">before</span> it ran
           </h2>
-          <p className="mt-6 max-w-[34rem] text-[17px] leading-7 text-pretty text-white/60">
-            On 30 October we saved Epoch Lab’s forecast for SN19 at block 9,392,018, 111 blocks or about 22 minutes before the epoch. Then the chain ran it.
-          </p>
+          <p className="mt-6 max-w-[30rem] text-[17px] leading-7 text-pretty text-white/60">SN19’s forecast, saved 22 minutes before the epoch ran.</p>
 
           <p className="mt-10 flex items-baseline gap-3 text-white" aria-label="256 of 256 seats matched the chain exactly">
             <span className="text-[clamp(4.5rem,9vw,7.5rem)] leading-none font-light tracking-[-0.06em] tnum">{count}</span>
             <span className="text-[clamp(2rem,4vw,3.25rem)] leading-none font-light tracking-[-0.05em] text-white/40 tnum">/ 256</span>
           </p>
-          <p className="mt-3 text-[17px] text-white/70">seats paid exactly what we said they would</p>
-
-          <dl className="mt-10 max-w-[34rem] border-t border-white/10">
-            {CHECKS.map((check) => (
-              <div key={check.what + check.how} className="flex items-baseline justify-between gap-6 border-b border-white/10 py-3 text-[14px]">
-                <dt className="min-w-0 text-white/60">
-                  <span className="text-white/85">{check.what}</span> · {check.how}
-                </dt>
-                <dd className="shrink-0 font-mono text-[13px] text-white/85 tnum">{check.result}</dd>
-              </div>
-            ))}
-          </dl>
+          <p className="mt-3 text-[17px] text-white/70">seats paid exactly what we said</p>
+          <p className="mt-8 font-mono text-xs leading-5 text-white/45">Also 256 of 256 on SN1, SN3, SN8, SN9, SN56 and SN64</p>
           <Link href="/epoch/finney/64" className="group mt-8 inline-flex items-center gap-2 text-sm font-medium text-[#a9b8ff] transition-colors hover:text-white">
             Check the last epoch yourself
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
@@ -126,7 +107,6 @@ export function Proof() {
               <span className="rounded-md bg-[#ff8a4c]/15 px-2 py-0.5 text-[#ffb58f]">Drops to zero</span>
               <span className="font-mono text-white/80">0.182% → 0%</span>
             </p>
-            <p className="mt-2 text-[13px] leading-5 text-white/55">No voting validator weighted it any more. Epoch Lab said so 22 minutes early.</p>
           </div>
         </div>
       </div>

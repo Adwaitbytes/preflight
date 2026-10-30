@@ -19,9 +19,9 @@ const REASONS: { key: Reason; label: string; detail: string; color: string }[] =
 ];
 
 const STATS = [
-  { value: "11", unit: "in 22 days", label: "new runtimes shipped, and each one can move your pay" },
-  { value: "1 in 90", unit: "transactions", label: "failed in a two hour sample, and still paid its fee" },
-  { value: "256", unit: "of 256", label: "seats called right, 111 blocks before the epoch ran", tone: "text-[#2f4fe0]" },
+  { value: "11", unit: "in 22 days", label: "runtime upgrades that can move your pay" },
+  { value: "1 in 90", unit: "transactions", label: "fail, and still pay the fee" },
+  { value: "256", unit: "of 256", label: "seats called before the epoch ran", tone: "text-[#2f4fe0]" },
 ] as const;
 
 function share(count: number): string {
@@ -55,12 +55,12 @@ export function Numbers() {
   return (
     <section aria-labelledby="numbers-title" className="light relative bg-[#efeae2] text-[#17191e]">
       <div className="mx-auto max-w-6xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <h2 id="numbers-title" className="max-w-[18ch] scroll-mt-24 text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance">
             We measured <span className="font-serif font-normal tracking-[-0.01em] text-[#2f4fe0] italic">every</span> miner on Bittensor
           </h2>
-          <p className="max-w-[26rem] text-[15px] leading-7 text-pretty text-[#4a4f5a]">
-            Read with Preflight across all {seats.subnets} subnets at block {FORMAT.format(seats.block)} on 30 October 2026. The chain shows each of these miners a zero. It never says why, so we checked.
+          <p className="font-mono text-xs tracking-[0.08em] text-[#6b6f78] uppercase">
+            {seats.subnets} subnets · block {FORMAT.format(seats.block)}
           </p>
         </div>
 
@@ -68,9 +68,7 @@ export function Numbers() {
           <figcaption className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <p>
               <span className="block text-[clamp(3.25rem,7vw,5.5rem)] leading-[0.9] font-light tracking-[-0.055em] text-[#c2541c] tnum">{FORMAT.format(seats.zero)}</span>
-              <span className="mt-3 block text-[17px] leading-6 text-[#3a3f48]">
-                of {FORMAT.format(seats.miners)} miner seats earned nothing at the last epoch
-              </span>
+              <span className="mt-3 block text-[17px] leading-6 text-[#3a3f48]">of {FORMAT.format(seats.miners)} miner seats earned nothing</span>
             </p>
             <p className="font-mono text-xs tracking-[0.14em] text-[#6b6f78] uppercase">Why each one earned nothing</p>
           </figcaption>
@@ -108,6 +106,7 @@ export function Numbers() {
               return (
                 <li
                   key={reason.key}
+                  title={reason.detail}
                   onPointerEnter={() => setFocus(reason.key)}
                   onPointerLeave={() => setFocus(null)}
                   className={cn("-mx-3 rounded-2xl px-3 py-3 transition-[background-color,opacity] duration-200", focus === reason.key && "bg-[#ece6dc]", focus && focus !== reason.key && "opacity-55")}
@@ -115,10 +114,8 @@ export function Numbers() {
                   <p className="flex items-baseline gap-2.5">
                     <span aria-hidden className="size-2.5 shrink-0 translate-y-[-1px] rounded-[3px]" style={{ backgroundColor: reason.color }} />
                     <span className="text-[15px] font-medium">{reason.label}</span>
-                    <span className="ml-auto font-mono text-[13px] text-[#3a3f48] tnum">{FORMAT.format(count)}</span>
-                    <span className="w-10 text-right font-mono text-[13px] text-[#6b6f78] tnum">{share(count)}</span>
+                    <span className="ml-auto font-mono text-[13px] text-[#3a3f48] tnum">{share(count)}</span>
                   </p>
-                  <p className="mt-1 pl-5 text-[13.5px] leading-5 text-pretty text-[#5a5f69]">{reason.detail}</p>
                 </li>
               );
             })}
