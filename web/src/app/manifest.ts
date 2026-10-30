@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Preflight, the Bittensor debugger",
     short_name: "Preflight",
-    description: "Why your miner earns zero, what a failed extrinsic means, and whether a transaction works before you pay for it",
+    description: "The debugger for Bittensor. Paste an address, a transaction or an error: Preflight explains what went wrong, predicts what happens next, and warns you before it costs you TAO",
     start_url: "/",
     scope: "/",
     display: "standalone",

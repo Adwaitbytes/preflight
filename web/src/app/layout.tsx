@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   appleWebApp: { title: "Preflight", statusBarStyle: "black-translucent" },
   formatDetection: { telephone: false, address: false, email: false },
   description:
-    "Paste a hotkey, a transaction or a netuid. Preflight tells you why your miner earns zero, and lets you test a transaction before you spend a single rao",
+    "The debugger for Bittensor. Paste an address, a transaction or an error: Preflight explains what went wrong, predicts what happens next, and warns you before it costs you TAO",
 };
 
 // The site opens dark whatever the OS prefers, so the browser chrome starts dark too; ThemeProvider follows the toggle

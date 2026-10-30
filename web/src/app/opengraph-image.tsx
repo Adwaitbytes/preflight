@@ -6,10 +6,10 @@ export const contentType = "image/png";
 
 export default async function Image() {
   return renderOg({
-    eyebrow: "Bittensor debugger",
-    headline: "Why does my miner earn zero?",
-    detail: "Paste a hotkey, a transaction or a netuid. Get the cause, the fix, and a dry run before you pay",
+    eyebrow: "The debugger for Bittensor",
+    headline: "Stop flying blind on Bittensor",
+    detail: "Paste an address, a transaction or an error. It explains, predicts and warns before it costs you TAO",
     network: "finney",
-    subject: "Doctor, tx debugger, simulator, subnets",
+    subject: "Explains · Predicts · Warns",
   });
 }
