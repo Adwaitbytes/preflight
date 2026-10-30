@@ -74,7 +74,7 @@ export function Omnibox({
           id={inputId}
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder="Hotkey, tx hash, error or netuid"
+          placeholder="Address, tx hash, error or netuid"
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"

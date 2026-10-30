@@ -32,6 +32,7 @@ EXPORTED: list[type[BaseModel]] = [
     models.MinerEconomics,
     models.TxReport,
     models.BlockReport,
+    models.AccountReport,
     models.SimRequest,
     models.SimResult,
     models.ErrorExplanation,

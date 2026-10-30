@@ -1,0 +1,285 @@
+{
+  "$defs": {
+    "AccountBalance": {
+      "additionalProperties": false,
+      "description": "System.Account at the pinned block, in TAO.",
+      "properties": {
+        "free": {
+          "title": "Free",
+          "type": "number"
+        },
+        "frozen": {
+          "title": "Frozen",
+          "type": "number"
+        },
+        "nonce": {
+          "title": "Nonce",
+          "type": "integer"
+        },
+        "reserved": {
+          "title": "Reserved",
+          "type": "number"
+        },
+        "transferable": {
+          "description": "Free minus frozen, never below zero",
+          "title": "Transferable",
+          "type": "number"
+        }
+      },
+      "required": [
+        "free",
+        "reserved",
+        "frozen",
+        "transferable",
+        "nonce"
+      ],
+      "title": "AccountBalance",
+      "type": "object"
+    },
+    "AccountStake": {
+      "additionalProperties": false,
+      "description": "Stake this address holds as a coldkey on one hotkey and subnet.",
+      "properties": {
+        "alpha": {
+          "description": "In the subnet's own token; TAO on root (netuid 0)",
+          "title": "Alpha",
+          "type": "number"
+        },
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "hotkey_registered": {
+          "default": false,
+          "description": "The hotkey holds a UID on this subnet",
+          "title": "Hotkey Registered",
+          "type": "boolean"
+        },
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "tao_per_alpha": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spot price at the pinned block; 1 on root",
+          "title": "Tao Per Alpha"
+        },
+        "tao_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "alpha at the spot price, before slippage and fees",
+          "title": "Tao Value"
+        }
+      },
+      "required": [
+        "hotkey",
+        "netuid",
+        "alpha"
+      ],
+      "title": "AccountStake",
+      "type": "object"
+    },
+    "ChainRef": {
+      "additionalProperties": false,
+      "description": "Where and when a result was read. Every report carries one.",
+      "properties": {
+        "block": {
+          "title": "Block",
+          "type": "integer"
+        },
+        "block_hash": {
+          "title": "Block Hash",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "network": {
+          "enum": [
+            "local",
+            "test",
+            "finney",
+            "custom"
+          ],
+          "title": "Network",
+          "type": "string"
+        },
+        "runtime_spec": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Runtime Spec"
+        }
+      },
+      "required": [
+        "network",
+        "endpoint",
+        "block",
+        "block_hash"
+      ],
+      "title": "ChainRef",
+      "type": "object"
+    },
+    "HotkeySeat": {
+      "additionalProperties": false,
+      "properties": {
+        "netuid": {
+          "title": "Netuid",
+          "type": "integer"
+        },
+        "uid": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uid"
+        }
+      },
+      "required": [
+        "netuid"
+      ],
+      "title": "HotkeySeat",
+      "type": "object"
+    },
+    "OwnedHotkey": {
+      "additionalProperties": false,
+      "properties": {
+        "hotkey": {
+          "title": "Hotkey",
+          "type": "string"
+        },
+        "seats": {
+          "items": {
+            "$ref": "#/$defs/HotkeySeat"
+          },
+          "title": "Seats",
+          "type": "array"
+        }
+      },
+      "required": [
+        "hotkey",
+        "seats"
+      ],
+      "title": "OwnedHotkey",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Balance, stakes and keys of any address, read at one block. Read only.",
+  "properties": {
+    "address": {
+      "title": "Address",
+      "type": "string"
+    },
+    "balance": {
+      "$ref": "#/$defs/AccountBalance"
+    },
+    "chain": {
+      "$ref": "#/$defs/ChainRef"
+    },
+    "elapsed_ms": {
+      "title": "Elapsed Ms",
+      "type": "integer"
+    },
+    "hotkey_owner": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Set when the address is a hotkey: the coldkey that owns it",
+      "title": "Hotkey Owner"
+    },
+    "omitted": {
+      "description": "Parts that could not be read reliably and are left out",
+      "items": {
+        "type": "string"
+      },
+      "title": "Omitted",
+      "type": "array"
+    },
+    "owned_hotkeys": {
+      "description": "Hotkeys this address owns as a coldkey, with their seats",
+      "items": {
+        "$ref": "#/$defs/OwnedHotkey"
+      },
+      "title": "Owned Hotkeys",
+      "type": "array"
+    },
+    "owned_hotkeys_total": {
+      "description": "All owned hotkeys; seats are read for the first few dozen",
+      "title": "Owned Hotkeys Total",
+      "type": "integer"
+    },
+    "seats": {
+      "description": "Where this address itself is registered as a hotkey",
+      "items": {
+        "$ref": "#/$defs/HotkeySeat"
+      },
+      "title": "Seats",
+      "type": "array"
+    },
+    "staked_tao": {
+      "description": "Sum of the stakes' TAO values at spot prices",
+      "title": "Staked Tao",
+      "type": "number"
+    },
+    "stakes": {
+      "items": {
+        "$ref": "#/$defs/AccountStake"
+      },
+      "title": "Stakes",
+      "type": "array"
+    },
+    "total_tao": {
+      "description": "Free plus staked TAO value",
+      "title": "Total Tao",
+      "type": "number"
+    }
+  },
+  "required": [
+    "address",
+    "chain",
+    "balance",
+    "stakes",
+    "staked_tao",
+    "total_tao",
+    "owned_hotkeys",
+    "owned_hotkeys_total",
+    "seats",
+    "elapsed_ms"
+  ],
+  "title": "AccountReport",
+  "type": "object"
+}

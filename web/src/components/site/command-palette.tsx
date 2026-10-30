@@ -14,6 +14,7 @@ import {
   ScrollText,
   Stethoscope,
   Users,
+  Wallet,
   Waypoints,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const PAGES: { href: string; label: string; icon: LucideIcon; keywords: string[]
   { href: "/guide", label: "Guide", icon: BookOpen, keywords: ["learn", "docs", "tutorial", "how it works", "newbie"] },
   { href: "/sim", label: "Simulate a transaction", icon: FlaskConical, keywords: ["simulator", "dry run", "fork"] },
   { href: "/subnets", label: "Subnet directory", icon: Boxes, keywords: ["subnets", "health", "capabilities"] },
+  { href: "/account", label: "Account lookup", icon: Wallet, keywords: ["balance", "wallet", "address", "coldkey", "testnet", "stake"] },
   { href: "/plan", label: "Launch planner", icon: Rocket, keywords: ["lock cost", "register network"] },
   { href: "/explain", label: "Explain an error", icon: ScrollText, keywords: ["error", "traceback"] },
   { href: "/changelog", label: "Changelog", icon: FileClock, keywords: ["commits"] },

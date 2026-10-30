@@ -15,6 +15,7 @@ import {
   Sparkles,
   Stethoscope,
   Timer,
+  Wallet,
 } from "lucide-react";
 
 export interface NavItem {
@@ -47,6 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { href: "/live", label: "Live explorer", description: "Every block and transaction as it lands", icon: Radio },
       { href: "/weather", label: "Network weather", description: "What is failing on chain right now", icon: CloudSun },
       { href: "/subnets", label: "Subnet directory", description: "All 128 subnets and how they pay", icon: LayoutGrid },
+      { href: "/account", label: "Account", description: "Balance and stakes for any address, testnet too", icon: Wallet },
     ],
   },
   {

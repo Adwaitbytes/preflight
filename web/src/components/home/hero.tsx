@@ -54,7 +54,7 @@ export function Hero({ examples }: { examples: Example[] }) {
             Stop flying <span className="font-serif font-normal tracking-[-0.02em] text-[#9db0ff] italic">blind</span> <br className="max-sm:hidden" />
             on Bittensor
           </h1>
-          <p className="mt-6 max-w-[38rem] text-[17px] leading-7 text-pretty text-white/65 sm:text-lg">Paste a hotkey, a transaction or an error. Get the reason and the fix.</p>
+          <p className="mt-6 max-w-[38rem] text-[17px] leading-7 text-pretty text-white/65 sm:text-lg">Paste an address, a transaction or an error. Get the reason and the fix.</p>
           <div className="mt-9 w-full max-w-[40rem] text-left">
             <Omnibox examples={examples} variant="hero" align="center" />
           </div>

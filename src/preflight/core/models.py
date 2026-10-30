@@ -481,6 +481,55 @@ class BlockReport(Model):
     extrinsics: list[BlockExtrinsic]
     failed: int
 
+
+class AccountBalance(Model):
+    """System.Account at the pinned block, in TAO."""
+
+    free: float
+    reserved: float
+    frozen: float
+    transferable: float = Field(description="Free minus frozen, never below zero")
+    nonce: int
+
+
+class AccountStake(Model):
+    """Stake this address holds as a coldkey on one hotkey and subnet."""
+
+    hotkey: str
+    netuid: int
+    alpha: float = Field(description="In the subnet's own token; TAO on root (netuid 0)")
+    tao_per_alpha: float | None = Field(default=None, description="Spot price at the pinned block; 1 on root")
+    tao_value: float | None = Field(default=None, description="alpha at the spot price, before slippage and fees")
+    hotkey_registered: bool = Field(default=False, description="The hotkey holds a UID on this subnet")
+
+
+class HotkeySeat(Model):
+    netuid: int
+    uid: int | None = None
+
+
+class OwnedHotkey(Model):
+    hotkey: str
+    seats: list[HotkeySeat]
+
+
+class AccountReport(Model):
+    """Balance, stakes and keys of any address, read at one block. Read only."""
+
+    address: str
+    chain: ChainRef
+    balance: AccountBalance
+    stakes: list[AccountStake]
+    staked_tao: float = Field(description="Sum of the stakes' TAO values at spot prices")
+    total_tao: float = Field(description="Free plus staked TAO value")
+    owned_hotkeys: list[OwnedHotkey] = Field(description="Hotkeys this address owns as a coldkey, with their seats")
+    owned_hotkeys_total: int = Field(description="All owned hotkeys; seats are read for the first few dozen")
+    hotkey_owner: str | None = Field(default=None, description="Set when the address is a hotkey: the coldkey that owns it")
+    seats: list[HotkeySeat] = Field(description="Where this address itself is registered as a hotkey")
+    omitted: list[str] = Field(default_factory=list, description="Parts that could not be read reliably and are left out")
+    elapsed_ms: int
+
+
 SimAction = Literal[
     "burned_register",
     "add_stake",

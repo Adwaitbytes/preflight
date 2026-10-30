@@ -5,6 +5,7 @@
 
 import type { z } from "zod";
 import {
+  accountReportSchema,
   blockReportSchema,
   epochCheckSchema,
   epochPreviewSchema,
@@ -21,6 +22,7 @@ import {
 } from "./schemas";
 import type { NetworkId } from "./networks";
 import type {
+  AccountReport,
   AskAnswer,
   BlockReport,
   DoctorReport,
@@ -63,6 +65,8 @@ export interface PreflightApi {
   tx(network: NetworkId, ref: string): Promise<ApiResult<TxReport>>;
   /** A block by number or hash, with each extrinsic and whether it failed */
   block(network: NetworkId, ref: string): Promise<ApiResult<BlockReport>>;
+  /** Balance, stakes and keys of any address, read at one block */
+  account(network: NetworkId, address: string, options?: { fresh?: boolean }): Promise<ApiResult<AccountReport>>;
   explainError(text: string): Promise<ApiResult<ErrorExplanation>>;
   simulate(network: NetworkId, request: SimRequest): Promise<ApiResult<SimResult>>;
   plan(network: NetworkId): Promise<ApiResult<LaunchPlan>>;
@@ -236,6 +240,7 @@ export function createHttpApi({ baseUrl, fetch: fetchImpl = fetch, timeoutMs = D
     },
     tx: (network, ref) => call(`/v1/tx/${network}/${enc(ref)}`, objectWith("pallet", "call", "success", "events")),
     block: (network, ref) => parsed(`/v1/block/${network}/${enc(ref)}`, blockReportSchema),
+    account: (network, address, options = {}) => parsed(`/v1/account/${network}/${enc(address)}${options.fresh ? "?fresh=true" : ""}`, accountReportSchema),
     explainError: (text) =>
       call("/v1/explain-error", objectWith("error", "title", "explanation"), { method: "POST", body: JSON.stringify({ text }) }),
     simulate: (network, request) =>

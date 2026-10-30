@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import type { BlockReport, DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, StatsReport, TxReport, Weather } from "./types";
+import type { AccountReport, BlockReport, DoctorReport, EpochCheck, EpochPreview, IncentiveChange, LiveFeed, SimResult, StatsReport, TxReport, Weather } from "./types";
 
 const severity = z.enum(["critical", "high", "medium", "info"]);
 const verdict = z.enum(["healthy", "warning", "broken"]);
@@ -108,6 +108,32 @@ export const blockReportSchema = z.object({
   ),
   failed: z.number().int(),
 }) satisfies z.ZodType<BlockReport>;
+
+const hotkeySeat = z.object({ netuid: z.number().int(), uid: z.number().int().nullish() });
+
+export const accountReportSchema = z.object({
+  address: z.string(),
+  chain: chainRef,
+  balance: z.object({ free: z.number(), reserved: z.number(), frozen: z.number(), transferable: z.number(), nonce: z.number().int() }),
+  stakes: z.array(
+    z.object({
+      hotkey: z.string(),
+      netuid: z.number().int(),
+      alpha: z.number(),
+      tao_per_alpha: z.number().nullish(),
+      tao_value: z.number().nullish(),
+      hotkey_registered: z.boolean().optional(),
+    }),
+  ),
+  staked_tao: z.number(),
+  total_tao: z.number(),
+  owned_hotkeys: z.array(z.object({ hotkey: z.string(), seats: z.array(hotkeySeat) })),
+  owned_hotkeys_total: z.number().int(),
+  hotkey_owner: z.string().nullish(),
+  seats: z.array(hotkeySeat),
+  omitted: z.array(z.string()).optional(),
+  elapsed_ms: z.number(),
+}) satisfies z.ZodType<AccountReport>;
 
 export const txReportSchema = z.object({
   chain: chainRef,

@@ -94,7 +94,7 @@ export function describeInput(input: InputKind): string {
     case "empty":
       return "Routes to the Doctor, the tx debugger, the error explainer or a subnet";
     case "hotkey":
-      return "Hotkey: run the Doctor";
+      return "Address: a miner gets the Doctor, a wallet shows what it holds";
     case "extrinsic":
       return "Extrinsic hash: debug the transaction";
     case "block_index":

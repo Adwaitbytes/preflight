@@ -30,6 +30,7 @@ from .core import analytics, store, validate
 from .core.ask import ask as ask_router
 from .core.chain.network import ChainUnreachable, Network, client_for, gather
 from .core.models import (
+    AccountReport,
     AskAnswer,
     AxonInfo,
     BlockReport,
@@ -327,7 +328,7 @@ def health() -> ServiceHealth:
 
 
 NO_CDN_QUERY = ("fresh",)
-CDN_SECONDS = {"/v1/live": 3, "/v1/weather": 12, "/v1/change": 60, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/block": 3600, "/v1/health": 15}
+CDN_SECONDS = {"/v1/live": 3, "/v1/weather": 12, "/v1/change": 60, "/v1/economics": 60, "/v1/fleet": 12, "/v1/scores": 600, "/v1/subnets": 60, "/v1/plan": 60, "/v1/find": 300, "/v1/history": 60, "/v1/doctor": 12, "/v1/tx": 3600, "/v1/block": 3600, "/v1/account": 12, "/v1/health": 15}
 
 
 @app.middleware("http")
@@ -441,6 +442,25 @@ def block(network: str, ref: str) -> BlockReport:
         raise HTTPException(400, "expected a block number or a 0x block hash")
     result = cache.get_or(f"block:{net.endpoint}:{ref.lower()}", lambda: block_report(net, ref))
     assert isinstance(result, BlockReport)
+    return result
+
+
+@app.get("/v1/account/{network}/{address}", response_model=AccountReport)
+def account(
+    network: str,
+    address: str,
+    fresh: Annotated[bool, Query(description="Skip the cache, for Run again after a transfer")] = False,
+) -> AccountReport:
+    """Free, reserved and staked TAO of any address, with the hotkeys it owns or the coldkey that owns it. Read only."""
+    from .core.account.report import account_report
+
+    net = network_for(network)
+    key = validate.ss58(address, "address")
+    # Run again after a transfer, and local state the user just changed, always read the chain
+    if fresh or net.name in ("local", "custom"):
+        return account_report(net, key)
+    result = cache.get_or(f"account:{net.endpoint}:{key}", lambda: account_report(net, key))
+    assert isinstance(result, AccountReport)
     return result
 
 

@@ -1,7 +1,7 @@
 import { CircleSlash } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { DoctorView } from "@/components/doctor/doctor-view";
 import { LocalView } from "@/components/shared/local-view-loader";
 import { Button } from "@/components/ui/button";
@@ -82,6 +82,10 @@ export default async function DoctorPage({ params, searchParams }: PageProps<"/d
   }
 
   const result = await getDoctor(network, hotkey, netuid, fresh);
+  // A coldkey, or a key with no UID anywhere, has nothing to diagnose: what it holds is the answer
+  if (result.ok && netuid == null && result.data.diagnoses.length === 0 && result.data.verdict !== "healthy") {
+    redirect(`/account/${network}/${hotkey}?from=doctor`);
+  }
   return (
     <Container>
       {result.ok ? (
