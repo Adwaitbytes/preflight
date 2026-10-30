@@ -1,12 +1,12 @@
 <div align="center">
 
-<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/hero.jpg" alt="Preflight: know why your miner earns nothing. The live site, with every miner seat on Bittensor drawn as a galaxy" width="100%"></a>
+<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/hero.jpg" alt="Preflight: stop flying blind on Bittensor. The live site, with every miner seat on Bittensor drawn as a galaxy" width="100%"></a>
 
 <h1>Preflight</h1>
 
-<p><strong>Know why your Bittensor miner earns nothing.</strong><br>
-Paste a hotkey, a transaction or an error. Preflight reads the chain at one block,<br>
-tells you the cause in plain words, and hands you the fix.</p>
+<p><strong>Stop flying blind on Bittensor.</strong><br>
+Preflight is the debugger for Bittensor. Paste a hotkey, a transaction or an error,<br>
+and it tells you why it failed, what the next epoch will pay, and what would break before you sign.</p>
 
 <p>
 <a href="https://preflight-lemon.vercel.app"><img alt="Live on mainnet" src="https://img.shields.io/badge/live-preflight--lemon.vercel.app-4360ff?style=flat-square"></a>
@@ -36,13 +36,35 @@ tells you the cause in plain words, and hands you the fix.</p>
 
 <br>
 
-## The problem, in one number
+## What Preflight does
 
-On 30 October 2026 we read every miner seat on Bittensor at block 9,391,986. **23,737 of 28,771 seats earned nothing at the last epoch.** That is 83%.
+Three jobs, from one paste, every answer read from mainnet at a single block.
 
-The chain shows each of them a zero. It never says why. So miners guess: they restart, re-register, rewrite code that was never the problem, and burn TAO doing it. Explorers like Taostats show the zero too.
+| | When | Tools |
+|---|---|---|
+| **Explains** | Something already went wrong. You get the cause in plain words and the fix | **Doctor**: why a miner or validator earns nothing, 27 rules<br>**Transaction debugger**: why a transaction failed and what it cost you<br>**Explain an error**: any of 406 chain errors in plain words |
+| **Predicts** | You are about to act. You see what happens before you pay for it | **Epoch Lab**: the next epoch's pay before the chain runs it, plus what-ifs<br>**Simulator**: will this transaction work, checked before you sign<br>**Launch planner**: what a new subnet costs today, and what it replaces |
+| **Warns** | You are not looking. Preflight tells you before it costs TAO | **Network weather**: what is failing on chain right now<br>**Telegram alerts**: a message before an epoch cuts your pay<br>**CI gate**: stops weights consensus would cut, before they ship |
 
-Preflight shows the reason. Here is what it found when it checked all 23,737:
+It only reads. It never asks for keys, never signs and never sends anything, and the simulator never broadcasts.
+
+<br>
+
+## Why it exists
+
+Bittensor tells you what happened. It rarely tells you why, and it never tells you before.
+
+**Miners earn zero and never learn why.** On 30 October 2026 we read every miner seat on Bittensor at block 9,391,986. **23,737 of 28,771 seats earned nothing** at the last epoch. That is 83%. The chain shows each of them a zero and no reason, so miners guess: they restart, re-register and rewrite code that was never the problem, and burn TAO doing it.
+
+**Transactions fail and still charge you.** In a two hour sample of mainnet (600 blocks), **103 of 9,224 transactions failed**, about 1 in 90, and every one still paid its fee. What comes back is a bare code like `SubtensorModule.InsufficientLiquidity`.
+
+**You find out after it costs you.** The epoch pays, the registration burns, the weights get set, and only then can you see it went wrong.
+
+Explorers like Taostats show the same numbers, and they are great at it. Preflight turns the numbers into reasons, and gets the answer to you before the chain does.
+
+<details>
+<summary><b>What the Doctor found when it checked all 23,737 zero seats</b></summary>
+<br>
 
 <p align="center"><img src="docs/readme/why-zero.png" alt="Why 23,737 miner seats earned nothing: 47% are on subnets that pay one UID, 41% never served an axon, 8% have no validator weight, 3% are still in immunity, under 1% are cut by consensus, 1% other" width="88%"></p>
 
@@ -55,17 +77,19 @@ Preflight shows the reason. Here is what it found when it checked all 23,737:
 | Validators weight it, but consensus cuts it to zero | 59 | under 1% |
 | Something else (the Doctor names the rule for each one) | 244 | 1% |
 
+</details>
+
 <br>
 
 ## See it work
 
-Paste a hotkey and you get one sentence, the fix, and the evidence behind it, read from mainnet at a single block.
+Paste a hotkey and the Doctor answers in one sentence, with the fix and the evidence behind it, read from mainnet at a single block.
 
 <p align="center"><img src="docs/readme/doctor.gif" alt="Pasting a hotkey into Preflight: the Doctor answers that UID 0 on SN64 earns nothing because no validator has scored it, with the block it read" width="88%"></p>
 
 <p align="center">
 <a href="docs/readme/preflight-film-720p.mp4"><img src="docs/readme/film-poster.jpg" alt="Watch the 3 minute Preflight film" width="88%"></a><br>
-<sub>The full tour in 3 minutes: every screen in it is the real product on mainnet.</sub>
+<sub>The whole product in 3 minutes. Every screen in it is the real product on mainnet.</sub>
 </p>
 
 <br>
@@ -115,31 +139,71 @@ finney at block 9,395,595, runtime 486  3,306 ms
 ╰─────────────────────────────────────────────────────────────────────────────── 19 rules ─╯
 ```
 
+Then the rest of the debugger, once installed:
+
+```bash
+preflight tx 9382178-8      # why a real unstake failed, and the fee it still paid
+preflight epoch 64          # what SN64's next epoch will pay, before the chain runs it
+preflight sim burned_register --netuid 64 --as <coldkey> --hotkey <hotkey>   # will it work?
+preflight weather           # is it me, or the whole network?
+```
+
 <br>
 
 ## What it answers
 
-Every tool starts from a question miners and validators actually ask.
+Every tool starts from a question miners and validators actually ask, at the moment they ask it.
+
+### Before you act
+
+| You ask | Tool | Try |
+|---|---|---|
+| Will this transaction work if I send it now? | **Simulator**: the runtime's own checks against live state, or the real runtime on a fork. Never broadcasts | `preflight sim burned_register --netuid 64 --as <coldkey> --hotkey <hotkey>` |
+| What will the next epoch pay me? | **Epoch Lab**: Bittensor's own consensus math on live data, before the chain runs it | `preflight epoch 64 --hotkey <ss58>` |
+| What if kappa changed, or a validator went offline? | **Epoch Lab what-ifs**: recompute the same epoch with your changes | `preflight epoch 64 --kappa 0.3 --drop 252` |
+| Should I mine this subnet? | **Mine**: what earning miners make, what it takes to keep a seat, payback | `preflight mine 51` |
+| What does launching a subnet cost today? | **Launch planner**: lock cost, rate limit, the subnet it would replace, the timeline | `preflight plan` |
+| What is this subnet, and is it healthy? | **Subnets**: a 0 to 100 health score and every hyperparameter explained | `preflight subnet 64` |
+
+### When it breaks
 
 | You ask | Tool | Try |
 |---|---|---|
 | Why does my miner earn nothing? | **Doctor**: 27 rules for miners, validators and subnets, each citing what it read | `preflight doctor <hotkey>` |
-| What will the next epoch pay me? | **Epoch Lab**: Bittensor's own consensus math on live data, before the chain runs it | `preflight epoch 64 --hotkey <ss58>` |
-| What if kappa changed, or a validator went offline? | **Epoch Lab what-ifs**: recompute the same epoch with your changes | `preflight epoch 64 --kappa 0.3 --drop 252` |
 | Why did my transaction fail? | **Transaction debugger**: the error in plain words, with that transaction's own numbers | `preflight tx 9382178-8` |
-| Will this work if I send it now? | **Simulator**: the real runtime on a fork of mainnet, or a prediction that says so | `preflight sim burned_register --netuid 64 ...` |
-| Is it me, or the whole network? | **Network weather**: what is failing on chain right now, grouped by error | `preflight weather` |
+| What does this error mean? | **Explain an error**: 406 chain errors plus the traps the catalog misses | `preflight tx "SubtensorModule.InsufficientLiquidity"` |
 | Why did my incentive drop? | **Why**: names the validators whose support moved it, and what each did | `preflight why <hotkey> --netuid 19` |
 | Which of my seats are broken? | **Fleet**: every hotkey a coldkey owns, on every subnet, worst first | `preflight fleet <coldkey>` |
-| Should I mine this subnet? | **Mine**: what earning miners make, what it takes to keep a seat, payback | `preflight mine 51` |
-| What does launching a subnet cost today? | **Launch planner**: lock cost, rate limit, the subnet it would replace, the timeline | `preflight plan` |
-| What is this subnet, and is it healthy? | **Subnets**: a 0 to 100 health score and every hyperparameter explained | `preflight subnet 64` |
+
+### Always watching
+
+| You ask | Tool | Try |
+|---|---|---|
+| Is it me, or the whole network? | **Network weather**: what is failing on chain right now, grouped by error | `preflight weather` |
 | What is happening on chain right now? | **Live explorer**: every extrinsic as a plain sentence, as blocks land | `preflight live --failures` |
 | Tell me before it breaks | **Watch**: Telegram alerts when a neuron breaks, or before an epoch cuts its pay | `preflight watch add <hotkey> --netuid 64` |
+| Will consensus keep my new weights? | **CI gate**: exits 1 if consensus would cut them, before they are ever set | `preflight epoch 64 --weights new.json --validator 12 --min-trust 0.9` |
 
 <br>
 
 ## A tour of the real screens
+
+### Before you act
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<a href="https://preflight-lemon.vercel.app/sim"><img src="docs/readme/simulator.jpg" alt="The Simulator saying a registration would fail with SubtensorModule.Payment, what it means and how much TAO to top up"></a>
+<p><b>Simulator.</b> A registration from a coldkey with no TAO, tried before anyone signs: <code>Would fail · SubtensorModule.Payment</code>, why, and exactly how much to top up. Nothing is sent.</p>
+</td>
+<td width="50%" valign="top">
+<a href="https://preflight-lemon.vercel.app/epoch/finney/64"><img src="web/public/shots/epoch-sn64.png" alt="Epoch Lab for SN64"></a>
+<p><b>Epoch Lab.</b> The next epoch counts down to its real block. Each miner's pay next epoch and why. The green badge says the last real epoch matched the chain on every UID.</p>
+</td>
+</tr>
+</table>
+
+### When it breaks
 
 <table>
 <tr>
@@ -148,23 +212,30 @@ Every tool starts from a question miners and validators actually ask.
 <p><b>Doctor.</b> The verdict in one sentence, the fix, and the evidence table with the storage item behind each value. Every answer names its block, hash and runtime.</p>
 </td>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/epoch/finney/64"><img src="web/public/shots/epoch-sn64.png" alt="Epoch Lab for SN64"></a>
-<p><b>Epoch Lab.</b> The next epoch counts down to its real block. Each miner's pay next epoch and why. The green badge says the last real epoch matched the chain on every UID.</p>
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
 <a href="https://preflight-lemon.vercel.app/tx/finney/9382178-8"><img src="web/public/shots/tx-failed-unstake.png" alt="A failed unstake explained"></a>
 <p><b>Transaction debugger.</b> A failed <code>remove_stake</code>: what <code>InsufficientLiquidity</code> means here, the fee it still paid, and what to do instead.</p>
-</td>
-<td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/weather"><img src="web/public/shots/weather-finney.png" alt="Network weather on finney"></a>
-<p><b>Network weather.</b> The share of transactions failing right now, grouped by error, with the subnets each one hits and a link to open any of them.</p>
 </td>
 </tr>
 </table>
 
-Also on the site: the [Simulator](https://preflight-lemon.vercel.app/sim), the [Live explorer](https://preflight-lemon.vercel.app/live), the [Subnet directory](https://preflight-lemon.vercel.app/subnets), the [Launch planner](https://preflight-lemon.vercel.app/plan) and a [Guide](https://preflight-lemon.vercel.app/guide) that explains Bittensor from zero.
+### Always watching
+
+<table>
+<tr>
+<td width="50%" valign="top">
+<a href="https://preflight-lemon.vercel.app/weather"><img src="web/public/shots/weather-finney.png" alt="Network weather on finney"></a>
+<p><b>Network weather.</b> The share of transactions failing right now, grouped by error, with the subnets each one hits and a link to open any of them.</p>
+</td>
+<td width="50%" valign="top">
+<p><b>Telegram alerts.</b> Add a watch and <a href="https://t.me/PreflightAlertsbot">@PreflightAlertsbot</a> messages you before the next epoch cuts your pay. This one went out 22 minutes early, and the chain did exactly what it said:</p>
+<pre>Preflight: UID 85 on SN19 is set to drop to zero
+at the next epoch, block 9,392,129 (in about 0.4 h)</pre>
+<p><b>CI gate.</b> The GitHub Action boots a localnet subnet and fails the job on findings, and <code>preflight epoch --min-trust</code> stops weights consensus would cut before they are ever set.</p>
+</td>
+</tr>
+</table>
+
+Also on the site: [Explain an error](https://preflight-lemon.vercel.app/explain), the [Live explorer](https://preflight-lemon.vercel.app/live), the [Subnet directory](https://preflight-lemon.vercel.app/subnets), the [Launch planner](https://preflight-lemon.vercel.app/plan) and a [Guide](https://preflight-lemon.vercel.app/guide) that explains Bittensor from zero.
 
 <br>
 
@@ -387,6 +458,53 @@ chain stores
 
 <br>
 
+## The simulator: try it before you pay
+
+Pick an action (register, stake, unstake, set weights, serve an axon, register a subnet or start a call) and Preflight tries it against live state before you sign anything. With a fork running (`preflight fork`), the call runs on the chain's own runtime against a copy of mainnet. Without one, it is predicted from the runtime's own checks, and the result says which. Nothing is ever broadcast.
+
+The SDK's own dry run said `ok` for a zero balance registration, a miner setting weights and a stranger calling `start_call`. All three fail on chain, and the simulator reports the exact error ([decision 001](docs/decisions/001-simulator.md)).
+
+<details>
+<summary><b>Real output:</b> a registration that would fail, caught before it cost a fee</summary>
+
+```text
+$ preflight sim burned_register --netuid 64 --as 5Grwva...utQY --hotkey 5Grwva...utQY
+ WOULD FAIL   burned_register  as 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+Predicted from live state at block 9,396,914 and the runtime's own checks; start a fork with 
+`preflight fork` to execute it for real
+╭──────────────────────────────────────────────────────────────────────────────────────────────╮
+│  coldkey                        5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY             │
+│  hotkey                         5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY             │
+│  netuid                         SN64                                                         │
+│  fee                            0.001070890 TAO                                              │
+│  effect                         Registers 5Grwva...utQY on SN64                              │
+│  effect                         Burns 0.0005 TAO                                             │
+│  effect                         Nothing is locked as collateral; the full cost is burned     │
+│  Balance covers the fee         fail: 0.000000 TAO free for a 0.001071 fee                   │
+│  Registration open              pass: NetworkRegistrationAllowed is True                     │
+│  Per block cap                  pass: 0 of 1 used this block                                 │
+│  Per interval cap               pass: 0 of 3 used this interval                              │
+│  Hotkey not already registered  pass: no UID yet                                             │
+│  Balance covers burn and fee    fail: 0.0000 TAO free, needs 0.0005 burn + 0.001071 fee      │
+│  time                           3,550 ms                                                     │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─  SubtensorModule.Payment: Payment  ─────────────────────────────────────────────────────────╮
+│ You tried to register with 0.0005 TAO needed, but the coldkey held 0.0000 TAO free.          │
+│                                                                                              │
+│ The burn rises with every registration and decays over time, so a balance that covered the   │
+│ quote can fall short a block later, and a failed attempt can still cost its fee. Check       │
+│ `btcli subnets burn-cost` right before retrying and keep some headroom                       │
+│ ╭─ Next step ──────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Top up the coldkey by at least 0.0005 TAO plus fees, or wait for the burn to decay       │ │
+│ ╰──────────────────────────────────────────────────────────────────────────────────────────╯ │
+│ code insufficient_balance trap burn_moved                                                    │
+╰──────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+</details>
+
+<br>
+
 ## The 27 rules
 
 The Doctor's rules mirror the runtime. Pruning order, immunity, owner immunity, the `set_weights` check sequence and axon address validation are ported from subtensor and cite the file and line they come from.
@@ -550,7 +668,7 @@ preflight epoch 64 --weights new.json --validator 12 --min-trust 0.9
 
 - **One block per answer.** Every report carries the block, block hash and runtime spec it was read at.
 - **Rules mirror the runtime.** They are ported from subtensor and cite the file and line they come from (`src/preflight/core/chain/registry.py`).
-- **The simulator executes when it can.** With a fork running, the transaction runs on the chain's own code against a copy of mainnet. The SDK's own dry run said `ok` for a zero balance registration, a miner setting weights and a stranger calling `start_call`; all three fail on chain, and the fork reports the exact error ([decision 001](docs/decisions/001-simulator.md)). Without a fork, the result says it is a prediction.
+- **The simulator executes when it can.** With a fork running, the transaction runs on the chain's own code against a copy of mainnet. Without a fork, the result says it is a prediction ([the simulator](#the-simulator-try-it-before-you-pay)).
 - **Errors come from the official catalog.** 406 chain errors, vendored with a date stamp, plus the traps it does not cover: the MEV shield on registration, loopback axons, reserves too low, burn moving between attempts.
 - **The epoch is proven, not assumed.** Every read recomputes the last epoch and compares every UID with what the chain stored.
 - **Tested on real data.** 157 Python tests (including real finney snapshots replayed offline) and 204 web tests on every push, plus a localnet suite that breaks a fresh chain eight ways and checks the Doctor names each one.
@@ -634,7 +752,7 @@ docs/decisions/       what was measured and decided, and why
 <details>
 <summary><b>How is this different from Taostats or tao.app?</b></summary>
 
-They show chain data, and they are great at it. Preflight explains it: it turns a zero into a reason, an error into a fix, and lets you test a transaction before you pay for it. Its API is meant to sit next to the data people already read.
+They show chain data, and they are great at it. Preflight is a debugger: it turns a zero into a reason and an error into a fix, shows the next epoch before it runs, lets you test a transaction before you pay for it, and warns you before an epoch cuts your pay. Its API is meant to sit next to the data people already read.
 </details>
 
 <details>
@@ -668,6 +786,6 @@ Finney (mainnet) and testnet on the hosted site. Run `preflight serve` locally f
 Built at the Bittensor Builders House, October 2026, by the builder of Crucible and bt-migrate.<br>
 MIT licence. See [LICENSE](LICENSE).
 
-<sub><b>Every zero should come with a reason.</b></sub>
+<sub><b>The chain gives you numbers. Preflight gives you reasons.</b></sub>
 
 </div>
