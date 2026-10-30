@@ -4,6 +4,7 @@ import { Analytics } from "@/components/site/analytics";
 import { AppStateProvider } from "@/components/site/app-state";
 import { LazyCommandPalette } from "@/components/site/command-palette-loader";
 import { OfflineBanner } from "@/components/site/offline-banner";
+import { LandingOnly, ToolPageEnd } from "@/components/site/landing-only";
 import { SiteFooter } from "@/components/site/site-footer";
 import { PageBackdrop } from "@/components/site/page-backdrop";
 import { SiteHeader } from "@/components/site/site-header";
@@ -43,12 +44,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <AppStateProvider offline={offline}>
             {offline && <OfflineBanner />}
             <SiteHeader />
-            {/* At least a screen tall, so the footer never sits in the first viewport while a page streams in */}
+            {/* At least a screen tall, so the landing footer never sits in the first viewport while the page streams in */}
             <main id="main" className="relative isolate flex min-h-[calc(100svh-3.5rem)] min-w-0 flex-1 flex-col">
               <PageBackdrop />
               {children}
+              <ToolPageEnd />
             </main>
-            <SiteFooter />
+            <LandingOnly>
+              <SiteFooter />
+            </LandingOnly>
             <LazyCommandPalette />
             <Analytics />
           </AppStateProvider>

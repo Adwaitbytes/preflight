@@ -1,8 +1,6 @@
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { CopyButton } from "@/components/ui/copy-button";
 import { MCP_INSTALL } from "@/lib/install";
-import { FooterLead } from "./footer-lead";
 import { LogoMark } from "./logo";
 import { GUIDE, NAV_GROUPS, isExternal } from "./nav-items";
 
@@ -25,15 +23,11 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 pt-20 sm:px-6 lg:px-8">
         <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="min-w-0">
-            <FooterLead>
-              <p className="max-w-[16ch] text-[clamp(2rem,3.6vw,3rem)] leading-[1.05] font-light tracking-[-0.045em] text-balance text-white">
-                Paste a hotkey. Know <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">why</span> in two seconds.
-              </p>
-              <Link href="/" className="group mt-8 mb-12 inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#05060a] transition-colors hover:bg-[#dfe5ff]">
-                Open the Doctor
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
-              </Link>
-            </FooterLead>
+            <Link href="/" className="inline-flex items-center gap-2.5 rounded text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">
+              <LogoMark className="size-5" />
+              <span className="text-[17px] font-medium tracking-[-0.02em]">Preflight</span>
+            </Link>
+            <p className="mt-4 mb-12 max-w-[34ch] text-[15px] leading-6 text-white/55">The debugger for Bittensor. It explains failures, predicts epochs and warns you before a mistake costs TAO.</p>
             <p className="font-mono text-[11px] tracking-[0.16em] text-white/55 uppercase">Use it from your own Claude</p>
             <div className="mt-3 flex max-w-xl items-center gap-2 rounded-2xl bg-white/[0.05] py-1.5 pr-1.5 pl-4 shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">
               <span aria-hidden className="font-mono text-[13px] text-white/35 select-none">

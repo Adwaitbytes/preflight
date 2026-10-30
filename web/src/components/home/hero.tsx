@@ -45,15 +45,16 @@ export function Hero({ examples }: { examples: Example[] }) {
             href="#numbers-title"
             className="group inline-flex max-w-full items-center gap-2 rounded-full bg-white/[0.06] py-1.5 pr-3 pl-2.5 text-xs font-medium text-white/80 shadow-[0_0_0_1px_rgb(255_255_255/0.12)] backdrop-blur-md transition-colors hover:bg-white/10 hover:text-white"
           >
-            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-[#ff8a4c] shadow-[0_0_8px_#ff8a4c]" />
-            <span className="truncate tnum">{FORMAT.format(seats.zero)} miner seats earned nothing at the last epoch</span>
+            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-[#56d68a] shadow-[0_0_8px_#56d68a]" />
+            <span className="truncate">The debugger for Bittensor · live on mainnet</span>
             <ArrowRight className="size-3 shrink-0 text-white/50 transition-transform group-hover:translate-x-0.5 group-hover:text-white motion-reduce:transition-none" aria-hidden />
           </a>
           <h1 id="hero-title" className="mt-7 text-[clamp(2.9rem,min(6.4vw,9.5svh),6rem)] leading-[0.98] font-light tracking-[-0.055em] text-balance text-white">
-            Know <span className="font-serif font-normal tracking-[-0.02em] text-[#9db0ff] italic">why</span> your miner earns nothing
+            Stop flying <span className="font-serif font-normal tracking-[-0.02em] text-[#9db0ff] italic">blind</span> <br className="max-sm:hidden" />
+            on Bittensor
           </h1>
           <p className="mt-6 max-w-[34rem] text-[17px] leading-7 text-pretty text-white/65 sm:text-lg sm:leading-8">
-            Paste a hotkey, a transaction or an error. Preflight reads the chain, tells you the cause in plain words and hands you the fix, in about two seconds.
+            Paste a hotkey, a transaction or an error. Preflight tells you why it failed, what the next epoch will pay, and what would break before you sign. In plain words, in about two seconds.
           </p>
           <div className="mt-9">
             <Omnibox examples={examples} variant="hero" />

@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface Step {
+  chapter: string;
   tool: string;
   question: string;
   body: string;
@@ -20,17 +21,19 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    tool: "Doctor",
-    question: "Why does my miner earn nothing?",
-    body: "Paste a hotkey. You get the reason in one sentence, the evidence read from the chain at one block, and the exact step that fixes it.",
-    proof: ["27 rules copied from the chain’s own code", "Every answer names its block and hash", "About a second on a real mainnet miner"],
-    href: "/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64",
-    cta: "Diagnose a real miner",
-    shot: "/shots/doctor-sn64.png",
-    url: "preflight / doctor / SN64 / UID 0",
-    alt: "The Doctor saying UID 0 on SN64 earns nothing because no validator has scored it, with the fix and the evidence",
+    chapter: "Before you act",
+    tool: "Simulator",
+    question: "Will this transaction work?",
+    body: "Dry run a stake, unstake, transfer or registration against the live chain before you sign. If it would fail, you see the error, what it means and the fix, and nothing is ever sent.",
+    proof: ["Checked against live mainnet state", "Never signs, never broadcasts", "Catches the traps the chain only tells you after you pay"],
+    href: "/sim",
+    cta: "Test a transaction",
+    shot: "/shots/sim-fail.png",
+    url: "preflight / simulate",
+    alt: "The Simulator saying a transfer would fail with SubtensorModule.Payment, what it means and how much TAO to top up",
   },
   {
+    chapter: "Before you act",
     tool: "Epoch Lab",
     question: "What will the next epoch pay me?",
     body: "Bittensor’s own consensus math, run on live data before the chain runs it. Then try a new kappa, take a validator offline, or test the weights you are about to set.",
@@ -42,6 +45,19 @@ const STEPS: Step[] = [
     alt: "Epoch Lab for SN64 counting down to the next epoch, with the last epoch matched on all 256 seats",
   },
   {
+    chapter: "When it breaks",
+    tool: "Doctor",
+    question: "Why does my miner earn nothing?",
+    body: "Paste a hotkey. You get the reason in one sentence, the evidence read from the chain at one block, and the exact step that fixes it.",
+    proof: ["27 rules copied from the chain’s own code", "Every answer names its block and hash", "About a second on a real mainnet miner"],
+    href: "/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64",
+    cta: "Diagnose a real miner",
+    shot: "/shots/doctor-sn64.png",
+    url: "preflight / doctor / SN64 / UID 0",
+    alt: "The Doctor saying UID 0 on SN64 earns nothing because no validator has scored it, with the fix and the evidence",
+  },
+  {
+    chapter: "When it breaks",
     tool: "Transaction debugger",
     question: "Why did my transaction fail?",
     body: "Paste a hash, a block and position, or just the error text. You get what it means on chain, what it cost you, and what to do instead.",
@@ -53,10 +69,11 @@ const STEPS: Step[] = [
     alt: "A failed remove_stake explained: InsufficientLiquidity, the fee it still paid, what it means and the fix",
   },
   {
+    chapter: "Always watching",
     tool: "Network weather",
     question: "Is it me, or the whole network?",
-    body: "What is failing on chain right now, grouped by error, with the subnets it hits, what it means and how to fix it. Refreshed every minute.",
-    proof: ["Every block decoded as it lands", "Each failure opens in the debugger", "A live feed of the whole chain beside it"],
+    body: "What is failing on chain right now, grouped by error, with the subnets it hits and the fix. Add a watch and Preflight messages you on Telegram before your miner drops, not after.",
+    proof: ["Every block decoded as it lands", "Each failure opens in the debugger", "Telegram alerts before an epoch cuts your pay"],
     href: "/weather",
     cta: "Check the weather",
     shot: "/shots/weather-finney.png",
@@ -94,9 +111,9 @@ export function Tour() {
       <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#4c6bff]/40 to-transparent" />
       <div className="mx-auto max-w-6xl px-4 pt-24 sm:px-6 sm:pt-32 lg:px-8">
         <div className="max-w-3xl">
-          <p className="font-mono text-xs tracking-[0.16em] text-[#9db0ff] uppercase">What Preflight does</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-[#9db0ff] uppercase">Explain · Predict · Warn</p>
           <h2 id="tour-title" className="mt-5 text-[clamp(2.4rem,4.6vw,4.25rem)] leading-[1.02] font-light tracking-[-0.045em] text-balance text-white">
-            One paste. <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">Every</span> answer, from the chain itself
+            Before you act, when it breaks, and <span className="font-serif font-normal tracking-[-0.01em] text-[#9db0ff] italic">always</span> watching
           </h2>
         </div>
 
@@ -114,9 +131,11 @@ export function Tour() {
                   i === active ? "lg:opacity-100" : "lg:opacity-35",
                 )}
               >
-                <p className="flex items-center gap-3 font-mono text-xs tracking-[0.16em] text-white/55 uppercase">
+                <p className="flex flex-wrap items-center gap-3 font-mono text-xs tracking-[0.16em] text-white/55 uppercase">
                   <span className="text-[#9db0ff] tnum">{String(i + 1).padStart(2, "0")}</span>
                   <span aria-hidden className="h-px w-6 bg-white/20" />
+                  <span className="text-white/40">{step.chapter}</span>
+                  <span aria-hidden className="text-white/25">/</span>
                   {step.tool}
                 </p>
                 <h3 className="mt-4 text-[clamp(1.9rem,3vw,2.75rem)] leading-[1.08] font-light tracking-[-0.035em] text-balance text-white">{step.question}</h3>
@@ -172,13 +191,13 @@ export function Tour() {
                   </div>
                 </figure>
               </div>
-              <ol aria-label="Tools" className="mt-6 grid grid-cols-4 gap-3">
+              <ol aria-label="Tools" className="mt-6 grid grid-cols-5 gap-3">
                 {STEPS.map((step, i) => (
                   <li key={step.tool}>
                     <span className="block h-[3px] overflow-hidden rounded-full bg-white/10">
                       <span className={cn("block h-full rounded-full bg-[#7c93ff] transition-[width] duration-500 motion-reduce:transition-none", i <= active ? "w-full" : "w-0")} />
                     </span>
-                    <span className={cn("mt-2 block font-mono text-[11px] tracking-[0.12em] uppercase transition-colors", i === active ? "text-white" : "text-white/40")}>{step.tool}</span>
+                    <span className={cn("mt-2 block truncate font-mono text-[11px] tracking-[0.12em] uppercase transition-colors", i === active ? "text-white" : "text-white/40")}>{step.tool === "Transaction debugger" ? "Tx debugger" : step.tool}</span>
                   </li>
                 ))}
               </ol>
