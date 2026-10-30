@@ -1,11 +1,11 @@
 <div align="center">
 
-<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/hero.jpg" alt="Preflight: stop flying blind on Bittensor. The live site: paste a hotkey, a transaction or an error, with every miner seat on Bittensor drawn as a galaxy behind the search box" width="100%"></a>
+<a href="https://preflight-lemon.vercel.app"><img src="docs/readme/landing.jpg" alt="Preflight: stop flying blind on Bittensor. The live site: paste an address, a transaction or an error, with every miner seat on Bittensor drawn as a galaxy behind the search box" width="100%"></a>
 
 <h1>Preflight</h1>
 
 <p><strong>Stop flying blind on Bittensor.</strong><br>
-Preflight is the debugger for Bittensor. Paste a hotkey, a transaction or an error,<br>
+Preflight is the debugger for Bittensor. Paste an address, a transaction or an error,<br>
 and it tells you why it failed, what the next epoch will pay, and what would break before you sign.</p>
 
 <p>
@@ -87,10 +87,10 @@ Explorers like Taostats show the same numbers, and they are great at it. Preflig
 
 Paste a hotkey and the Doctor answers in one sentence, with the fix and the evidence behind it, read from mainnet at a single block.
 
-<p align="center"><img src="docs/readme/doctor.gif" alt="Typing a hotkey into the search box on the live site: the Doctor answers that UID 0 on SN64 earns nothing because no validator has scored it, then shows the fix and the evidence" width="88%"></p>
+<p align="center"><img src="docs/readme/doctor-flow.gif" alt="Typing a hotkey into the search box on the live site: the Doctor answers that UID 0 on SN64 earns nothing because no validator has scored it, then shows the fix and the evidence" width="88%"></p>
 
 <p align="center">
-<a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view"><img src="docs/readme/film-poster.jpg" alt="Watch the 3 minute Preflight film" width="88%"></a><br>
+<a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view"><img src="docs/readme/film.jpg" alt="Watch the 3 minute Preflight film" width="88%"></a><br>
 <sub>▶ <a href="https://drive.google.com/file/d/1h2e8JKmDZNxMYGIeYhRd8QaqjNFUZslB/view">Watch the film</a>: the whole product in 3 minutes, every screen real and on mainnet.</sub>
 </p>
 
@@ -102,7 +102,7 @@ You do not need to install anything to try it. Pick the place you already work.
 
 | Where | How |
 |---|---|
-| **Browser** | Open [preflight-lemon.vercel.app](https://preflight-lemon.vercel.app) and paste a hotkey, a transaction or an error |
+| **Browser** | Open [preflight-lemon.vercel.app](https://preflight-lemon.vercel.app) and paste an address, a transaction or an error |
 | **Terminal, no install** | `uvx --from git+https://github.com/Adwaitbytes/preflight preflight doctor <hotkey> --netuid 64` |
 | **Terminal, installed** | `uv tool install git+https://github.com/Adwaitbytes/preflight` then `preflight doctor <hotkey>` |
 | **Your own Claude** | `claude mcp add preflight -- uvx --from git+https://github.com/Adwaitbytes/preflight preflight mcp` |
@@ -176,6 +176,7 @@ Every tool starts from a question miners and validators actually ask, at the mom
 | What does this error mean? | **Explain an error**: 406 chain errors plus the traps the catalog misses | `preflight tx "SubtensorModule.InsufficientLiquidity"` |
 | Why did my incentive drop? | **Why**: names the validators whose support moved it, and what each did | `preflight why <hotkey> --netuid 19` |
 | Which of my seats are broken? | **Fleet**: every hotkey a coldkey owns, on every subnet, worst first | `preflight fleet <coldkey>` |
+| What does this address hold, even on testnet? | **Account**: balance, stakes and owned hotkeys of any address, on mainnet or testnet, where no explorer shows testnet | [`/account/test/<address>`](https://preflight-lemon.vercel.app/account) |
 
 ### Always watching
 
@@ -199,7 +200,7 @@ Every tool starts from a question miners and validators actually ask, at the mom
 <p><b>Simulator.</b> A registration from a coldkey with no TAO, tried before anyone signs: <code>Would fail · SubtensorModule.Payment</code>, why, and exactly how much to top up. Nothing is sent.</p>
 </td>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/epoch/finney/64"><img src="web/public/shots/epoch-sn64.png" alt="Epoch Lab for SN64"></a>
+<a href="https://preflight-lemon.vercel.app/epoch/finney/64"><img src="docs/readme/screen-epoch.jpg" alt="Epoch Lab for SN64 counting down to the next epoch, with the last epoch matched on all 256 UIDs"></a>
 <p><b>Epoch Lab.</b> The next epoch counts down to its real block. Each miner's pay next epoch and why. The green badge says the last real epoch matched the chain on every UID.</p>
 </td>
 </tr>
@@ -210,22 +211,27 @@ Every tool starts from a question miners and validators actually ask, at the mom
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64"><img src="web/public/shots/doctor-sn64.png" alt="The Doctor on SN64"></a>
+<a href="https://preflight-lemon.vercel.app/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64"><img src="docs/readme/screen-doctor.jpg" alt="The Doctor: UID 0 on SN64 earns nothing because no validator has scored it, with the fix and the evidence"></a>
 <p><b>Doctor.</b> The verdict in one sentence, the fix, and the evidence table with the storage item behind each value. Every answer names its block, hash and runtime.</p>
 </td>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/tx/finney/9382178-8"><img src="web/public/shots/tx-failed-unstake.png" alt="A failed unstake explained"></a>
+<a href="https://preflight-lemon.vercel.app/tx/finney/9382178-8"><img src="docs/readme/screen-tx.jpg" alt="A failed remove_stake explained: InsufficientLiquidity, the fee it still paid, and the fix"></a>
 <p><b>Transaction debugger.</b> A failed <code>remove_stake</code>: what <code>InsufficientLiquidity</code> means here, the fee it still paid, and what to do instead.</p>
 </td>
 </tr>
 </table>
+
+### Look up any address
+
+<p><a href="https://preflight-lemon.vercel.app/account"><img src="docs/readme/screen-account.jpg" alt="An account on finney: free, transferable, staked and reserved TAO to 9 decimals, a root stake, and the six hotkeys it owns with their SN64 seats" width="100%"></a></p>
+<p><b>Account.</b> Paste any address into the search box. A miner gets the Doctor; a wallet shows what it holds: free, transferable, staked and reserved TAO to the last decimal, every stake with its TAO value, and each hotkey it owns with a link to diagnose it. It works on testnet, which explorers do not show, and an address that is empty on one network but funded on the other opens where the funds are.</p>
 
 ### Always watching
 
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/weather"><img src="web/public/shots/weather-finney.png" alt="Network weather on finney"></a>
+<a href="https://preflight-lemon.vercel.app/weather"><img src="docs/readme/screen-weather.jpg" alt="Network weather on finney: the share of transactions failing right now and the errors behind them"></a>
 <p><b>Network weather.</b> The share of transactions failing right now, grouped by error, with the subnets each one hits and a link to open any of them.</p>
 </td>
 <td width="50%" valign="top">
@@ -617,6 +623,7 @@ curl -s "https://preflight-lemon.vercel.app/v1/doctor/finney/5EKtvzbEvYZPRJdo42u
 | `GET /v1/epoch/{network}/{netuid}/check` | The last epoch recomputed and compared with the chain |
 | `GET /v1/tx/{network}/{hash or block-index}` | The decoded transaction, its events, the failure explained |
 | `GET /v1/block/{network}/{number or hash}` | Every extrinsic in a block, failed or not |
+| `GET /v1/account/{network}/{address}` | Balance, stakes and owned hotkeys of any address, testnet included |
 | `POST /v1/explain-error` | Any error text, explained |
 | `POST /v1/sim/{network}` | A transaction tried against live state, never broadcast |
 | `GET /v1/weather/{network}` | Failures over the last 60 blocks, grouped by error |
