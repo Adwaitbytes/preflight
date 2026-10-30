@@ -98,3 +98,7 @@ docs/decisions/       what was measured and decided
 ```
 
 Built at the Bittensor Builders House, October 2026, by the builder of Crucible and bt-migrate
+
+## License
+
+MIT. See [LICENSE](LICENSE).
