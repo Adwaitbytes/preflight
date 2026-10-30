@@ -373,6 +373,24 @@ main:has([data-glow="healthy"]) {
     0 0 0 4px var(--ring);
 }
 
+/* Landing: the tour's address bar and the surfaces switcher settle in when they change */
+@keyframes settle-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.tour-url,
+.surface-in[data-state="active"] {
+  animation: settle-in 380ms var(--ease-out-quart);
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-url,
+  .surface-in[data-state="active"] {
+    animation: none;
+  }
+}
+
 /* The header menus: one surface that opens from the bar and slides between panels */
 @keyframes nav-in {
   from {
