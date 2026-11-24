@@ -27,7 +27,7 @@ const GROUPS: { job: string; accent: string; tools: Tool[] }[] = [
     job: "Explains",
     accent: "what went wrong",
     tools: [
-      { name: "Doctor", line: "Why a miner earns nothing", href: "/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64", icon: Stethoscope },
+      { name: "Doctor", line: "Why a miner earns nothing", href: "/doctor/finney/5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7?netuid=64", icon: Stethoscope },
       { name: "Transaction debugger", line: "Why a transaction failed", href: "/tx/finney/9382178-8", icon: Receipt },
       { name: "Error explainer", line: "406 chain errors, explained", href: "/explain", icon: MessageSquareText },
       { name: "Guide", line: "How Bittensor pays", href: "/guide", icon: BookOpen },

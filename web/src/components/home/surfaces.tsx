@@ -6,8 +6,8 @@ import { Tabs } from "radix-ui";
 import { MCP_INSTALL } from "@/lib/install";
 import { cn } from "@/lib/utils";
 
-const HOTKEY = "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq";
-const HEADLINE = "UID 0 on SN64 earns nothing because no validator has scored it";
+const HOTKEY = "5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7";
+const HEADLINE = "UID 2 on SN64 earns nothing because no validator has scored it";
 const FIX = "Check that the axon is reachable and that the miner answers the subnet’s queries in the format validators expect";
 
 const SURFACES = [
@@ -62,8 +62,8 @@ export function Surfaces() {
 
           <div className="mt-6">
             <Tabs.Content value="web" className="surface-in outline-none">
-              <Window title="preflight-lemon.vercel.app / doctor / SN64 / UID 0">
-                <Image src="/shots/doctor-sn64.png" alt={`The Doctor on the website: ${HEADLINE}`} width={2360} height={1476} sizes="(min-width: 1152px) 1088px, 100vw" className="block h-auto w-full" />
+              <Window title="preflight-lemon.vercel.app / doctor / SN64 / UID 2">
+                <Image src="/shots/doctor-sn64-uid2.png" alt={`The Doctor on the website: ${HEADLINE}`} width={2360} height={1476} sizes="(min-width: 1152px) 1088px, 100vw" className="block h-auto w-full" />
               </Window>
             </Tabs.Content>
 
@@ -73,15 +73,15 @@ export function Surfaces() {
                   <span className="text-[#7c93ff]">$</span> preflight doctor {HOTKEY} --netuid 64{"\n\n"}
                   <span className="rounded bg-[#ff7b72] px-1.5 font-semibold text-[#0b0c10]"> BROKEN </span> {HEADLINE}
                   {"\n"}
-                  <span className="text-white/45">finney at block 9,395,595, runtime 486  3,306 ms</span>
+                  <span className="text-white/45">finney at block 9,575,751, runtime 494  1,374 ms</span>
                   {"\n\n"}
                   <span className="text-white">SN64 Chutes</span><span className="text-white/45">  ·  19 rules run, 1 issue</span>
                   {"\n"}
-                  <span className="text-white/60">UID 0  miner  stake 0.40  incentive 0.0000  trust 0.000  axon none</span>
+                  <span className="text-white/60">UID 2  miner  stake 0.00  incentive 0.0000  trust 0.000  axon none</span>
                   {"\n\n"}
                   <span className="font-semibold text-[#ff7b72]">CRITICAL</span> PF108 No validator has scored this UID
                   {"\n"}
-                  {"  "}<span className="text-white/60">Validators weighting this UID</span>  <span className="text-[#ff7b72]">0</span> of 17
+                  {"  "}<span className="text-white/60">Validators weighting this UID</span>  <span className="text-[#ff7b72]">0</span> of 19
                   {"\n"}
                   {"  "}<span className="text-[#a9b8ff]">Next step</span>  {FIX.replace("’", "'")}
                 </Mono>
@@ -94,13 +94,13 @@ export function Surfaces() {
                   <p className="font-mono text-[13px] text-white/55">
                     <span className="text-[#7c93ff]">$</span> {MCP_INSTALL}
                   </p>
-                  <p className="self-end rounded-2xl rounded-br-md bg-white/[0.08] px-4 py-3 text-[15px] text-white">Why does 5EKtvz…Qmhq earn nothing on SN64?</p>
+                  <p className="self-end rounded-2xl rounded-br-md bg-white/[0.08] px-4 py-3 text-[15px] text-white">Why does 5FRwjX…mMM7 earn nothing on SN64?</p>
                   <p className="inline-flex w-fit items-center gap-2 rounded-lg bg-[#7c93ff]/12 px-3 py-1.5 font-mono text-[12.5px] text-[#a9b8ff] shadow-[0_0_0_1px_rgb(124_147_255/0.25)]">
                     <Sparkles className="size-3.5" aria-hidden /> preflight · diagnose_neuron(hotkey, netuid=64)
                   </p>
                   <div className="max-w-[46rem] text-[15px] leading-7 text-white/85">
                     <p>
-                      <b className="font-semibold text-white">{HEADLINE}.</b> None of the 17 permitted validators’ latest weights include it, read at block 9,395,595.
+                      <b className="font-semibold text-white">{HEADLINE}.</b> None of the 19 permitted validators’ latest weights include it, read at block 9,575,751.
                     </p>
                     <p className="mt-2 text-white/65">Fix: {FIX}.</p>
                   </div>
@@ -111,13 +111,13 @@ export function Surfaces() {
             <Tabs.Content value="telegram" className="surface-in outline-none">
               <Window title="@PreflightAlertsbot">
                 <div className="flex flex-col gap-3 p-5 sm:p-6">
-                  <p className="self-end rounded-2xl rounded-br-md bg-[#2f4fe0] px-4 py-2.5 font-mono text-[13px] text-white">/doctor 5EKtvz…Qmhq 64</p>
+                  <p className="self-end rounded-2xl rounded-br-md bg-[#2f4fe0] px-4 py-2.5 font-mono text-[13px] text-white">/doctor 5FRwjX…mMM7 64</p>
                   <div className="max-w-[40rem] rounded-2xl rounded-bl-md bg-white/[0.07] px-4 py-3.5 text-[14px] leading-6 text-white/85">
-                    <p className="font-semibold text-white">🔴 BROKEN · 5EKtvz...Qmhq</p>
+                    <p className="font-semibold text-white">🔴 BROKEN · 5FRwjX...mMM7</p>
                     <p className="font-semibold text-white">{HEADLINE}</p>
                     <p className="mt-2">• <b className="text-white">PF108</b> critical: No validator has scored this UID</p>
                     <p className="text-white/65">{FIX.replace("’", "'")}</p>
-                    <p className="mt-2 text-[#a9b8ff]">Full report · block 9,392,401</p>
+                    <p className="mt-2 text-[#a9b8ff]">Full report · block 9,575,751</p>
                   </div>
                   <p className="mt-2 max-w-[40rem] rounded-2xl rounded-bl-md bg-white/[0.07] px-4 py-3 text-[14px] leading-6 text-white/85">
                     <b className="text-white">Preflight:</b> UID 85 on SN19 is set to drop to zero at the next epoch, block 9,392,129 (in about 0.4 h)
@@ -133,8 +133,8 @@ export function Surfaces() {
                   {"{\n"}
                   {"  "}<span className="text-[#a9b8ff]">&quot;verdict&quot;</span>: <span className="text-[#ffb58f]">&quot;broken&quot;</span>,{"\n"}
                   {"  "}<span className="text-[#a9b8ff]">&quot;headline&quot;</span>: <span className="text-[#ffb58f]">&quot;{HEADLINE}&quot;</span>,{"\n"}
-                  {"  "}<span className="text-[#a9b8ff]">&quot;chain&quot;</span>: {"{ "}<span className="text-[#a9b8ff]">&quot;network&quot;</span>: <span className="text-[#ffb58f]">&quot;finney&quot;</span>, <span className="text-[#a9b8ff]">&quot;block&quot;</span>: 9395608, <span className="text-[#a9b8ff]">&quot;runtime_spec&quot;</span>: 486 {"}"},{"\n"}
-                  {"  "}<span className="text-[#a9b8ff]">&quot;elapsed_ms&quot;</span>: 2197,{"\n"}
+                  {"  "}<span className="text-[#a9b8ff]">&quot;chain&quot;</span>: {"{ "}<span className="text-[#a9b8ff]">&quot;network&quot;</span>: <span className="text-[#ffb58f]">&quot;finney&quot;</span>, <span className="text-[#a9b8ff]">&quot;block&quot;</span>: 9575751, <span className="text-[#a9b8ff]">&quot;runtime_spec&quot;</span>: 494 {"}"},{"\n"}
+                  {"  "}<span className="text-[#a9b8ff]">&quot;elapsed_ms&quot;</span>: 1374,{"\n"}
                   {"  "}<span className="text-[#a9b8ff]">&quot;diagnoses&quot;</span>: [ … ]{"\n"}
                   {"}"}
                 </Mono>

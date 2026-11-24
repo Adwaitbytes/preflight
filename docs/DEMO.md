@@ -22,7 +22,7 @@ Keep three terminal tabs: `cli`, `serve`, `spare`. Font size 20
 | 1:00 | `preflight local break stale-validator` | "And this validator stopped setting weights" |
 | 1:20 | Web, network Local, paste the broken miner's hotkey | Read the headline out loud. Expand PF106, show evidence and the block |
 | 1:50 | Copy the fix, run it (`preflight local fix loopback-axon` prints and runs the btcli command), click Run again | "Healthy" |
-| 2:20 | Network Finney, paste `5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq` (or a judge's hotkey) | "Live mainnet, about two seconds" |
+| 2:20 | Network Finney, paste `5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7` (or a judge's hotkey) | "Live mainnet, about two seconds" |
 | 2:50 | Paste `9376733-28` | "A real failed mainnet commit: the explanation uses its own numbers, ten unrevealed commits" |
 | 3:15 | Simulate `burned_register` on SN64 with a fresh coldkey, then with balance 10 | "Zero TAO: fails with Payment. With 10 TAO: executed by the real runtime on a fork of mainnet, nothing broadcast. The SDK's own dry run says ok to both" |
 | 3:40 | `/subnets` then `/plan` | "351 TAO to launch today, and it would dissolve SN16" |

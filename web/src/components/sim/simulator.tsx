@@ -52,7 +52,7 @@ const LABEL: Record<Field, { label: string; placeholder: string; mono?: boolean;
 
 const EXAMPLES: Partial<Record<SimAction, Partial<Record<Field, string>>>> = {
   burned_register: { coldkey: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", hotkey: "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY", netuid: "64" },
-  set_weights: { hotkey: "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq", netuid: "64", uids: "1, 59", weights: "32768, 32767" },
+  set_weights: { hotkey: "5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7", netuid: "64", uids: "1, 59", weights: "32768, 32767" },
 };
 
 const SS58 = /^[1-9A-HJ-NP-Za-km-z]{46,48}$/;

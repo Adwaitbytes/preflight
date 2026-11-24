@@ -114,31 +114,52 @@ Try it on a real broken miner right now:
 
 ```bash
 uvx --from git+https://github.com/Adwaitbytes/preflight preflight doctor \
-  5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq --netuid 64
+  5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7 --netuid 64
 ```
 
 ```text
- BROKEN   UID 0 on SN64 earns nothing because no validator has scored it
-finney at block 9,395,595, runtime 486  3,306 ms  
 
-╭─  SN64 Chutes  ──────────────────────────────────────────────────────────────────────────╮
-│ UID 0  miner  stake 0.40  incentive 0.0000  trust 0.000  emission 0.0000  axon none      │
-│                                                                                          │
-│  CRITICAL PF108 No validator has scored this UID                                         │
-│   Incentive only comes from validators putting weight on a UID. None of the permitted    │
-│ validators' latest weights include this one, so it earns nothing until they do           │
-│   Validators weighting this UID  0 of 17                                                 │
-│   UID 1 (5DU1dv...S7ww)          stake 1,384,943 alpha, last  SubtensorModule.LastUpdate │
-│                                  set weights 284 blocks                                  │
-│                                  (about 57 min) ago                                      │
-│   Read at block                  9,395,595                                               │
-│ ╭─ Next step ──────────────────────────────────────────────────────────────────────────╮ │
-│ │ Check that the axon is reachable and that the miner answers the subnet's queries in  │ │
-│ │ the format validators expect                                                         │ │
-│ ╰──────────────────────────────────────────────────────────────────────────────────────╯ │
-│   https://www.bittensor.com/docs/guides/mining                                           │
-│                                                                                          │
-╰─────────────────────────────────────────────────────────────────────────────── 19 rules ─╯
+ BROKEN   UID 2 on SN64 earns nothing because no validator has scored it
+finney at block 9,575,759, runtime 494  3,437 ms  
+5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7
+
+╭─  SN64 Chutes  ────────────────────────────────────────────────────────────────────────────╮
+│ UID 2  miner  stake 0.00  incentive 0.0000  trust 0.000  emission 0.0000  axon none        │
+│                                                                                            │
+│  CRITICAL PF108 No validator has scored this UID                                           │
+│   Incentive only comes from validators putting weight on a UID. None of the permitted      │
+│ validators' latest weights include this one, so it earns nothing until they do             │
+│   Validators weighting this UID  0 of 19                                                   │
+│   UID 252 (5E2LP6...eZ5u)        stake 1,080,943 alpha, last    SubtensorModule.LastUpdate │
+│                                  set weights 87 blocks (about                              │
+│                                  17 min) ago                                               │
+│   UID 1 (5DU1dv...S7ww)          stake 1,050,947 alpha, last    SubtensorModule.LastUpdate │
+│                                  set weights 188 blocks (about                             │
+│                                  38 min) ago                                               │
+│   UID 59 (5CS3g6...2xbV)         stake 811,843 alpha, last set  SubtensorModule.LastUpdate │
+│                                  weights 194 blocks (about 39                              │
+│                                  min) ago                                                  │
+│   UID 46 (5CAAxT...pQ1C)         stake 325,855 alpha, last set  SubtensorModule.LastUpdate │
+│                                  weights 176 blocks (about 35                              │
+│                                  min) ago                                                  │
+│   UID 61 (5GRbxc...CdXc)         stake 291,578 alpha, last set  SubtensorModule.LastUpdate │
+│                                  weights 81 blocks (about 16                               │
+│                                  min) ago                                                  │
+│   Read at block                  9,575,759                                                 │
+│ ╭─ Next step ────────────────────────────────────────────────────────────────────────────╮ │
+│ │ Check that the axon is reachable and that the miner answers the subnet's queries in    │ │
+│ │ the format validators expect                                                           │ │
+│ ╰────────────────────────────────────────────────────────────────────────────────────────╯ │
+│   https://www.bittensor.com/docs/guides/mining                                             │
+│                                                                                            │
+│  INFO     PF112 6 UIDs on this subnet share this coldkey                                   │
+│   Many UIDs under one coldkey is a common sybil signature that subnet owners and           │
+│ validators look for. This is informational; plenty of honest operators run several miners  │
+│   Coldkey               5HYUiGwNfBvLuLkcMckk3E9Sgn7uobz47bE9gECzAocrbvqK                   │
+│   UIDs on this coldkey  6                                                                  │
+│   Read at block         9,575,759                                                          │
+│                                                                                            │
+╰───────────────────────────────────────────────────────────────────────────────── 19 rules ─╯
 ```
 
 Then the rest of the debugger, once installed:
@@ -211,7 +232,7 @@ Every tool starts from a question miners and validators actually ask, at the mom
 <table>
 <tr>
 <td width="50%" valign="top">
-<a href="https://preflight-lemon.vercel.app/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64"><img src="docs/readme/screen-doctor.jpg" alt="The Doctor: UID 0 on SN64 earns nothing because no validator has scored it, with the fix and the evidence"></a>
+<a href="https://preflight-lemon.vercel.app/doctor/finney/5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7?netuid=64"><img src="docs/readme/screen-doctor-uid2.jpg" alt="The Doctor: UID 2 on SN64 earns nothing because no validator has scored it, with the fix and the evidence"></a>
 <p><b>Doctor.</b> The verdict in one sentence, the fix, and the evidence table with the storage item behind each value. Every answer names its block, hash and runtime.</p>
 </td>
 <td width="50%" valign="top">
@@ -603,15 +624,15 @@ Agents that read docs instead: [docs/llms.txt](docs/llms.txt) is a plain text ma
 Free, typed and versioned. Interactive docs at [/v1/docs](https://preflight-lemon.vercel.app/v1/docs).
 
 ```bash
-curl -s "https://preflight-lemon.vercel.app/v1/doctor/finney/5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq?netuid=64" \
+curl -s "https://preflight-lemon.vercel.app/v1/doctor/finney/5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7?netuid=64" \
   | jq '{verdict, headline, block: .chain.block}'
 ```
 
 ```json
 {
   "verdict": "broken",
-  "headline": "UID 0 on SN64 earns nothing because no validator has scored it",
-  "block": 9395608
+  "headline": "UID 2 on SN64 earns nothing because no validator has scored it",
+  "block": 9575751
 }
 ```
 

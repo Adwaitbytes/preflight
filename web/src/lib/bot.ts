@@ -11,7 +11,7 @@ export interface BotCommand {
 }
 
 export const BOT_COMMANDS: readonly BotCommand[] = [
-  { command: "/doctor", args: "<hotkey> [netuid]", does: "Why a hotkey earns what it earns, with the fix", example: "/doctor 5EKtvz… 64" },
+  { command: "/doctor", args: "<hotkey> [netuid]", does: "Why a hotkey earns what it earns, with the fix", example: "/doctor 5FRwjX… 64" },
   { command: "/why", args: "<hotkey> <netuid> [epochs]", does: "Which validators moved its incentive", example: "/why 5FcJiV… 19 3" },
   { command: "/epoch", args: "<netuid> [hotkey]", does: "What the next epoch pays, before it runs", example: "/epoch 19 5FcJiV…" },
   { command: "/fleet", args: "<coldkey>", does: "Every seat a coldkey owns, worst first", example: "/fleet 5DFVgQ…" },
@@ -23,5 +23,5 @@ export const BOT_COMMANDS: readonly BotCommand[] = [
   { command: "/live", args: "", does: "The latest two blocks as sentences", example: "/live" },
   { command: "/plan", args: "", does: "What launching a subnet costs now", example: "/plan" },
   { command: "/find", args: "<words>", does: "Subnets that do something", example: "/find inference" },
-  { command: "/watch", args: "<hotkey> <netuid>", does: "Message this chat when it breaks", example: "/watch 5EKtvz… 64" },
+  { command: "/watch", args: "<hotkey> <netuid>", does: "Message this chat when it breaks", example: "/watch 5FRwjX… 64" },
 ];

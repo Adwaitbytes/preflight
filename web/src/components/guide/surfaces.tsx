@@ -10,7 +10,7 @@ import { API_BASE, CLI_INSTALL, MCP_INSTALL } from "@/lib/install";
 import { DOCTOR_OUTPUT } from "./content";
 import { Code, Prose, Snippet } from "./primitives";
 
-const HOTKEY = "5EKtvzbEvYZPRJdo42ug7mWrHdt4AurCNMs5CAefuBHfQmhq";
+const HOTKEY = "5FRwjXR2iHq8F2tL3ds6kQL1thSk2AdYgyEN2BDP96efmMM7";
 
 const MCP_TOOLS = [
   "diagnose_neuron",
@@ -65,12 +65,12 @@ function Output({ lines, caption }: { lines: string[]; caption: string }) {
   );
 }
 
-// An abridged copy of the recorded Doctor response for UID 0 on SN64 (doctor_broken_miner.json)
+// An abridged copy of the recorded Doctor response for UID 2 on SN64
 const RECORDED_RESPONSE = JSON.stringify({
   hotkey: HOTKEY,
   verdict: "broken",
-  headline: "UID 0 on SN64 earns nothing because no validator has scored it",
-  chain: { network: "finney", block: 9376730, runtime_spec: 486 },
+  headline: "UID 2 on SN64 earns nothing because no validator has scored it",
+  chain: { network: "finney", block: 9575751, runtime_spec: 494 },
   diagnoses: [
     {
       netuid: 64,
@@ -114,7 +114,7 @@ const SURFACES: Surface[] = [
     body: (
       <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {[
-          { href: `/doctor/finney/${HOTKEY}`, label: "A miner earning zero", note: "Doctor, SN64 UID 0" },
+          { href: `/doctor/finney/${HOTKEY}`, label: "A miner earning zero", note: "Doctor, SN64 UID 2" },
           { href: "/tx/finney/9376733-28", label: "A failed transaction", note: "Transaction debugger" },
           { href: "/explain?text=SubtensorModule.TooManyRegistrationsThisBlock", label: "An error message", note: "Error explainer" },
           { href: "/subnets", label: "Every subnet, with a health score", note: "Subnet directory" },
@@ -155,7 +155,7 @@ const SURFACES: Surface[] = [
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className="rounded-xl bg-surface px-4 py-3.5 shadow-[0_0_0_1px_var(--line)]">
             <p className="eyebrow">Then ask</p>
-            <p className="mt-2 text-[14px] leading-6 text-foreground">Why does 5EKtvz...Qmhq earn nothing on SN64, and what do I run to fix it?</p>
+            <p className="mt-2 text-[14px] leading-6 text-foreground">Why does 5FRwjX...mMM7 earn nothing on SN64, and what do I run to fix it?</p>
           </div>
           <div className="rounded-xl bg-surface px-4 py-3.5 shadow-[0_0_0_1px_var(--line)]">
             <p className="eyebrow">{MCP_TOOLS.length} tools</p>

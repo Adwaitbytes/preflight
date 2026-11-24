@@ -80,7 +80,7 @@ function DoctorCard() {
         <span className="font-mono text-[10.5px] tracking-[0.14em] text-[#9db0ff] uppercase">Doctor</span>
         <span className="mt-2 text-[17px] leading-snug font-medium tracking-[-0.02em]">Paste a hotkey. Know why it earns nothing.</span>
         <span className="mt-3 flex items-center justify-between rounded-lg bg-white/[0.06] px-2.5 py-2 font-mono text-[11.5px] text-white/60 shadow-[0_0_0_1px_rgb(255_255_255/0.1)]">
-          5EKtvz…Qmhq
+          5FRwjX…mMM7
           <ArrowRight className="size-3.5 text-white/70 transition-transform group-hover/card:translate-x-0.5" aria-hidden />
         </span>
       </Link>
